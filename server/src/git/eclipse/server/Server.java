@@ -1,103 +1,93 @@
 package git.eclipse.server;
 
+import git.eclipse.core.utils.connect.ServerData;
+import git.eclipse.server.ui.Console;
+import git.eclipse.server.ui.Control;
+import git.eclipse.server.ui.Players;
+
 import javax.swing.*;
-import javax.swing.border.LineBorder;
-import javax.swing.border.SoftBevelBorder;
-import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Server implements Runnable {
 
-    private JFrame m_Window;
-    private boolean m_Closing;
+    private final JFrame m_Frame;
+    private final JPanel m_MainPanel;
 
-    private ServerSocket m_Server;
-    private final List<Socket> m_ConnectedClients;
+    private final ServerData m_Data;
 
-    private Thread m_Thread;
-    private volatile boolean m_Running;
+    private final Thread m_MainThread;
+    private volatile boolean m_Running, m_Closing;
 
-    public Server(String title, int width, int height) {
-        Dimension dimension = new Dimension(width, height);
-        m_ConnectedClients = new ArrayList<>();
-        m_Running = false;
+    private JPanel m_ConsoleTab, m_ControlTab, m_PlayersTab;
 
-        m_Window = new JFrame(title);
-        m_Window.setVisible(false);
+    public Server(String title, String motd, String ip, int port) {
+        m_Data = new ServerData(title, ip, port, motd);
+        m_Frame = new JFrame(m_Data.toString());
+        m_Frame.setVisible(false);
+        m_Frame.addWindowListener(new WindowAdapter() {
 
-        m_Window.addWindowListener(new WindowAdapter() {
             @Override
             public void windowOpened(WindowEvent e) {
+                super.windowOpened(e);
                 m_Closing = false;
             }
 
             @Override
-            public void windowClosing(WindowEvent e) {
-                m_Closing = true;
-            }
-
-            @Override
             public void windowClosed(WindowEvent e) {
+                super.windowClosed(e);
                 m_Closing = true;
             }
         });
 
-        m_Window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        m_Window.setMinimumSize(dimension);
-        m_Window.setMaximumSize(dimension);
-        m_Window.setSize(dimension);
-        m_Window.pack();
-        m_Window.setLayout(new BorderLayout());
-        m_Window.setLocationRelativeTo(null);
-
+        m_MainPanel = new JPanel();
+        m_MainThread = new Thread(this, "Main_Thread");
     }
 
-    private void populate_window(JFrame frame) {
-        final JPanel m_Panel = new JPanel();
-        final JButton m_Start, m_Stop;
+    private void createUIComponents() {
+        m_MainPanel.setLayout(new BorderLayout());
+        m_MainPanel.setLocation(0, 0);
+        m_MainPanel.setSize(new Dimension(m_Frame.getContentPane().getWidth(), m_Frame.getContentPane().getHeight()));
 
-        m_Start = new JButton("Start");
-        m_Stop = new JButton("Stop");
+        final JTabbedPane pnlTabs = new JTabbedPane();
+        m_MainPanel.add(pnlTabs, BorderLayout.CENTER);
 
-        m_Start.setLocation(100, 150);
-        m_Stop.setLocation(100, m_Start.getY() + m_Start.getHeight() + 10);
+        m_ConsoleTab = new Console();
+        pnlTabs.add("Console", m_ConsoleTab);
 
-        
+        m_PlayersTab = new Players();
+        pnlTabs.add("Players", m_PlayersTab);
 
-        m_Panel.setLayout(new BorderLayout());
-        m_Panel.add(m_Start, BorderLayout.NORTH);
-        m_Panel.add(m_Stop, BorderLayout.EAST);
-
-        frame.add(m_Panel, BorderLayout.CENTER);
+        m_ControlTab = new Control();
+        pnlTabs.add("Control", m_ControlTab);
     }
 
-    public synchronized void start(int port) throws IOException {
-        if(m_Running) return;
+    private void setupFrame() {
+        m_Frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        m_Frame.setPreferredSize(new Dimension(475, 300));
+        m_Frame.setLayout(null);
+        m_Frame.pack();
+        m_Frame.setLocationRelativeTo(null);
+        m_Frame.setResizable(false);
+        m_Frame.setVisible(true);
 
-        m_Server = new ServerSocket(port, 25);
-        m_Thread = new Thread(this, "Server_Thread");
-
-        m_Running = true;
-        m_Thread.start();
+        m_Frame.add(m_MainPanel, BorderLayout.CENTER);
     }
 
-    public synchronized void stop() {
+    public void start() {
+        setupFrame();
+        createUIComponents();
+
+        if(!m_Running) m_Running = true;
+        m_MainThread.start();
+    }
+
+    private void dispose() {
         try {
-            if(m_Running)
-                m_Running = false;
-
-            m_Thread.join(1L);
-            m_Server.close();
-
-            m_Window.dispose();
-        } catch (IOException | InterruptedException e) {
+            m_MainThread.join(1);
+            System.exit(0);
+        } catch (InterruptedException e) {
             System.err.println(e.getMessage());
             System.exit(-1);
         }
@@ -105,17 +95,28 @@ public class Server implements Runnable {
 
     @Override
     public void run() {
-        populate_window(m_Window);
-        m_Window.setVisible(true);
+        Console console = (Console) m_ConsoleTab;
+        console.pushMessage("MoTD: " + m_Data.MotD);
 
         while(m_Running) {
-            if(m_Closing) {
+            if(m_Closing || console.shouldClose()) {
                 m_Running = false;
                 continue;
             }
+
+            while(!m_Closing) {
+
+            }
         }
 
-        stop();
+        dispose();
     }
 
+    public String getIP() {
+        return m_Data.IP;
+    }
+
+    public int getPort() {
+        return m_Data.Port;
+    }
 }

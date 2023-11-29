@@ -11,6 +11,10 @@ import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryStack.stackPush;
 
+/**
+ * <p>Handles everything related to our Window. This is required for any OpenGL related functions to matter.
+ * If you make your own Window class or want things set up different, I'd be cautious.</p>
+ */
 public class Window {
 
     private long m_Handle;
@@ -35,7 +39,7 @@ public class Window {
     }
 
     /**
-     * Initializes our Window using GLFW.
+     * <p>Initializes GLFW and sets our Window to show up in the Center of our screen.</p>
      */
     private void initialize() {
         glfwDefaultWindowHints();
@@ -64,23 +68,32 @@ public class Window {
         glfwSwapInterval(1);
     }
 
+    /**
+     * <p>Displays our Window</p>
+     */
     public void show() {
         if(m_Handle != MemoryUtil.NULL)
             glfwShowWindow(m_Handle);
     }
 
+    /**
+     * <p>Hides our Window</p>
+     */
     public void hide() {
         if(m_Handle != MemoryUtil.NULL)
             glfwHideWindow(m_Handle);
     }
 
+    /**
+     * <p>Swaps the back and current buffer, so we can continue displaying visuals while updating them.</p>
+     */
     public void swapBuffers() {
         if(m_Handle != MemoryUtil.NULL)
             glfwSwapBuffers(m_Handle);
     }
 
     /**
-     * Disposes our Window and its resources.
+     * <p>Disposes our Window and its resources.</p>
      */
     public void dispose() {
         if(m_Handle != MemoryUtil.NULL) {
@@ -89,6 +102,19 @@ public class Window {
         }
     }
 
+    /**
+     * <p>Closes our Window</p>
+     */
+    public void close() {
+        if(m_Handle != MemoryUtil.NULL)
+            glfwSetWindowShouldClose(m_Handle, true);
+    }
+
+    /**
+     * <p>Polls if our Window is closing or should close.</p>
+     *
+     * @return whether our Window should close.
+     */
     public boolean shouldClose() {
         return glfwWindowShouldClose(m_Handle);
     }

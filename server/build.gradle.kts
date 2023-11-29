@@ -13,14 +13,14 @@ sourceSets {
         }
 
         resources {
-            setSrcDirs(listOf("../assets"))
+            setSrcDirs(listOf("../resources"))
         }
     }
 }
 
 val appName = "Eclipse Origins"
 val mainClassName = "git.eclipse.server.Main"
-val assetsDir = file("../assets")
+val assetsDir = file("../resources")
 
 tasks.register<JavaExec>("run") {
     dependsOn("classes")
@@ -66,6 +66,6 @@ tasks.named<Jar>("dist").configure {
 
 eclipse {
     project {
-        name = "$appName-server"
+        name = "Eclipse Server"
     }
 }

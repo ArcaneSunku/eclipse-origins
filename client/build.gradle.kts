@@ -13,14 +13,14 @@ sourceSets {
         }
 
         resources {
-            setSrcDirs(listOf("../assets"))
+            setSrcDirs(listOf("../resources"))
         }
     }
 }
 
 val appName = "Eclipse Origins"
 val mainClassName = "git.eclipse.client.Main"
-val assetsDir = file("../assets")
+val assetsDir = file("../resources")
 
 tasks.register<JavaExec>("run") {
     dependsOn("classes")
@@ -46,12 +46,12 @@ tasks.register<JavaExec>("debug") {
 }
 
 tasks.register<Jar>("dist") {
+    dependsOn("classes")
+
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     manifest {
         attributes(mapOf("Main-Class" to mainClassName))
     }
-
-    dependsOn("classes")
 
     from(sourceSets["main"].output)
     from({ configurations.runtimeClasspath.get().filter { it.isDirectory }.map { it }  })
@@ -62,6 +62,6 @@ tasks.register<Jar>("dist") {
 
 eclipse {
     project {
-        name = "$appName-client"
+        name = "Eclipse Origins"
     }
 }

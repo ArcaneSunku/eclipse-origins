@@ -19,6 +19,6 @@ sourceSets {
 val appName = "Eclipse Origins"
 eclipse {
     project {
-        name = "$appName-core"
+        name = "Eclipse Origins Core"
     }
 }
