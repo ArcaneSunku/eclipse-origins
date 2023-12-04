@@ -1,6 +1,6 @@
 package git.eclipse.server;
 
-import git.eclipse.core.utils.Files;
+import git.eclipse.core.utils.Utils;
 
 public class Main {
 
@@ -10,7 +10,7 @@ public class Main {
     private static final String PORT_VAR = "iPort";
 
     public static void main(String[] args) {
-        final String config = Files.StringFromFile("data/config.ini");
+        final String config = Utils.StringFromFile("data/config.ini");
 
         final int nameLoc = config.indexOf(NAME_VAR) + NAME_VAR.length(),
         motdLoc = config.indexOf(MOTD_VAR) + MOTD_VAR.length(),

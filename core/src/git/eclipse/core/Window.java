@@ -1,6 +1,8 @@
 package git.eclipse.core;
 
 import org.lwjgl.glfw.GLFWVidMode;
+import org.lwjgl.glfw.GLFWWindowSizeCallback;
+import org.lwjgl.glfw.GLFWWindowSizeCallbackI;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
@@ -9,6 +11,8 @@ import java.nio.IntBuffer;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.opengl.GL11.glOrtho;
+import static org.lwjgl.opengl.GL11.glViewport;
 import static org.lwjgl.system.MemoryStack.stackPush;
 
 /**
@@ -21,7 +25,7 @@ public class Window {
 
     private String m_Title;
     private int m_Width, m_Height;
-    private boolean m_Resizable, m_Focused;
+    private boolean m_Resizable, m_Focused, m_Resized;
 
     public Window(String title, int width, int height) {
         this(title, width, height, false);
@@ -66,6 +70,10 @@ public class Window {
 
         glfwMakeContextCurrent(m_Handle);
         glfwSwapInterval(1);
+
+        glfwSetWindowSizeCallback(m_Handle, this::resize);
+
+        GL.createCapabilities();
     }
 
     /**
@@ -102,12 +110,24 @@ public class Window {
         }
     }
 
+    private void resize(long window, int width, int height) {
+        glViewport(0, 0, width, height);
+
+        m_Width = width;
+        m_Height = height;
+        m_Resized = true;
+    }
+
     /**
      * <p>Closes our Window</p>
      */
     public void close() {
         if(m_Handle != MemoryUtil.NULL)
             glfwSetWindowShouldClose(m_Handle, true);
+    }
+
+    public void setResized(boolean resized) {
+        m_Resized = resized;
     }
 
     /**
@@ -117,6 +137,14 @@ public class Window {
      */
     public boolean shouldClose() {
         return glfwWindowShouldClose(m_Handle);
+    }
+
+    public long getHandle() {
+        return m_Handle;
+    }
+
+    public boolean hasResized() {
+        return m_Resized;
     }
 
     public boolean isResizable() {

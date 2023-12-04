@@ -1,6 +1,17 @@
 package git.eclipse.core.graphics;
 
-import git.eclipse.core.utils.Files;
+import git.eclipse.core.utils.Utils;
+import org.joml.Matrix4f;
+import org.joml.Vector2f;
+import org.joml.Vector3f;
+import org.lwjgl.opengl.GL30;
+import org.lwjgl.system.MemoryStack;
+
+import java.nio.FloatBuffer;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.lwjgl.opengl.GL20.*;
 
@@ -9,120 +20,133 @@ import static org.lwjgl.opengl.GL20.*;
  */
 public class Shader {
 
-    private final String m_Filepath;
-    private String m_Source;
-    private int m_ProgramId;
-    private boolean m_Bound;
+    private final Map<String, Integer> m_UniformMap;
+    private final int m_ProgramId;
 
-    public Shader(String filepath) {
-        m_Filepath = filepath;
-        readShader(m_Filepath);
-        m_Bound = false;
-    }
+    public Shader(List<ShaderModuleData> shaderModulesDataList) {
+        m_ProgramId = glCreateProgram();
+        if(m_ProgramId == 0)
+            throw new RuntimeException("Failed to create a Shader Program!");
 
-    private void readShader(String filepath) {
-        final String vertToken = "#[vertex]", fragToken = "#[fragment]";
-        m_Source = Files.StringFromFile(filepath);
-        String vertSrc, fragSrc;
+        m_UniformMap = new HashMap<>();
+        List<Integer> shaderModules = new ArrayList<>();
+        shaderModulesDataList.forEach(s -> shaderModules.add(createShader(Utils.readFile(s.shaderFile), s.shaderType)));
 
-        vertSrc = m_Source.substring(m_Source.indexOf(vertToken) + vertToken.length() + 1, m_Source.indexOf(fragToken));
-        fragSrc = m_Source.substring(m_Source.indexOf(fragToken) + fragToken.length() + 1);
-
-        final int vertex = createShader(vertSrc, GL_VERTEX_SHADER), fragment = createShader(fragSrc, GL_FRAGMENT_SHADER);
-        assert(vertex != -1 && fragment != -1);
-
-        m_ProgramId = linkShader(vertex, fragment);
-        assert(m_ProgramId != -1);
-
-        glDeleteShader(vertex);
-        glDeleteShader(fragment);
-    }
-
-    private int createShader(String source, int shaderType) {
-        int shader = glCreateShader(shaderType);
-
-        glShaderSource(shaderType, source);
-        glCompileShader(shader);
-
-        if(glGetShaderi(shader, GL_COMPILE_STATUS) != GL_NO_ERROR) {
-            String infoLog = glGetShaderInfoLog(shader, 1024);
-            System.err.println(infoLog);
-            glDeleteShader(shader);
-
-            return -1;
-        }
-
-        return shader;
-    }
-
-    private int linkShader(int vertexId, int fragmentId) {
-        int program = glCreateProgram();
-
-        glAttachShader(program, vertexId);
-        glAttachShader(program, fragmentId);
-
-        glLinkProgram(program);
-        if(glGetProgrami(program, GL_LINK_STATUS) != GL_NO_ERROR) {
-            String infoLog = glGetProgramInfoLog(program, 1024);
-            System.err.println(infoLog);
-
-            glDetachShader(program, vertexId);
-            glDetachShader(program, fragmentId);
-            glDeleteProgram(program);
-
-            return -1;
-        }
-
-
-        glValidateProgram(program);
-        if(glGetProgrami(program, GL_VALIDATE_STATUS) != GL_NO_ERROR) {
-            String infoLog = glGetProgramInfoLog(program, 1024);
-            System.err.println(infoLog);
-
-            glDetachShader(program, vertexId);
-            glDetachShader(program, fragmentId);
-            glDeleteProgram(program);
-
-            return -1;
-        }
-
-        glDetachShader(program, vertexId);
-        glDetachShader(program, fragmentId);
-
-        return program;
+        link(shaderModules);
     }
 
     public void bind() {
-        if(m_Bound)
-            return;
-
         glUseProgram(m_ProgramId);
-        m_Bound = true;
     }
 
     public void unbind() {
-        if(!m_Bound)
-            return;
-
         glUseProgram(0);
-        m_Bound = false;
     }
 
     public void dispose() {
         unbind();
-        glDeleteProgram(m_ProgramId);
+
+        if(m_ProgramId != 0)
+            glDeleteProgram(m_ProgramId);
     }
 
-    public boolean isBound() {
-        return m_Bound;
+    public void createUniform(String name) {
+        int location = glGetUniformLocation(m_ProgramId, name);
+        if(location < 0)
+            throw new RuntimeException(String.format("Failed to create uniform [%s]!", name));
+
+        m_UniformMap.putIfAbsent(name, location);
     }
 
-    public String getFilepath() {
-        return m_Filepath;
+    public void setUniform1i(String name, int value) {
+        int location = m_UniformMap.get(name);
+        glUniform1i(location, value);
     }
 
-    public String getSource() {
-        return m_Source;
+    public void setUniformBool(String name, boolean value) {
+        int bool = value ? GL_TRUE : GL_FALSE;
+        setUniform1i(name, bool);
     }
+
+    public void setUniform1f(String name, float value) {
+        if(!m_UniformMap.containsKey(name)) createUniform(name);
+
+        int location = m_UniformMap.get(name);
+        glUniform1f(location, value);
+    }
+
+    public void setUniform2f(String name, float val1, float val2) {
+        if(!m_UniformMap.containsKey(name)) createUniform(name);
+
+        int location = m_UniformMap.get(name);
+        glUniform2f(location, val1, val2);
+    }
+
+    public void setUniform2f(String name, Vector2f value) {
+        setUniform2f(name, value.x, value.y);
+    }
+
+    public void setUniform3f(String name, float val1, float val2, float val3) {
+        if(!m_UniformMap.containsKey(name)) createUniform(name);
+
+        int location = m_UniformMap.get(name);
+        glUniform3f(location, val1, val2, val3);
+    }
+
+    public void setUniform3f(String name, Vector3f value) {
+        setUniform3f(name, value.x, value.y, value.z);
+    }
+
+    public void setUniformMat4(String name, Matrix4f value) {
+        if(!m_UniformMap.containsKey(name)) createUniform(name);
+        int location = m_UniformMap.get(name);
+
+        try(MemoryStack stack = MemoryStack.stackPush()) {
+            FloatBuffer buffer = stack.callocFloat(16);
+            value.get(buffer);
+            glUniformMatrix4fv(location, false, buffer);
+        }
+    }
+
+    public void validate() {
+        glValidateProgram(m_ProgramId);
+        if(glGetProgrami(m_ProgramId, GL_VALIDATE_STATUS) == GL_FALSE) {
+            System.err.println(glGetProgramInfoLog(m_ProgramId, 1024));
+            throw new RuntimeException("Error validating Shader Program!");
+        }
+    }
+
+    protected int createShader(String shaderSource, int shaderType) {
+        int shaderId = glCreateShader(shaderType);
+        if(shaderId == 0)
+            throw new RuntimeException("Failed to create shader: " + shaderType);
+
+        glShaderSource(shaderId, shaderSource);
+        glCompileShader(shaderId);
+        if(glGetShaderi(shaderId, GL_COMPILE_STATUS) == GL_FALSE) {
+            System.err.println(glGetShaderInfoLog(shaderId, 1024));
+            throw new RuntimeException("Failed to compile shader: " + shaderType);
+        }
+
+        glAttachShader(m_ProgramId, shaderId);
+        return shaderId;
+    }
+
+    private void link(List<Integer> shaderModules) {
+        glLinkProgram(m_ProgramId);
+        if(glGetProgrami(m_ProgramId, GL_LINK_STATUS) == GL_FALSE) {
+            System.err.println(glGetProgramInfoLog(m_ProgramId, 1024));
+            throw new RuntimeException("Error linking Shader Program!");
+        }
+
+        shaderModules.forEach(s -> glDetachShader(m_ProgramId, s));
+        shaderModules.forEach(GL30::glDeleteShader);
+    }
+
+    public int getProgramId() {
+        return m_ProgramId;
+    }
+
+    public record ShaderModuleData(String shaderFile, int shaderType) { }
 
 }

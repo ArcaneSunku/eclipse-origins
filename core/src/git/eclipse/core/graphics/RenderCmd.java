@@ -19,8 +19,6 @@ import static org.lwjgl.opengl.GL11.*;
 public class RenderCmd {
 
     public static void initialize() {
-        GL.createCapabilities();
-
         glEnable(GL_DEPTH_TEST);
 
         glEnable(GL_BLEND);

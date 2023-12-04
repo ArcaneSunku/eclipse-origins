@@ -1,14 +1,28 @@
 package git.eclipse.core.utils;
 
 import java.io.*;
+import java.nio.file.*;
 import java.util.Objects;
 
 /**
- * <p>A static class meant to be used to Read and Write to files.</p>
+ * <p>A static class meant to be used mostly for Reading and Writing to files.</p>
  */
-public class Files {
+public class Utils {
 
     public static final String NIL_STRING = "niL";
+
+    public static String readFile(String filePath) {
+        String str;
+
+        try {
+            str = new String(Files.readAllBytes(Paths.get(filePath)));
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+            throw new RuntimeException("Failed to read file: " + filePath);
+        }
+
+        return str;
+    }
 
     /**
      * <p>Reads the contents of a specified, internal file and gives them to us as a String</p>
@@ -46,7 +60,7 @@ public class Files {
 
                     br.close();
             } else {
-                InputStream is = new BufferedInputStream(Objects.requireNonNull(Files.class.getResourceAsStream("/" + filePath)));
+                InputStream is = new BufferedInputStream(Objects.requireNonNull(Utils.class.getResourceAsStream("/" + filePath)));
                 BufferedReader br = new BufferedReader(new InputStreamReader(is));
                 StringBuilder builder = new StringBuilder();
 
