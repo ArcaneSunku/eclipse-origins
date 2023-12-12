@@ -1,4 +1,4 @@
-package git.eclipse.core.utils.connect;
+package git.eclipse.core.network;
 
 public class ServerData {
 
@@ -6,10 +6,7 @@ public class ServerData {
     public int Port;
 
     public ServerData() {
-        GameName = "Eclipse Origins";
-        IP = "127.0.0.1";
-        Port = 7001;
-        MotD = "Welcome to Eclipse Origins!";
+        this("Eclipse Origins", "12.0.0.1", 7001, "Welcome to Eclipse Origins!");
     }
 
     public ServerData(String gameName, String ip, int port, String motd) {

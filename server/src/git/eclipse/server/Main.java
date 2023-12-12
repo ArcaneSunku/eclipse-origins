@@ -1,5 +1,6 @@
 package git.eclipse.server;
 
+import git.eclipse.core.network.ServerData;
 import git.eclipse.core.utils.Utils;
 
 public class Main {
@@ -22,7 +23,7 @@ public class Main {
         final String serverIP = config.substring(ipLoc + 1, config.indexOf(PORT_VAR) - 1);
         final int serverPort = Integer.parseInt(config.substring(portLoc + 1, portLoc + 5));
 
-        final Server server = new Server(serverName, serverMoTD, serverIP, serverPort);
+        final EclipseServer server = new EclipseServer(new ServerData(serverName, serverIP, serverPort, serverMoTD));
         server.start();
     }
 
