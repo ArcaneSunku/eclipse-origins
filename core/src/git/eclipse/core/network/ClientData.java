@@ -1,6 +1,8 @@
-package git.eclipse.core.utils.connect;
+package git.eclipse.core.network;
 
 import org.joml.Vector2f;
+
+import java.net.InetAddress;
 
 /**
  * <p>Data containing class. Less a class, more a struct. Obviously don't exist in java, so.</p>
@@ -26,7 +28,12 @@ public class ClientData {
         OWNER
     }
 
+    public InetAddress IP = null;
+    public int Port = 7001;
+
     public String UserName = "UserName";
+    public String Password = "PassWord";
+
     public Privilege PermLevel = Privilege.PLAYER;
 
     public Vector2f Position = new Vector2f(0.0f, 0.0f);
