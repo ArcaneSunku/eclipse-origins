@@ -1,5 +1,8 @@
 package git.eclipse.server.ui;
 
+import git.eclipse.server.EclipseServer;
+import git.eclipse.server.Main;
+
 import javax.swing.*;
 import javax.swing.border.SoftBevelBorder;
 import java.awt.*;
@@ -7,7 +10,6 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
 public class Console extends JPanel {
-
     private JEditorPane m_ConsolePane;
     private JTextField m_ConsoleInput;
 
@@ -21,7 +23,11 @@ public class Console extends JPanel {
         setLayout(new BorderLayout());
         setBorder(new SoftBevelBorder(SoftBevelBorder.LOWERED));
 
-        add(m_ConsolePane, BorderLayout.CENTER);
+        final JScrollPane scrollPane = new JScrollPane(m_ConsolePane);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+        add(scrollPane, BorderLayout.CENTER);
         add(m_ConsoleInput, BorderLayout.SOUTH);
     }
 
@@ -46,6 +52,8 @@ public class Console extends JPanel {
 
                     if(input.equals("/cls")) {
                         clearConsole();
+                    } else if(input.equals("/motd")) {
+                        pushMessage(EclipseServer.GetMotD());
                     } else if(input.equals("/exit")) {
                         shouldClose = true;
                     }else {

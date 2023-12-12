@@ -18,7 +18,7 @@ public class ServerHandler implements Runnable {
         try {
             m_Port = port;
             m_Socket = new DatagramSocket(m_Port);
-            m_Socket.setSoTimeout(5000);
+            m_Socket.setSoTimeout(29000);
         } catch (SocketException e) {
             System.err.println(e.getMessage());
         }
@@ -52,7 +52,9 @@ public class ServerHandler implements Runnable {
         }
 
         try {
-            if(m_Socket != null) m_Socket.close();
+            if(m_Socket != null && !m_Socket.isClosed())
+                m_Socket.close();
+
             m_Thread.join(1);
         } catch (InterruptedException e) {
             System.err.println(e.getMessage());
