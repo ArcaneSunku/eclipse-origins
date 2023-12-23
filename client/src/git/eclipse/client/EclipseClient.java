@@ -96,13 +96,15 @@ public class EclipseClient implements Runnable {
 
         RenderCmd.clearColor(0.25f, 0.25f, 0.25f);
         while(m_Running) {
-            if(m_Window.shouldClose() || !m_Client.isConnected()) {
+            if(m_Window.shouldClose()) {
                 stop();
                 continue;
             }
 
-            update();
-            render();
+            if(m_Client.isConnected()) {
+                update();
+                render();
+            }
 
             m_Window.swapBuffers();
             glfwPollEvents();

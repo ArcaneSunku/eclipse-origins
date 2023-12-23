@@ -26,7 +26,6 @@ public class ClientHandler implements Runnable {
             m_Socket.setSoTimeout(10000);
 
             m_Socket.connect(m_IPAddress, m_Port);
-            m_Connected = m_Socket.isConnected();
         } catch (UnknownHostException | SocketException e) {
             m_Connected = false;
             System.err.println(e.getMessage());
@@ -34,6 +33,7 @@ public class ClientHandler implements Runnable {
     }
 
     public synchronized void start() {
+        m_Connected = false;
         m_Thread = new Thread(this, "Client_Thread");
         m_Thread.start();
     }
@@ -57,13 +57,7 @@ public class ClientHandler implements Runnable {
 
     @Override
     public void run() {
-        try {
-            InetAddress localAddress = Inet4Address.getLocalHost();
-            Packet00Connect connectPacket = new Packet00Connect(localAddress.getHostAddress(), m_Socket.getLocalPort());
-            sendData(connectPacket.getData());
-        } catch (UnknownHostException e) {
-            throw new RuntimeException(e);
-        }
+        initialize();
 
         while(m_Connected) {
             assert m_Socket != null;
@@ -78,9 +72,37 @@ public class ClientHandler implements Runnable {
                 m_Socket.receive(packet);
             } catch (IOException ignored) { }
 
-            if(!(m_Socket == null || packet.getAddress() == null)) continue;
+            if(m_Socket == null || packet.getAddress() == null) continue;
             parseData(data);
         }
+    }
+
+    private void initialize() {
+        try {
+            InetAddress localAddress = Inet4Address.getLocalHost();
+            Packet00Connect connectPacket = new Packet00Connect(localAddress.getHostAddress(), m_Socket.getLocalPort());
+
+            do {
+                m_Connected = testServer();
+            } while(!m_Connected);
+
+            sendData(connectPacket.getData());
+        } catch (UnknownHostException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private boolean testServer() {
+        sendData("ping".getBytes());
+
+        byte[] data = new byte[Constants.MAX_PACKET_SIZE];
+        DatagramPacket packet = new DatagramPacket(data, data.length);
+        try {
+            m_Socket.receive(packet);
+
+            String message = new String(packet.getData()).trim();
+            return message.equalsIgnoreCase("pong");
+        } catch (IOException ignored) { return false; }
     }
 
     private void parseData(byte[] data) {
@@ -101,7 +123,7 @@ public class ClientHandler implements Runnable {
         DatagramPacket packet = new DatagramPacket(data, data.length, new InetSocketAddress(m_IPAddress, m_Port));
         try {
             m_Socket.send(packet);
-        } catch (IOException e) {
+        } catch (Exception e) {
             System.err.println(e.getMessage());
         }
     }

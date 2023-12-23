@@ -77,6 +77,12 @@ public class ServerHandler implements Runnable {
         String message = new String(data).trim();
         if(message.isEmpty()) return;
 
+        // Catch Test Pings
+        if(message.equalsIgnoreCase("ping")) {
+            sendData("pong".getBytes(), ip, port);
+            return;
+        }
+
         PacketType type = PacketType.LookupPacket(message.substring(0, 2));
         switch (type) {
             default:
