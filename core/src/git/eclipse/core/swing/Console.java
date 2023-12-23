@@ -1,7 +1,4 @@
-package git.eclipse.server.ui;
-
-import git.eclipse.server.EclipseServer;
-import git.eclipse.server.Main;
+package git.eclipse.core.swing;
 
 import javax.swing.*;
 import javax.swing.border.SoftBevelBorder;
@@ -53,7 +50,7 @@ public class Console extends JPanel {
                     if(input.equals("/cls")) {
                         clearConsole();
                     } else if(input.equals("/motd")) {
-                        pushMessage(EclipseServer.GetMotD());
+                        pushMessage(Server.GetMotD());
                     } else if(input.equals("/exit")) {
                         shouldClose = true;
                     }else {

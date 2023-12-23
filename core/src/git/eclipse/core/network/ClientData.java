@@ -28,7 +28,7 @@ public class ClientData {
         OWNER
     }
 
-    public InetAddress IP = null;
+    public String IP = "localhost";
     public int Port = 7001;
 
     public String UserName = "UserName";

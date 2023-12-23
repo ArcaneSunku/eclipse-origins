@@ -47,6 +47,7 @@ when(OperatingSystem.current()) {
             lwjglNatives += "-riscv"
         }
     }
+
     OperatingSystem.WINDOWS -> {
         lwjglNatives = "natives-windows"
     }
@@ -74,6 +75,7 @@ project(":core") {
     dependencies {
         api(platform("org.lwjgl:lwjgl-bom:$lwjglVersion"))
 
+        api("com.amihaiemil.web:eo-yaml:7.0.11")
         api("org.lwjgl:lwjgl")
         api("org.lwjgl:lwjgl-assimp")
         api("org.lwjgl:lwjgl-bgfx")

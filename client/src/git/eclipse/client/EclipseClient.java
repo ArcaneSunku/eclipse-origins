@@ -38,7 +38,7 @@ public class EclipseClient implements Runnable {
             throw new RuntimeException("Failed to initialize the program!");
         }
 
-        m_Client = new ClientHandler(m_Data.IP.getHostAddress(), m_Data.Port);
+        m_Client = new ClientHandler(m_Data.IP, m_Data.Port);
         m_Client.start();
 
         m_Running = true;

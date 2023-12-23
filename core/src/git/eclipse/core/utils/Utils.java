@@ -2,6 +2,7 @@ package git.eclipse.core.utils;
 
 import java.io.*;
 import java.nio.file.*;
+import java.util.Arrays;
 import java.util.Objects;
 
 /**

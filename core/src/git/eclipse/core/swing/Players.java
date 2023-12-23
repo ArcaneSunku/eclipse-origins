@@ -1,4 +1,4 @@
-package git.eclipse.server.ui;
+package git.eclipse.core.swing;
 
 import javax.swing.*;
 

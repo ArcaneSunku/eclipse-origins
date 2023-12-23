@@ -62,16 +62,11 @@ public class Main {
         final Hashtable<String, String> configInfo = GetConfigInfo("assets/config.ini");
         final ClientData data = new ClientData();
 
-        try {
-            data.IP = InetAddress.getByName(configInfo.get(IP_VAR));
-            data.Port = Integer.parseInt(configInfo.get(PORT_VAR));
+        data.IP = configInfo.get(IP_VAR);
+        data.Port = Integer.parseInt(configInfo.get(PORT_VAR));
 
-            data.UserName = configInfo.get(USER_VAR);
-            data.Password = configInfo.get(PASS_VAR);
-        } catch (UnknownHostException e) {
-            System.err.println(e.getMessage());
-            System.exit(-1);
-        }
+        data.UserName = configInfo.get(USER_VAR);
+        data.Password = configInfo.get(PASS_VAR);
 
         final EclipseClient eclipse = new EclipseClient(data, configInfo.get(NAME_VAR));
         eclipse.start();

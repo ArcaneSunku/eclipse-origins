@@ -2,11 +2,10 @@ package git.eclipse.server;
 
 import git.eclipse.core.network.ServerData;
 import git.eclipse.core.network.ServerHandler;
-import git.eclipse.server.ui.Console;
-import git.eclipse.server.ui.Server;
+import git.eclipse.core.swing.Console;
+import git.eclipse.core.swing.Server;
 
 public class EclipseServer implements Runnable {
-    private static EclipseServer m_Instance;
 
     private final ServerData m_Data;
     private final Thread m_Thread;
@@ -18,20 +17,17 @@ public class EclipseServer implements Runnable {
     public EclipseServer(ServerData data) {
         m_Data = data;
         m_Running = false;
-        m_Frame = new Server(data.toString());
+        m_Frame = new Server(data.toString(), data.MotD);
         m_Thread = new Thread(this, "Main_Thread");
-
-        if(m_Instance == null)
-            m_Instance = this;
     }
 
     public synchronized void start() {
         if(m_Running) return;
 
-        m_Server = new ServerHandler(m_Data.Port);
-        m_Running = true;
-
+        m_Server = new ServerHandler(m_Data.IP.getHostName(), m_Data.Port);
         m_Server.start();
+
+        m_Running = true;
         m_Thread.start();
     }
 
@@ -70,7 +66,7 @@ public class EclipseServer implements Runnable {
 
         while(m_Running) {
             if(m_Frame.isClosing() || console.shouldClose()) {
-                m_Running = false;
+                stop();
                 continue;
             }
 
@@ -78,9 +74,5 @@ public class EclipseServer implements Runnable {
         }
 
         dispose();
-    }
-
-    public static String GetMotD() {
-        return m_Instance.m_Data.MotD;
     }
 }
