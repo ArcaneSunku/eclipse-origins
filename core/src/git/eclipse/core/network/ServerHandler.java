@@ -75,12 +75,12 @@ public class ServerHandler implements Runnable {
 
     private void parsePacket(byte[] data, InetAddress ip, int port) {
         String message = new String(data).trim();
-        PacketType type = PacketType.LookupPacket(message.substring(0, 2));
+        if(message.isEmpty()) return;
 
+        PacketType type = PacketType.LookupPacket(message.substring(0, 2));
         switch (type) {
             default:
             case INVALID: {
-
                 break;
             }
 

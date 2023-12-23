@@ -2,6 +2,7 @@ package git.eclipse.core.network;
 
 import git.eclipse.core.game.Constants;
 import git.eclipse.core.network.packets.Packet00Connect;
+import git.eclipse.core.network.packets.Packet01Disconnect;
 import git.eclipse.core.network.packets.PacketType;
 
 import java.io.IOException;
@@ -41,9 +42,15 @@ public class ClientHandler implements Runnable {
         if(m_Connected) m_Connected = false;
 
         try {
-            if(m_Socket != null && !m_Socket.isClosed()) m_Socket.close();
+            if(m_Socket != null && !m_Socket.isClosed()) {
+                InetAddress localAddress = Inet4Address.getLocalHost();
+                Packet01Disconnect disconnectPacket = new Packet01Disconnect(localAddress.getHostAddress(), m_Socket.getLocalPort());
+                sendData(disconnectPacket.getData());
+
+                m_Socket.close();
+            }
             m_Thread.join(1);
-        } catch (InterruptedException e) {
+        } catch (UnknownHostException | InterruptedException e) {
             System.err.println(e.getMessage());
         }
     }
@@ -72,13 +79,15 @@ public class ClientHandler implements Runnable {
             } catch (IOException ignored) { }
 
             if(!(m_Socket == null || packet.getAddress() == null)) continue;
+            parseData(data);
         }
     }
 
     private void parseData(byte[] data) {
         String message = new String(data).trim();
-        PacketType type = PacketType.LookupPacket(message.substring(0, 2));
+        if(message.isEmpty()) return;
 
+        PacketType type = PacketType.LookupPacket(message.substring(0, 2));
         switch (type) {
             default:
             case INVALID: break;
