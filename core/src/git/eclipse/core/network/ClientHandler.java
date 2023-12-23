@@ -1,6 +1,8 @@
 package git.eclipse.core.network;
 
+import git.eclipse.core.game.Constants;
 import git.eclipse.core.network.packets.Packet00Connect;
+import git.eclipse.core.network.packets.PacketType;
 
 import java.io.IOException;
 import java.net.*;
@@ -63,13 +65,26 @@ public class ClientHandler implements Runnable {
                 continue;
             }
 
-            byte[] data = new byte[(int)5e6];
+            byte[] data = new byte[Constants.MAX_PACKET_SIZE];
             DatagramPacket packet = new DatagramPacket(data, data.length);
             try {
                 m_Socket.receive(packet);
             } catch (IOException ignored) { }
 
             if(!(m_Socket == null || packet.getAddress() == null)) continue;
+        }
+    }
+
+    private void parseData(byte[] data) {
+        String message = new String(data).trim();
+        PacketType type = PacketType.LookupPacket(message.substring(0, 2));
+
+        switch (type) {
+            default:
+            case INVALID: break;
+            case DISCONNECT:
+                // TODO: Make it send them to the main menu or something, this is essentially the server kicking the client
+                break;
         }
     }
 

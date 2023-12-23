@@ -5,6 +5,8 @@ package git.eclipse.core.game;
  */
 public class Constants {
 
+    public static final int MAX_PACKET_SIZE = (int)5e6;
+
     // General Constants
     public static final long MAX_PLAYERS = 70;
     public static final long MAX_ITEMS = 255;

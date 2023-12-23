@@ -1,5 +1,6 @@
 package git.eclipse.core.network;
 
+import git.eclipse.core.game.Constants;
 import git.eclipse.core.network.packets.Packet00Connect;
 import git.eclipse.core.network.packets.Packet01Disconnect;
 import git.eclipse.core.network.packets.PacketType;
@@ -61,7 +62,7 @@ public class ServerHandler implements Runnable {
                 continue;
             }
 
-            byte[] data = new byte[(int)5e6];
+            byte[] data = new byte[Constants.MAX_PACKET_SIZE];
             DatagramPacket packet = new DatagramPacket(data, data.length);
             try {
                 m_Socket.receive(packet);
@@ -99,7 +100,7 @@ public class ServerHandler implements Runnable {
 
                 if(!alreadyConnected) {
                     m_ConnectedPlayers.add(cl);
-                    Server.PushMessage(String.format("Connection from %s:%d established!", cl.IP, cl.Port));
+                    Server.PushMessage(String.format("%s:%d connected!", cl.IP, cl.Port));
                 }
 
                 break;
@@ -107,6 +108,16 @@ public class ServerHandler implements Runnable {
 
             case DISCONNECT: {
                 Packet01Disconnect packet = new Packet01Disconnect(data);
+                String dcIP = packet.getIP();
+                int dcPort = packet.getPort();
+
+                for(ClientData client : m_ConnectedPlayers) {
+                    if(client.IP.equals(dcIP) && client.Port == dcPort) {
+                        m_ConnectedPlayers.remove(client);
+                        Server.PushMessage(String.format("%s:%d disconnected!", client.IP, client.Port));
+                        break;
+                    }
+                }
 
                 break;
             }
