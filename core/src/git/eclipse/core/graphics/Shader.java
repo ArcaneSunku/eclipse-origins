@@ -23,14 +23,22 @@ public class Shader {
     private final Map<String, Integer> m_UniformMap;
     private final int m_ProgramId;
 
-    public Shader(List<ShaderModuleData> shaderModulesDataList) {
+    public Shader(List<ShaderModuleData> shaderModuleDataList) {
+        this(shaderModuleDataList, true);
+    }
+
+    public Shader(List<ShaderModuleData> shaderModulesDataList, boolean internal) {
         m_ProgramId = glCreateProgram();
         if(m_ProgramId == 0)
             throw new RuntimeException("Failed to create a Shader Program!");
 
         m_UniformMap = new HashMap<>();
         List<Integer> shaderModules = new ArrayList<>();
-        shaderModulesDataList.forEach(s -> shaderModules.add(createShader(Utils.readFile(s.shaderFile), s.shaderType)));
+
+        if(internal)
+            shaderModulesDataList.forEach(s -> shaderModules.add(createShader(Utils.StringFromFile(s.shaderFile), s.shaderType)));
+        else
+            shaderModulesDataList.forEach(s -> shaderModules.add(createShader(Utils.readFile(s.shaderFile), s.shaderType)));
 
         link(shaderModules);
     }
