@@ -1,7 +1,10 @@
 package git.eclipse.core.graphics;
 
 import org.lwjgl.system.MemoryStack;
+import org.lwjgl.system.MemoryUtil;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
@@ -64,24 +67,56 @@ public class Texture {
     }
 
     /**
-     * Creates a new texture by loading an image file from the specified filepath.
+     * Creates a new texture by loading an internal image file from the specified filepath.
      *
      * @param filepath The filepath to the image file.
      */
     public Texture(String filepath) {
+        this(filepath, true);
+    }
+
+    /**
+     * Creates a new texture by loading an image file from the specified filepath.
+     *
+     * @param filepath The filepath to the image file.
+     * @param internal Lets the app know if the file is packed with it or in the director alongside it
+     */
+    public Texture(String filepath, boolean internal) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             m_Filepath = filepath;
             IntBuffer w = stack.mallocInt(1);
             IntBuffer h = stack.mallocInt(1);
             IntBuffer channels = stack.mallocInt(1);
 
-            ByteBuffer buf = stbi_load(filepath, w, h, channels, 4);
-            if (buf == null) throw new RuntimeException(String.format("Image file [%s] not loaded: %s", m_Filepath, stbi_failure_reason()));
+            ByteBuffer buffer;
+            if(internal) {
+                String newPath = "/" + filepath;
+                ByteBuffer imageData = null;
+                try(InputStream is = Texture.class.getResourceAsStream(newPath)) {
+                    if(is == null) throw new IOException("Failed to load file: " + newPath);
+
+                    byte[] data = is.readAllBytes();
+                    imageData = MemoryUtil.memAlloc(data.length);
+                    imageData.put(0, data);
+
+                    buffer = stbi_load_from_memory(imageData, w, h, channels, 4);
+                } catch (IOException e) {
+                    System.err.println(e.getMessage());
+                    throw new RuntimeException();
+                } finally {
+                    if(imageData != null)
+                        MemoryUtil.memFree(imageData);
+                }
+            } else {
+                buffer = stbi_load(m_Filepath, w, h, channels, 4);
+            }
+
+            if (buffer == null) throw new RuntimeException(String.format("Image file [%s] not loaded: %s", m_Filepath, stbi_failure_reason()));
 
             int width = w.get(), height = h.get();
-            generateTexture(width, height, buf);
+            generateTexture(width, height, buffer);
 
-            stbi_image_free(buf);
+            stbi_image_free(buffer);
         }
     }
 
