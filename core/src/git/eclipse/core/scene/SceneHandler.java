@@ -1,4 +1,4 @@
-package git.eclipse.client.scenes;
+package git.eclipse.core.scene;
 
 import git.eclipse.core.Window;
 
@@ -18,20 +18,25 @@ public class SceneHandler {
         m_ActiveScene = null;
     }
 
-    public void update() {
+    public void update(double dt) {
         if(m_ActiveScene != null) {
             if(m_Window.hasResized()) {
                 m_ActiveScene.resize(m_Window.getWidth(), m_Window.getHeight());
                 m_Window.setResized(false);
             }
 
-            m_ActiveScene.update();
+            m_ActiveScene.update(dt);
         }
     }
 
     public void render() {
         if(m_ActiveScene != null)
             m_ActiveScene.render();
+    }
+
+    public void resize(int width, int height) {
+        if(m_ActiveScene != null)
+            m_ActiveScene.resize(width, height);
     }
 
     public void dispose() {
