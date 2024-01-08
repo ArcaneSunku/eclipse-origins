@@ -67,10 +67,10 @@ public class EclipseClient implements Runnable {
             if(m_Scenes != null)
                 m_Scenes.dispose();
 
-            AssetLoader.Dispose();
             if(!m_Window.shouldClose())
                 m_Window.close();
 
+            AssetLoader.Dispose();
             if(m_ErrorCallback != null) {
                 m_ErrorCallback.free();
                 glfwSetErrorCallback(null);

@@ -7,9 +7,7 @@ import org.lwjgl.system.MemoryStack;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.security.InvalidParameterException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static org.lwjgl.opengl.GL15.*;
@@ -176,8 +174,8 @@ public class Mesh {
         return m_VaoId;
     }
 
-    public List<Integer> getVBOList() {
-        return m_VboIdList;
+    public int getVBO(int index) {
+        return m_VboIdList.get(index);
     }
 
     public int getVertexCount() {
