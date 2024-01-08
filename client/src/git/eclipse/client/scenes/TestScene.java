@@ -11,41 +11,49 @@ import git.eclipse.core.scene.SceneAdapter;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class TestScene extends SceneAdapter {
 
+    private List<Sprite> spriteList;
     private OrthoCamera camera;
-    private Shader shader;
-    private Sprite sprite;
-    private Sprite sprite2;
-    private Mesh testMesh;
-
     private SpriteBatch batch;
 
     @Override
     public void show() {
-        AssetLoader.AddTexture("test", "test.png");
-        AssetLoader.AddTexture("carrot", "characters/carrot.png");
+        spriteList = new ArrayList<>();
+        camera = new OrthoCamera(600, 400);
+
         AssetLoader.AddShader("basic", "basic");
 
-        shader = AssetLoader.GetShader("basic");
-        shader.createUniform("u_ViewProjection");
-        shader.createUniform("u_Textures");
+        AssetLoader.AddTexture("test", "test.png");
+        AssetLoader.AddTexture("tileset1", "tilesets/1.png");
+        AssetLoader.AddTexture("tileset2", "tilesets/2.png");
 
-        camera = new OrthoCamera(800, 600);
+        for(int y = 8; y > -10; y--) {
+            for(int x = -10; x < 10; x++) {
+                Sprite sprite = new Sprite(AssetLoader.GetTexture("tileset1"));
+                sprite.setPosition(x * 32, y * 32, 0);
+                sprite.setSize(32, 32);
 
-        sprite = new Sprite(AssetLoader.GetTexture("test"));
-        sprite.setPosition(0.0f, 0.0f, 0.0f);
-        sprite.setSize(64.f, 64.f);
+                sprite.setCellPos(new Vector2f(0, 32));
+                sprite.setCellSize(new Vector2f(32, 32));
+                spriteList.add(sprite);
+            }
+        }
 
-        sprite2 = new Sprite(AssetLoader.GetTexture("carrot"));
-        sprite2.setPosition(64.0f, 0.0f, 0.0f);
-        sprite2.setScale(2.0f);
+        Sprite sprite = new Sprite(AssetLoader.GetTexture("tileset2"));
+        sprite.setSize(32, 32);
+        sprite.setCellPos(new Vector2f(32, 32 * 6));
+        sprite.setCellSize(new Vector2f(32, 32));
 
-        batch = new SpriteBatch(shader);
+        spriteList.add(sprite);
+        batch = new SpriteBatch(AssetLoader.GetShader("basic"));
     }
 
     @Override
@@ -55,37 +63,35 @@ public class TestScene extends SceneAdapter {
 
     @Override
     public void update(double dt) {
-        // Ignore
+        Sprite sprite = spriteList.get(spriteList.size()-1);
+        Vector3f pos = sprite.getPosition();
+
+
+
+        sprite.setPosition(pos.x, pos.y, pos.z);
     }
 
     @Override
     public void render() {
         batch.begin(camera);
-        sprite.draw(batch);
-        sprite2.draw(batch);
+
+        for(Sprite sprite : spriteList)
+            sprite.draw(batch);
+
         batch.end();
     }
 
     @Override
     public void resize(int width, int height) {
-        camera.resize(16, 10);
+        camera.resize(600, 400);
     }
 
     @Override
     public void dispose() {
-        if(shader != null) {
-            shader.unbind();
-            shader = null;
+        if(spriteList != null) {
+            spriteList.clear();
+            spriteList = null;
         }
-
-        if(sprite != null)
-            sprite = null;
-
-        if(sprite2 != null)
-            sprite2 = null;
-
-        if(testMesh != null)
-            testMesh.dispose();
 
         if(batch != null)
             batch.dispose();
