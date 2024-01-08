@@ -78,6 +78,14 @@ public class Sprite {
         m_Scale = scale;
     }
 
+    public void setCellPos(Vector2f cellPos) {
+        m_CellPos.set(cellPos);
+    }
+
+    public void setCellSize(Vector2f cellSize) {
+        m_CellSize.set(cellSize);
+    }
+
     public Texture getTexture() {
         return m_Texture;
     }
