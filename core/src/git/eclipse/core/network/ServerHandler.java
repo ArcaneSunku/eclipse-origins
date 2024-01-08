@@ -1,6 +1,7 @@
 package git.eclipse.core.network;
 
 import git.eclipse.core.game.Constants;
+import git.eclipse.core.network.packets.Packet;
 import git.eclipse.core.network.packets.Packet00Connect;
 import git.eclipse.core.network.packets.Packet01Disconnect;
 import git.eclipse.core.network.packets.PacketType;
@@ -64,12 +65,13 @@ public class ServerHandler implements Runnable {
 
             byte[] data = new byte[Constants.MAX_PACKET_SIZE];
             DatagramPacket packet = new DatagramPacket(data, data.length);
+
             try {
                 m_Socket.receive(packet);
-            } catch (IOException ignored) { }
+                if(m_Socket == null || packet.getAddress() == null) continue;
 
-            if(m_Socket == null || packet.getAddress() == null) continue;
-            parsePacket(packet.getData(), packet.getAddress(), packet.getPort());
+                parsePacket(packet.getData(), packet.getAddress(), packet.getPort());
+            } catch (IOException ignored) { }
         }
     }
 
@@ -83,7 +85,9 @@ public class ServerHandler implements Runnable {
             return;
         }
 
+        Packet packet ;
         PacketType type = PacketType.LookupPacket(message.substring(0, 2));
+
         switch (type) {
             default:
             case INVALID: {
@@ -91,40 +95,46 @@ public class ServerHandler implements Runnable {
             }
 
             case CONNECT: {
-                Packet00Connect packet = new Packet00Connect(data);
-                ClientData cl = new ClientData();
-                cl.IP = packet.getIP();
-                cl.Port = packet.getPort();
-
-                boolean alreadyConnected = false;
-                for(ClientData client : m_ConnectedPlayers) {
-                    if(cl.IP.equals(client.IP) && cl.Port == client.Port) {
-                        alreadyConnected = true;
-                        System.err.println("Failed to connect, this connection is already established!");
-                    }
-                }
-
-                if(!alreadyConnected) {
-                    m_ConnectedPlayers.add(cl);
-                    Server.PushMessage(String.format("%s:%d connected!", cl.IP, cl.Port));
-                }
-
+                packet = new Packet00Connect(data);
+                ClientData client = new ClientData();
+                connectClient(client, (Packet00Connect) packet);
                 break;
             }
 
             case DISCONNECT: {
-                Packet01Disconnect packet = new Packet01Disconnect(data);
-                String dcIP = packet.getIP();
-                int dcPort = packet.getPort();
+                packet = new Packet01Disconnect(data);
+                disconnectClient((Packet01Disconnect) packet);
+                break;
+            }
+        }
+    }
 
-                for(ClientData client : m_ConnectedPlayers) {
-                    if(client.IP.equals(dcIP) && client.Port == dcPort) {
-                        m_ConnectedPlayers.remove(client);
-                        Server.PushMessage(String.format("%s:%d disconnected!", client.IP, client.Port));
-                        break;
-                    }
-                }
+    private void connectClient(ClientData client, Packet00Connect packet) {
+        client.IP = packet.getIP().getHostAddress();
+        client.Port = packet.getPort();
 
+        boolean alreadyConnected = false;
+        for(ClientData cl : m_ConnectedPlayers) {
+            if(client.IP.equals(cl.IP) && client.Port == cl.Port) {
+                alreadyConnected = true;
+                System.err.println("Failed to connect, this connection is already established!");
+            }
+        }
+
+        if(!alreadyConnected) {
+            m_ConnectedPlayers.add(client);
+            Server.PushMessage(String.format("%s:%d connected!", client.IP, client.Port));
+        }
+    }
+
+    private void disconnectClient(Packet01Disconnect packet) {
+        String dcIP = packet.getIP();
+        int dcPort = packet.getPort();
+
+        for(ClientData client : m_ConnectedPlayers) {
+            if(client.IP.equals(dcIP) && client.Port == dcPort) {
+                m_ConnectedPlayers.remove(client);
+                Server.PushMessage(String.format("%s:%d disconnected!", client.IP, client.Port));
                 break;
             }
         }

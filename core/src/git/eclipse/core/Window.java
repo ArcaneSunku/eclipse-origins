@@ -25,19 +25,20 @@ public class Window {
 
     private String m_Title;
     private int m_Width, m_Height;
-    private boolean m_Resizable, m_Focused, m_Resized;
+    private boolean m_Resizable, m_Focused, m_Resized, m_VSync;
 
     public Window(String title, int width, int height) {
-        this(title, width, height, false);
+        this(title, width, height, false, true);
     }
 
-    public Window(String title, int width, int height, boolean resizable) {
+    public Window(String title, int width, int height, boolean resizable, boolean vSync) {
         m_Title = title;
         m_Width = width;
         m_Height = height;
 
         m_Focused = false;
         m_Resizable = resizable;
+        m_VSync = vSync;
 
         initialize();
     }
@@ -68,8 +69,9 @@ public class Window {
 
         glfwSetWindowFocusCallback(m_Handle, (window, focused) -> m_Focused = focused);
 
+        int swapInterval = m_VSync ? 1 : 0;
         glfwMakeContextCurrent(m_Handle);
-        glfwSwapInterval(1);
+        glfwSwapInterval(swapInterval);
 
         glfwSetWindowSizeCallback(m_Handle, this::resize);
 
@@ -130,6 +132,10 @@ public class Window {
         m_Resized = resized;
     }
 
+    public void setVSync(boolean vSync) {
+        m_VSync = vSync;
+    }
+
     /**
      * <p>Polls if our Window is closing or should close.</p>
      *
@@ -154,6 +160,8 @@ public class Window {
     public boolean isFocused() {
         return m_Focused;
     }
+
+    public boolean vSyncEnabled() { return m_VSync; }
 
     public String getTitle() {
         return m_Title;
