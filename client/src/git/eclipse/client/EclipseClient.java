@@ -1,6 +1,8 @@
 package git.eclipse.client;
 
-import git.eclipse.client.scenes.SceneHandler;
+import git.eclipse.client.scenes.MainScene;
+import git.eclipse.core.scene.SceneHandler;
+import git.eclipse.client.scenes.TestScene;
 import git.eclipse.core.Window;
 import git.eclipse.core.graphics.RenderCmd;
 import git.eclipse.core.network.ClientData;
@@ -27,6 +29,7 @@ public class EclipseClient implements Runnable {
         m_Data = data;
         m_Title = title;
         m_Running = false;
+
         m_Thread = new Thread(this, "Main_Thread");
     }
 
@@ -51,15 +54,10 @@ public class EclipseClient implements Runnable {
     }
 
     private void initialize() {
-        m_Scenes = new SceneHandler(m_Window);
-    }
+        m_Scenes.addScene("Test", new TestScene());
+        m_Scenes.addScene("Main", new MainScene());
 
-    private void update() {
-        m_Scenes.update();
-    }
-
-    private void render() {
-        m_Scenes.render();
+        m_Scenes.setActiveScene("Test");
     }
 
     private void dispose() {
@@ -69,6 +67,7 @@ public class EclipseClient implements Runnable {
             if(m_Scenes != null)
                 m_Scenes.dispose();
 
+            AssetLoader.Dispose();
             if(!m_Window.shouldClose())
                 m_Window.close();
 
@@ -92,24 +91,58 @@ public class EclipseClient implements Runnable {
         m_Window.show();
 
         RenderCmd.initialize();
+        RenderCmd.clearColor(0.05f, 0.05f, 0.05f);
+
+        m_Scenes = new SceneHandler(m_Window);
         initialize();
 
-        RenderCmd.clearColor(0.25f, 0.25f, 0.25f);
+        double accumulator = 0.0;
+        double optimal = 1.0 / 60.0;
+        double currentTime = System.nanoTime() / 1e9;
+
         while(m_Running) {
+            RenderCmd.clear();
             if(m_Window.shouldClose()) {
                 stop();
                 continue;
             }
 
-            if(m_Client.isConnected()) {
-                update();
-                render();
+            if(m_Window.hasResized() && m_Window.isResizable()) {
+                m_Scenes.resize(m_Window.getWidth(), m_Window.getHeight());
+                m_Window.setResized(false);
             }
+
+            double newTime = System.nanoTime() / 1e9;
+            double frameTime = newTime - currentTime;
+            currentTime = newTime;
+
+            accumulator += frameTime;
+            while(accumulator >= optimal) {
+                m_Scenes.update(optimal);
+                accumulator -= optimal;
+            }
+
+            m_Scenes.render();
 
             m_Window.swapBuffers();
             glfwPollEvents();
+
+            if(!m_Window.vSyncEnabled())
+                sleep(currentTime);
         }
 
         dispose();
+    }
+
+    private void sleep(double currentTime) {
+        try {
+            double desiredTime = 1.0 / 60.0;
+            long sleepTime = (long) ((currentTime - System.nanoTime() + desiredTime) / 1e9);
+            if (sleepTime > 0) {
+                Thread.sleep(sleepTime);
+            }
+        } catch (InterruptedException e) {
+            System.err.println(e.getMessage());
+        }
     }
 }

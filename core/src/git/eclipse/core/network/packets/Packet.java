@@ -11,8 +11,13 @@ public abstract class Packet {
         m_PacketId = (byte) id;
     }
 
-    public abstract void writeData(ClientHandler client);
-    public abstract void writeData(ServerHandler server);
+    public void writeData(ClientHandler client) {
+        client.sendData(getData());
+    }
+
+    public void writeData(ServerHandler server) {
+        server.sendDataToAll(getData());
+    }
 
     public String readData(byte[] data) {
         String message = new String(data).trim();

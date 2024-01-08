@@ -4,7 +4,7 @@ package git.eclipse.core.network.packets;
  * Simple enum that represents a "network packet" type. These will help decide what type of packet is being sent/received and what data goes with it.
  */
 public enum PacketType {
-    INVALID(-1), CONNECT(0), DISCONNECT(1);
+    INVALID(-1), CONNECT(0), DISCONNECT(1), LOGIN(2), LOGOUT(3);
     public static PacketType LookupPacket(int id) {
         for(PacketType p : PacketType.values())
             if(id == p.m_PacketId)
@@ -35,11 +35,12 @@ public enum PacketType {
     public String toString() {
         String type;
 
-        switch(LookupPacket(getId())) {
-            case INVALID -> type    = "INVALID";
+        switch (LookupPacket(getId())) {
+            default -> type         = "INVALID";
             case CONNECT -> type    = "CONNECT";
             case DISCONNECT -> type = "DISCONNECT";
-            default -> type = "UNKNOWN"; // LookupPacket essentially prevents this
+            case LOGIN -> type      = "LOGIN";
+            case LOGOUT -> type     = "LOGOUT";
         }
 
         return String.format("%s_PACKET[%d]", type, m_PacketId);

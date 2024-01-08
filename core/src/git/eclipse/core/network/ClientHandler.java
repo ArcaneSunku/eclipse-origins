@@ -1,6 +1,7 @@
 package git.eclipse.core.network;
 
 import git.eclipse.core.game.Constants;
+import git.eclipse.core.network.packets.Packet;
 import git.eclipse.core.network.packets.Packet00Connect;
 import git.eclipse.core.network.packets.Packet01Disconnect;
 import git.eclipse.core.network.packets.PacketType;
@@ -42,16 +43,10 @@ public class ClientHandler implements Runnable {
         if(m_Connected) m_Connected = false;
 
         try {
-            if(m_Socket != null && !m_Socket.isClosed()) {
-                InetAddress localAddress = Inet4Address.getLocalHost();
-                Packet01Disconnect disconnectPacket = new Packet01Disconnect(localAddress.getHostAddress(), m_Socket.getLocalPort());
-                sendData(disconnectPacket.getData());
-
-                m_Socket.close();
-            }
+            closeSocket();
             m_Thread.join(1);
-        } catch (UnknownHostException | InterruptedException e) {
-            System.err.println(e.getMessage());
+        } catch (InterruptedException e) {
+
         }
     }
 
@@ -68,12 +63,13 @@ public class ClientHandler implements Runnable {
 
             byte[] data = new byte[Constants.MAX_PACKET_SIZE];
             DatagramPacket packet = new DatagramPacket(data, data.length);
+
             try {
                 m_Socket.receive(packet);
-            } catch (IOException ignored) { }
+                if(m_Socket == null || packet.getAddress() == null) continue;
 
-            if(m_Socket == null || packet.getAddress() == null) continue;
-            parseData(data);
+                parseData(data);
+            } catch (IOException ignored) { }
         }
     }
 
@@ -82,14 +78,31 @@ public class ClientHandler implements Runnable {
             InetAddress localAddress = Inet4Address.getLocalHost();
             Packet00Connect connectPacket = new Packet00Connect(localAddress.getHostAddress(), m_Socket.getLocalPort());
 
-            do {
-                m_Connected = testServer();
-            } while(!m_Connected);
-
+            m_Connected = pingServer();
             sendData(connectPacket.getData());
-        } catch (UnknownHostException e) {
-            throw new RuntimeException(e);
-        }
+        } catch (UnknownHostException ignored) { }
+    }
+
+    private boolean pingServer() {
+        boolean connected;
+        do {
+            connected = testServer();
+        } while(!connected);
+
+        return connected;
+    }
+
+    private void closeSocket() {
+        try {
+            assert(m_Socket != null);
+            if(!m_Socket.isClosed()) {
+                InetAddress localAddress = Inet4Address.getLocalHost();
+                Packet01Disconnect disconnectPacket = new Packet01Disconnect(localAddress.getHostAddress(), m_Socket.getLocalPort());
+                sendData(disconnectPacket.getData());
+
+                m_Socket.close();
+            }
+        } catch (UnknownHostException ignored) { }
     }
 
     private boolean testServer() {
@@ -109,12 +122,16 @@ public class ClientHandler implements Runnable {
         String message = new String(data).trim();
         if(message.isEmpty()) return;
 
+        Packet packet = null;
         PacketType type = PacketType.LookupPacket(message.substring(0, 2));
+
         switch (type) {
             default:
             case INVALID: break;
+
+
             case DISCONNECT:
-                // TODO: Make it send them to the main menu or something, this is essentially the server kicking the client
+
                 break;
         }
     }
@@ -123,9 +140,7 @@ public class ClientHandler implements Runnable {
         DatagramPacket packet = new DatagramPacket(data, data.length, new InetSocketAddress(m_IPAddress, m_Port));
         try {
             m_Socket.send(packet);
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
-        }
+        } catch (Exception ignored) { }
     }
 
     public boolean isConnected() {

@@ -20,25 +20,10 @@ public class Packet01Disconnect extends Packet {
     }
 
     public Packet01Disconnect(String ip, int port) {
-        super(01);
+        super(1);
 
         m_IP = ip;
         m_Port = port;
-    }
-
-    @Override
-    public void writeData(ClientHandler client) {
-        client.sendData(getData());
-    }
-
-    @Override
-    public void writeData(ServerHandler server) {
-        try {
-            server.sendData(getData(), InetAddress.getByName(m_IP), m_Port);
-        } catch (UnknownHostException e) {
-            System.err.println(e.getMessage());
-            throw new RuntimeException("Failed to send DisconnectPacket"); // Pretty sure we should never reach this, but idk
-        }
     }
 
     @Override
