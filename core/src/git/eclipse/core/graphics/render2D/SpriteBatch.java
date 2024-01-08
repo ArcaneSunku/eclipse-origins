@@ -38,13 +38,15 @@ public class SpriteBatch {
 
     public SpriteBatch(int size, Shader shader) {
         if(size > 8191) throw new IllegalArgumentException("Can't have more than 8191 sprites a batch: " + size);
+        shader.createUniform("u_ViewProjection");
+        shader.createUniform("u_Textures");
 
         m_BatchShader = shader;
         m_Size = size;
 
         m_Textures = new ArrayList<>();
         m_Vertices = MemoryUtil.memAllocFloat(size * 4);
-        m_Indices = MemoryUtil.memAllocInt(size * 4);
+        m_Indices = MemoryUtil.memAllocInt(size * 6);
 
         m_Mesh = new Mesh(m_Size);
         m_Rendering = false;
@@ -67,7 +69,7 @@ public class SpriteBatch {
     }
 
     public void render(Texture texture, Vector2f cellPos, Vector2f cellSize, Vector3f position, Vector2f size, Vector3f color) {
-        if(m_Vertices.remaining() < m_Size * 4 || m_Indices.remaining() < m_Size * 6)
+        if(m_Vertices.remaining() <= m_Size * 4)
             flush();
 
         if(!m_Textures.contains(texture))
@@ -107,6 +109,7 @@ public class SpriteBatch {
         MemoryUtil.memFree(m_Indices);
 
         m_Mesh.dispose();
+        m_BatchShader.dispose();
     }
 
     private void flush() {
@@ -115,22 +118,23 @@ public class SpriteBatch {
         m_Vertices.flip();
         m_Indices.flip();
 
-        glBindVertexArray(m_Mesh.getVAO());
         m_BatchShader.bind();
 
         Matrix4f combinedMatrix = m_Camera.getCombined();
         m_BatchShader.setUniformMat4("u_ViewProjection", combinedMatrix);
 
-        glBindBuffer(GL_ARRAY_BUFFER, m_Mesh.getVBOList().get(0));
+        glBindVertexArray(m_Mesh.getVAO());
+        glBindBuffer(GL_ARRAY_BUFFER, m_Mesh.getVBO(0));
         glBufferSubData(GL_ARRAY_BUFFER, 0, m_Vertices);
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Mesh.getVBOList().get(1));
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Mesh.getVBO(1));
         glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, m_Indices);
 
         glDrawElements(GL_TRIANGLES, m_SpriteCount * 6, GL_UNSIGNED_INT, NULL);
 
-        m_BatchShader.unbind();
         glBindVertexArray(0);
+        m_BatchShader.unbind();
+
 
         m_Textures.clear();
         m_Vertices.clear();
