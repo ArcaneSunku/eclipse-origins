@@ -1,6 +1,7 @@
 package git.eclipse.client.scenes;
 
 import git.eclipse.client.AssetLoader;
+import git.eclipse.core.game.Constants;
 import git.eclipse.core.graphics.Mesh;
 import git.eclipse.core.graphics.Shader;
 import git.eclipse.core.graphics.render2D.Sprite;
@@ -8,6 +9,7 @@ import git.eclipse.core.graphics.Texture;
 import git.eclipse.core.graphics.cameras.OrthoCamera;
 import git.eclipse.core.graphics.render2D.SpriteBatch;
 import git.eclipse.core.scene.SceneAdapter;
+import org.joml.Math;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 
@@ -35,8 +37,8 @@ public class TestScene extends SceneAdapter {
         AssetLoader.AddTexture("tileset1", "tilesets/1.png");
         AssetLoader.AddTexture("tileset2", "tilesets/2.png");
 
-        for(int y = 8; y > -10; y--) {
-            for(int x = -10; x < 10; x++) {
+        for(int y = Constants.MAX_MAPY; y > -Constants.MAX_MAPY; y--) {
+            for(int x = -Constants.MAX_MAPX; x < Constants.MAX_MAPX; x++) {
                 Sprite sprite = new Sprite(AssetLoader.GetTexture("tileset1"));
                 sprite.setPosition(x * 32, y * 32, 0);
                 sprite.setSize(32, 32);
@@ -63,6 +65,12 @@ public class TestScene extends SceneAdapter {
 
     @Override
     public void update(double dt) {
+        float zoom = camera.getZoom();
+        zoom += 0.5f * (float) dt;
+
+        zoom = Math.clamp(1.0f, 1.75f, zoom);
+        camera.setZoom(zoom);
+
         Sprite sprite = spriteList.get(spriteList.size()-1);
         Vector3f pos = sprite.getPosition();
 
@@ -75,15 +83,40 @@ public class TestScene extends SceneAdapter {
     public void render() {
         batch.begin(camera);
 
-        for(Sprite sprite : spriteList)
+        for(Sprite sprite : spriteList) {
+            Vector2f pos = new Vector2f(sprite.getPosition().x, sprite.getPosition().y);
+
+            if(pos.x - sprite.getSize().x / 2.0f > (camera.getWidth() / camera.getAspectRatio()) * camera.getZoom())
+                continue;
+            else if(pos.x + sprite.getSize().x / 2.0f < (-camera.getWidth() / camera.getAspectRatio()) * camera.getZoom())
+                continue;
+
+            if(pos.y - sprite.getSize().y / 2.0f > (camera.getHeight() / camera.getAspectRatio()) * camera.getZoom())
+                continue;
+            else if(pos.y + sprite.getSize().y / 2.0f < (-camera.getHeight() / camera.getAspectRatio()) * camera.getZoom())
+                continue;
+
+
             sprite.draw(batch);
+        }
 
         batch.end();
     }
 
     @Override
     public void resize(int width, int height) {
-        camera.resize(600, 400);
+        int aspectRatio = 4 / 3;
+
+        int w, h;
+        if(width > height) {
+            w = width * aspectRatio;
+            h = height / aspectRatio;
+        } else {
+            w = width / aspectRatio;
+            h = height * aspectRatio;
+        }
+
+        camera.resize(w, h);
     }
 
     @Override

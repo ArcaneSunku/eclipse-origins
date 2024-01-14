@@ -157,6 +157,10 @@ public class Texture {
         glGenerateMipmap(GL_TEXTURE_2D);
     }
 
+    public int getTextureId() {
+        return m_TextureId;
+    }
+
     public String getFilepath() {
         return m_Filepath;
     }

@@ -15,6 +15,7 @@ public class Sprite {
     private final Vector3f m_Position;
     private final Vector2f m_Size;
     private float m_Scale;
+    private float m_TileFactor;
 
     public Sprite() {
         this(null);
@@ -42,12 +43,13 @@ public class Sprite {
         m_Position = new Vector3f(x, y, layer);
         m_Size = new Vector2f(width, height);
         m_Scale = scale;
+        m_TileFactor = 1.0f;
     }
 
     public void draw(SpriteBatch batch) {
         if(m_Texture == null) throw new IllegalStateException("Can't draw a Sprite without a texture!");
 
-        batch.render(m_Texture, m_CellPos, m_CellSize, m_Position, new Vector2f(m_Size).mul(m_Scale), m_Color);
+        batch.render(m_Texture, m_CellPos, m_CellSize, m_Position, new Vector2f(m_Size).mul(m_Scale), m_Color, m_TileFactor);
     }
 
     public void setTexture(Texture texture) {
@@ -86,6 +88,10 @@ public class Sprite {
         m_CellSize.set(cellSize);
     }
 
+    public void setTileFactor(float tileFactor) {
+        m_TileFactor = tileFactor;
+    }
+
     public Texture getTexture() {
         return m_Texture;
     }
@@ -113,5 +119,7 @@ public class Sprite {
     public float getScale() {
         return m_Scale;
     }
+
+    public float getTileFactor() { return m_TileFactor; }
 
 }

@@ -66,6 +66,11 @@ public class Shader {
         m_UniformMap.putIfAbsent(name, location);
     }
 
+    public void setUniformiv(String name, int[] value) {
+        int location = m_UniformMap.get(name);
+        glUniform1iv(location, value);
+    }
+
     public void setUniform1i(String name, int value) {
         int location = m_UniformMap.get(name);
         glUniform1i(location, value);
