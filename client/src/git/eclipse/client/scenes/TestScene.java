@@ -2,10 +2,8 @@ package git.eclipse.client.scenes;
 
 import git.eclipse.client.AssetLoader;
 import git.eclipse.core.game.Constants;
-import git.eclipse.core.graphics.Mesh;
-import git.eclipse.core.graphics.Shader;
+import git.eclipse.core.graphics.font.TTFont;
 import git.eclipse.core.graphics.render2D.Sprite;
-import git.eclipse.core.graphics.Texture;
 import git.eclipse.core.graphics.cameras.OrthoCamera;
 import git.eclipse.core.graphics.render2D.SpriteBatch;
 import git.eclipse.core.scene.SceneAdapter;
@@ -16,15 +14,12 @@ import org.joml.Vector3f;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL30.glBindVertexArray;
-import static org.lwjgl.system.MemoryUtil.NULL;
-
 public class TestScene extends SceneAdapter {
 
     private List<Sprite> spriteList;
     private OrthoCamera camera;
     private SpriteBatch batch;
+    private TTFont font;
 
     @Override
     public void show() {
@@ -48,6 +43,8 @@ public class TestScene extends SceneAdapter {
                 spriteList.add(sprite);
             }
         }
+
+        font = new TTFont("/assets/graphics/fonts/georgiab.ttf", 16, false);
 
         Sprite sprite = new Sprite(AssetLoader.GetTexture("tileset2"));
         sprite.setSize(32, 32);
@@ -100,6 +97,8 @@ public class TestScene extends SceneAdapter {
             sprite.draw(batch);
         }
 
+        font.drawText(batch, "Hello, World!", 0, 0);
+
         batch.end();
     }
 
@@ -128,6 +127,9 @@ public class TestScene extends SceneAdapter {
 
         if(batch != null)
             batch.dispose();
+
+        if(font != null)
+            font.dispose();
     }
 
 }
