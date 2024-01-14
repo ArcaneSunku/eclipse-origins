@@ -134,16 +134,19 @@ public class Mesh {
             }
 
             glEnableVertexAttribArray(0);
-            glVertexAttribPointer(0, 3, GL_FLOAT, false, 10 * Float.BYTES, 0);
+            glVertexAttribPointer(0, 3, GL_FLOAT, false, 11 * Float.BYTES, 0);
 
             glEnableVertexAttribArray(1);
-            glVertexAttribPointer(1, 4, GL_FLOAT, false, 10 * Float.BYTES, 3 * Float.BYTES);
+            glVertexAttribPointer(1, 4, GL_FLOAT, false, 11 * Float.BYTES, 3 * Float.BYTES);
 
             glEnableVertexAttribArray(2);
-            glVertexAttribPointer(2, 2, GL_FLOAT, false, 10 * Float.BYTES, 7 * Float.BYTES);
+            glVertexAttribPointer(2, 2, GL_FLOAT, false, 11 * Float.BYTES, 7 * Float.BYTES);
 
             glEnableVertexAttribArray(3);
-            glVertexAttribPointer(3, 1, GL_FLOAT, false, 10 * Float.BYTES, 9 * Float.BYTES);
+            glVertexAttribPointer(3, 1, GL_FLOAT, false, 11 * Float.BYTES, 9 * Float.BYTES);
+
+            glEnableVertexAttribArray(4);
+            glVertexAttribPointer(4, 1, GL_FLOAT, false, 11 * Float.BYTES, 10 * Float.BYTES);
 
             // Element Buffer
             int ebo = glCreateBuffers();

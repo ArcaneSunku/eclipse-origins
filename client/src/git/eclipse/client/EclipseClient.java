@@ -58,6 +58,7 @@ public class EclipseClient implements Runnable {
         m_Scenes.addScene("Main", new MainScene());
 
         m_Scenes.setActiveScene("Test");
+        m_Scenes.getActiveScene().resize(m_Window.getWidth(), m_Window.getHeight());
     }
 
     private void dispose() {
@@ -90,8 +91,8 @@ public class EclipseClient implements Runnable {
         m_Window = new Window(m_Title, 800, 600);
         m_Window.show();
 
-        RenderCmd.initialize();
-        RenderCmd.clearColor(0.05f, 0.05f, 0.05f);
+        RenderCmd.Init();
+        RenderCmd.ClearColor(0.05f, 0.05f, 0.05f);
 
         m_Scenes = new SceneHandler(m_Window);
         initialize();
@@ -101,7 +102,7 @@ public class EclipseClient implements Runnable {
         double currentTime = System.nanoTime() / 1e9;
 
         while(m_Running) {
-            RenderCmd.clear();
+            RenderCmd.Clear();
             if(m_Window.shouldClose()) {
                 stop();
                 continue;

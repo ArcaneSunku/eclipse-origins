@@ -7,6 +7,7 @@ public abstract class Camera {
 
     protected Matrix4f m_View, m_Projection, m_Combined;
     protected Vector3f m_Position, m_Rotation, m_Scale;
+    protected float m_Zoom;
 
     protected Camera() {
         m_View = new Matrix4f();
@@ -16,6 +17,7 @@ public abstract class Camera {
         m_Position = new Vector3f(0.0f);
         m_Rotation = new Vector3f(0.0f);
         m_Scale = new Vector3f(1.0f);
+        m_Zoom = 1.0f;
     }
 
     public void setPosition(Vector3f position) {
@@ -34,6 +36,10 @@ public abstract class Camera {
         setScale(new Vector3f(scalar));
     }
 
+    public void setZoom(float zoom) {
+        m_Zoom = zoom;
+    }
+
     public Vector3f getPosition() {
         return m_Position;
     }
@@ -46,6 +52,10 @@ public abstract class Camera {
         return m_Scale;
     }
 
+    public float getZoom() {
+        return m_Zoom;
+    }
+
     public Matrix4f getView() {
         return m_View;
     }
@@ -55,7 +65,7 @@ public abstract class Camera {
     }
 
     public Matrix4f getCombined() {
-        m_Combined.set(m_View).mul(m_Projection);
+        m_Combined.set(getView()).mul(getProjection());
         return m_Combined;
     }
 
