@@ -7,6 +7,9 @@ import org.joml.Vector3f;
 import org.lwjgl.system.MemoryUtil;
 
 import java.awt.*;
+import java.awt.font.FontRenderContext;
+import java.awt.font.GlyphMetrics;
+import java.awt.font.GlyphVector;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
@@ -91,10 +94,8 @@ public class TTFont {
             }
             char c = (char) i;
             BufferedImage ch = createCharImage(font, c, antiAlias);
-            if (ch == null) {
-                /* If char image is null that font does not contain the char */
+            if (ch == null)
                 continue;
-            }
 
             imageWidth += ch.getWidth();
             imageHeight = Math.max(imageHeight, ch.getHeight());
@@ -125,8 +126,11 @@ public class TTFont {
             int charWidth = charImage.getWidth();
             int charHeight = charImage.getHeight();
 
+            GlyphMetrics glyphMetric = font.createGlyphVector(g.getFontRenderContext(), String.valueOf(c)).getGlyphMetrics(0);
+            float advance = glyphMetric.getAdvanceX();
+
             /* Create glyph and draw char on image */
-            Glyph ch = new Glyph(charWidth, charHeight, x, image.getHeight() - charHeight, 0f);
+            Glyph ch = new Glyph(charWidth, charHeight, x, image.getHeight() - charHeight, advance);
             g.drawImage(charImage, x, 0, null);
             x += ch.width();
             m_Glyphs.put(c, ch);
@@ -198,6 +202,7 @@ public class TTFont {
         if (antiAlias) {
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         }
+
         g.setFont(font);
         g.setPaint(java.awt.Color.WHITE);
         g.drawString(String.valueOf(c), 0, metrics.getAscent());
@@ -225,7 +230,7 @@ public class TTFont {
 
             Glyph g = m_Glyphs.get(ch);
             batch.render(m_Texture, new Vector2f(g.x(), g.y()), new Vector2f(g.width(), -g.height()), new Vector3f(drawX, drawY, 1.0f), new Vector2f(g.width(), g.height()), color, 1.0f);
-            drawX += g.width() + g.advance();
+            drawX += g.advance();
         }
     }
 

@@ -44,7 +44,7 @@ public class TestScene extends SceneAdapter {
             }
         }
 
-        font = new TTFont("/assets/graphics/fonts/georgiab.ttf", 16, false);
+        font = new TTFont("/assets/graphics/fonts/georgiab.ttf", 32, true);
 
         Sprite sprite = new Sprite(AssetLoader.GetTexture("tileset2"));
         sprite.setSize(32, 32);
@@ -71,8 +71,6 @@ public class TestScene extends SceneAdapter {
         Sprite sprite = spriteList.get(spriteList.size()-1);
         Vector3f pos = sprite.getPosition();
 
-
-
         sprite.setPosition(pos.x, pos.y, pos.z);
     }
 
@@ -80,24 +78,30 @@ public class TestScene extends SceneAdapter {
     public void render() {
         batch.begin(camera);
 
+        float width = camera.getWidth(), height = camera.getHeight();
+        float aspectRatio = camera.getAspectRatio();
+        float zoom = camera.getZoom();
+
         for(Sprite sprite : spriteList) {
             Vector2f pos = new Vector2f(sprite.getPosition().x, sprite.getPosition().y);
 
-            if(pos.x - sprite.getSize().x / 2.0f > (camera.getWidth() / camera.getAspectRatio()) * camera.getZoom())
+            if(pos.x - sprite.getSize().x / 2.0f > (width / aspectRatio) * zoom)
                 continue;
-            else if(pos.x + sprite.getSize().x / 2.0f < (-camera.getWidth() / camera.getAspectRatio()) * camera.getZoom())
+            else if(pos.x + sprite.getSize().x / 2.0f < (-width / aspectRatio) * zoom)
                 continue;
 
-            if(pos.y - sprite.getSize().y / 2.0f > (camera.getHeight() / camera.getAspectRatio()) * camera.getZoom())
+            if(pos.y - sprite.getSize().y / 2.0f > (height / aspectRatio) * zoom)
                 continue;
-            else if(pos.y + sprite.getSize().y / 2.0f < (-camera.getHeight() / camera.getAspectRatio()) * camera.getZoom())
+            else if(pos.y + sprite.getSize().y / 2.0f < (-height / aspectRatio) * zoom)
                 continue;
 
 
             sprite.draw(batch);
         }
 
-        font.drawText(batch, "Hello, World!", 0, 0);
+        String txt = "Eclipse Origins";
+        int txtWidth = font.getWidth(txt), txtHeight = font.getHeight(txt);
+        font.drawText(batch, txt, (-width + txtWidth / 4f) / aspectRatio / zoom, (-height + txtHeight) / aspectRatio / zoom);
 
         batch.end();
     }

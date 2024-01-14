@@ -10,4 +10,5 @@ package git.eclipse.core.graphics.font;
  * @param advance Advance width
  */
 public record Glyph(int width, int height, int x, int y, float advance) {
+
 }
