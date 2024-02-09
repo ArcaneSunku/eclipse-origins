@@ -10,7 +10,7 @@ This "version" of it will be in Java and will be based on what I can recall from
 - Java 17
 - [LWJGL3][1]
 - [eo-YAML][2]
-- [imgui-java] [3]
+- [imgui-java][3]
 
 ## References
 Wayback machine archive to original site [here][4].
