@@ -29,12 +29,16 @@ buildscript {
 
 val lwjglVersion = "3.3.3"
 val jomlVersion = "1.10.5"
+val imguiVersion = "1.86.11"
 
 var lwjglNatives = ""
+var imguiNatives = ""
 when(OperatingSystem.current()) {
     OperatingSystem.LINUX -> {
-        val osArch = System.getProperty("os.arch")
         lwjglNatives = "natives-linux"
+        imguiNatives = lwjglNatives
+
+        val osArch = System.getProperty("os.arch")
         if (osArch.startsWith("arm") || osArch.startsWith("aarch64")) {
             if(osArch.contains("64")) {
                 lwjglNatives += "-arm64"
@@ -50,6 +54,7 @@ when(OperatingSystem.current()) {
 
     OperatingSystem.WINDOWS -> {
         lwjglNatives = "natives-windows"
+        imguiNatives = lwjglNatives
     }
     else -> print("End of Natives Check")
 }
@@ -92,6 +97,9 @@ project(":core") {
         api("org.lwjgl:lwjgl-vulkan")
         api("org.joml:joml:${jomlVersion}")
 
+        api("io.github.spair:imgui-java-binding:${imguiVersion}")
+        api("io.github.spair:imgui-java-lwjgl3:${imguiVersion}")
+
         runtimeOnly("org.lwjgl", "lwjgl", classifier = lwjglNatives)
         runtimeOnly("org.lwjgl", "lwjgl-assimp", classifier = lwjglNatives)
         runtimeOnly("org.lwjgl", "lwjgl-bgfx", classifier = lwjglNatives)
@@ -104,6 +112,8 @@ project(":core") {
         runtimeOnly("org.lwjgl", "lwjgl-opengl", classifier = lwjglNatives)
         runtimeOnly("org.lwjgl", "lwjgl-par", classifier = lwjglNatives)
         runtimeOnly("org.lwjgl", "lwjgl-stb", classifier = lwjglNatives)
+
+        runtimeOnly("io.github.spair", "imgui-java-${imguiNatives}", version = imguiVersion)
     }
 }
 
