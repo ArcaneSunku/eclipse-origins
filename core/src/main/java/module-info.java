@@ -11,6 +11,10 @@ module dev.atomixsoft.solar_eclipse.core {
     exports dev.atomixsoft.solar_eclipse.core.game.map;
     exports dev.atomixsoft.solar_eclipse.core.game.character;
 
+    exports dev.atomixsoft.solar_eclipse.core.event;
+    exports dev.atomixsoft.solar_eclipse.core.event.types;
+    exports dev.atomixsoft.solar_eclipse.core.event.interfaces;
+
     exports dev.atomixsoft.solar_eclipse.core.utils;
     exports dev.atomixsoft.solar_eclipse.core.config;
     exports dev.atomixsoft.solar_eclipse.core.logging;

@@ -4,13 +4,14 @@ import dev.atomixsoft.solar_eclipse.client.logging.Logger;
 
 import dev.atomixsoft.solar_eclipse.client.util.ImGuiManager;
 import dev.atomixsoft.solar_eclipse.client.util.input.Controller;
+import dev.atomixsoft.solar_eclipse.core.event.EventBus;
 import org.lwjgl.glfw.GLFWErrorCallback;
 
 import static org.lwjgl.glfw.GLFW.*;
 
 import dev.atomixsoft.solar_eclipse.client.util.Window;
 
-import dev.atomixsoft.solar_eclipse.client.util.input.Input;
+import dev.atomixsoft.solar_eclipse.client.util.input.InputHandler;
 
 import dev.atomixsoft.solar_eclipse.client.audio.AudioMaster;
 
@@ -26,8 +27,12 @@ public class ClientThread implements Runnable {
     public static Logger log() {
         return s_Instance.m_Logger;
     }
+    public static EventBus eventBus() {
+        return s_Instance.m_EventBus;
+    }
 
     private final Controller m_Controller;
+    private final EventBus m_EventBus;
     private final Thread m_Thread;
     private final Logger m_Logger;
 
@@ -45,6 +50,9 @@ public class ClientThread implements Runnable {
         m_Running = false;
 
         this.m_Controller = new Controller();
+        this.m_EventBus = new EventBus();
+        logger.debug("EventBus starting up...");
+
         this.m_Thread = new Thread(this, "Main_Thread");
         this.m_Logger = logger;
         this.m_GUIManager = new ImGuiManager();
@@ -104,6 +112,7 @@ public class ClientThread implements Runnable {
 
             m_GUIManager.dispose();
             AssetLoader.Dispose();
+            m_EventBus.shutdown();
 
             if(m_ErrorCallback != null) {
                 m_ErrorCallback.free();
@@ -116,7 +125,7 @@ public class ClientThread implements Runnable {
             this.m_Logger.debug("Client thread terminated.");
             System.exit(0);
         } catch (InterruptedException e) {
-            System.err.println(e.getMessage());
+            m_Logger.error(e.getMessage());
             System.exit(-1);
         }
     }
@@ -140,7 +149,7 @@ public class ClientThread implements Runnable {
         double newTime = System.nanoTime() / 1e9;
         double frameTime = 0.0;
 
-        Input input = Input.Instance();
+        InputHandler input = InputHandler.Instance();
         while(m_Running) {
             if(m_Window.shouldClose()) {
                 stop();
@@ -184,7 +193,7 @@ public class ClientThread implements Runnable {
                 Thread.sleep(sleepTime);
 
         } catch (InterruptedException e) {
-            System.err.println(e.getMessage());
+            m_Logger.debug(e.getMessage());
         }
     }
 }

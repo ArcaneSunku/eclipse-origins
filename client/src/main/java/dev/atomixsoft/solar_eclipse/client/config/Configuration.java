@@ -11,9 +11,12 @@ public class Configuration {
     private String MUSIC_VAR, SOUND_VAR;
     private String DEBUG_VAR;
 
+    private String ACTION_VAR, CANCEL_VAR, PICKUP_VAR;
+    private String RUN_VAR, UP_VAR, DOWN_VAR, LEFT_VAR, RIGHT_VAR;
+
     public String LOG_LEVEL_VAR, LOG_PATTERN_VAR;
 
-    private ConfigurationFile m_ConfigFile;
+    private final ConfigurationFile m_ConfigFile;
 
     public enum SupportedConfigFileTypes {
         INI
@@ -47,6 +50,15 @@ public class Configuration {
             this.MUSIC_VAR = this.m_ConfigFile.getValue("client.bMusic");
             this.SOUND_VAR = this.m_ConfigFile.getValue("client.bSound");
             this.DEBUG_VAR = this.m_ConfigFile.getValue("client.bDebug");
+
+            this.ACTION_VAR = this.m_ConfigFile.getValue("input.sAction");
+            this.CANCEL_VAR = this.m_ConfigFile.getValue("input.sCancel");
+            this.PICKUP_VAR = this.m_ConfigFile.getValue("input.sPickUp");
+            this.RUN_VAR = this.m_ConfigFile.getValue("input.sRun");
+            this.UP_VAR = this.m_ConfigFile.getValue("input.sUp");
+            this.DOWN_VAR = this.m_ConfigFile.getValue("input.sDown");
+            this.LEFT_VAR = this.m_ConfigFile.getValue("input.sLeft");
+            this.RIGHT_VAR = this.m_ConfigFile.getValue("input.sRight");
 
             this.LOG_LEVEL_VAR = this.m_ConfigFile.getValue("logging.sLevel");
             this.LOG_PATTERN_VAR = this.m_ConfigFile.getValue("logging.sPattern");
@@ -93,6 +105,38 @@ public class Configuration {
 
     public String getDebug() {
         return this.DEBUG_VAR;
+    }
+
+    public String getActionKey() {
+        return ACTION_VAR;
+    }
+
+    public String getCancelKey() {
+        return CANCEL_VAR;
+    }
+
+    public String getPickUpKey() {
+        return PICKUP_VAR;
+    }
+
+    public String getRunKey() {
+        return RUN_VAR;
+    }
+
+    public String getUpKey() {
+        return UP_VAR;
+    }
+
+    public String getDownKey() {
+        return DOWN_VAR;
+    }
+
+    public String getLeftKey() {
+        return LEFT_VAR;
+    }
+
+    public String getRightKey() {
+        return RIGHT_VAR;
     }
 
     public String getLogLevel() {

@@ -7,16 +7,17 @@ import dev.atomixsoft.solar_eclipse.client.logging.Logger.SupportedLogHandlerTyp
 
 
 public class Client {
+    public static final Configuration ConfigInfo = new Configuration(SupportedConfigFileTypes.INI, "client/client.ini");
+
     public static void main(String[] args) {
-        Configuration configInfo = new Configuration(SupportedConfigFileTypes.INI, "client/client.ini");
-        Logger logger = new Logger(configInfo.getGameName() + " - Client", 
-                                   SupportedLogHandlerTypes.ASYNC_CONSOLE, 
-                                   configInfo.getLogLevel(),
-                                   configInfo.getLogPattern());
-        final ClientThread eclipse = new ClientThread(configInfo.getGameName(), logger);
+        Logger logger = new Logger(ConfigInfo.getGameName() + " - Client",
+                                   SupportedLogHandlerTypes.ASYNC_CONSOLE,
+                                   ConfigInfo.getLogLevel(),
+                                   ConfigInfo.getLogPattern());
+        final ClientThread eclipse = new ClientThread(ConfigInfo.getGameName(), logger);
 
         logger.debug("Spinning up threads...");
-       
+
         eclipse.start();
     }
 }

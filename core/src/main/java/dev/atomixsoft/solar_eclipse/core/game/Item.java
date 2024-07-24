@@ -10,7 +10,7 @@ public class Item {
     public boolean inWorld;
     public int worldX, worldY;
 
-    public int stack;
+    public int stack, maxStack;
     public boolean stackable;
 
     public Item() {
@@ -21,6 +21,7 @@ public class Item {
         worldX = worldY = 0;
 
         stack = 0;
+        maxStack = 1;
         stackable = true;
     }
 

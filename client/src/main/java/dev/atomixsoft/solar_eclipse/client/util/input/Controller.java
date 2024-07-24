@@ -9,12 +9,12 @@ import java.util.Map;
  * <p>Lets us map Mouse/Keyboard to predefined key functions. Think of it as the average keybinding situation.</p>
  */
 public class Controller {
-    private final Input m_In;
+    private final InputHandler m_In;
     private final Map<String, List<Integer>> m_InputMap;
 
 
     public Controller() {
-        m_In = Input.Instance();
+        m_In = InputHandler.Instance();
         m_InputMap = new HashMap<>();
     }
 

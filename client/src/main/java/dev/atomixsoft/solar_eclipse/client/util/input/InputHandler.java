@@ -8,18 +8,18 @@ import static org.lwjgl.glfw.GLFW.*;
 /**
  * <p>Handles input interactions for the app, allows us to manage the key/button states after GLFW gives us feedback.</p>
  */
-public class Input {
-    private static Input ms_Instance = null;
+public class InputHandler {
+    private static InputHandler ms_Instance = null;
 
     private final Map<Integer, Key> m_Keys;
     private final Map<Integer, MButton> m_MButtons;
 
-    public static Input Instance() {
-        if(ms_Instance == null) ms_Instance = new Input();
+    public static InputHandler Instance() {
+        if(ms_Instance == null) ms_Instance = new InputHandler();
         return ms_Instance;
     }
 
-    private Input() {
+    private InputHandler() {
         m_Keys = new HashMap<>();
         m_MButtons = new HashMap<>();
 

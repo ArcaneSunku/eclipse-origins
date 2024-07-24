@@ -129,6 +129,8 @@ public class Actuator {
         else map.TileMap.put(layer, layerTiles);
     }
 
+    // Character portion of the map part
+
     public static void AddCharacterToMap(GameMap map, Character character, int x, int y) {
         if(map == null || character == null) return;
 
@@ -151,6 +153,48 @@ public class Actuator {
     public static void AddCharactersToMap(GameMap map, List<Character> characters, int x, int y) {
         for(Character c : characters)
             AddCharacterToMap(map, c, x, y);
+    }
+
+    // Item portion of the map part
+
+    public static Item GetItemOnMap(GameMap map, int x, int y) {
+        if(map == null) return null;
+
+        for(Item it : map.WorldItems) {
+            if(it.inWorld && (it.worldX == x && it.worldY == y))
+                return it;
+        }
+
+        return null;
+    }
+
+    public static Item AddItemToMap(GameMap map, Item item, int x, int y) {
+        if(map == null || item == null) return null;
+
+        // Check if there is a version of that item there and if it is stackable
+        int leftOverStack = 0;
+        Item other = GetItemOnMap(map, x, y);
+        if(other != null) {
+            // Add the amount specified of if amount is 0, the stack count of that item
+            if(other.name.equalsIgnoreCase(item.name) && other.stackable) {
+                int stackSum = other.stack + item.stack;
+                if(stackSum > other.maxStack) {
+                    leftOverStack = stackSum - other.maxStack;
+                    other.stack = other.maxStack;
+                } else {
+                    other.stack += item.stack;
+                    return other;
+                }
+            }
+        }
+
+        item.stack = leftOverStack <= 0 ? 1 : leftOverStack;
+        item.worldX = x;
+        item.worldY = y;
+        item.inWorld = true;
+
+        map.WorldItems.add(item);
+        return item;
     }
 
 }

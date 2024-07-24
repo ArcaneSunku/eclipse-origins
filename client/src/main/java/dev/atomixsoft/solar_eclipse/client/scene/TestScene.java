@@ -1,10 +1,13 @@
 package dev.atomixsoft.solar_eclipse.client.scene;
 
+import dev.atomixsoft.solar_eclipse.client.Client;
+import dev.atomixsoft.solar_eclipse.client.ClientThread;
 import dev.atomixsoft.solar_eclipse.client.graphics.GameRenderer;
 import dev.atomixsoft.solar_eclipse.core.game.Actuator;
 import dev.atomixsoft.solar_eclipse.core.game.character.Character;
 import dev.atomixsoft.solar_eclipse.core.game.map.GameMap;
 import dev.atomixsoft.solar_eclipse.core.game.map.Tile;
+import imgui.ImGui;
 import org.joml.Vector3f;
 
 import dev.atomixsoft.solar_eclipse.core.game.Constants;
@@ -35,9 +38,10 @@ public class TestScene extends SceneAdapter{
         AssetLoader.AddShader("basic", "basic");
         batch = new SpriteBatch(AssetLoader.GetShader("basic"));
 
+        camera.setZoom(3);
         Vector3f pos = camera.getPosition();
-        pos.x = (camera.getWidth() - 16) / (camera.getAspectRatio() * camera.getZoom());
-        pos.y = (camera.getHeight() - 16) / (camera.getAspectRatio() * camera.getZoom());
+        pos.x = 0;
+        pos.y = 0;
         camera.setPosition(pos);
 
         AssetLoader.AddTexture("tileset1", "tilesets/1.bmp");
@@ -103,14 +107,20 @@ public class TestScene extends SceneAdapter{
 
         // Example control: move the camera with arrow keys
         if (input.isPressed("camUp"))
-            position.y += cameraSpeed * dt;
+            position.y += (float) (cameraSpeed * dt);
         else if (input.isPressed("camDown"))
-            position.y -= cameraSpeed * dt;
+            position.y -= (float) (cameraSpeed * dt);
 
         if (input.isPressed("camLeft"))
-            position.x -= cameraSpeed * dt;
+            position.x -= (float) (cameraSpeed * dt);
         else if (input.isPressed("camRight"))
-            position.x += cameraSpeed * dt;
+            position.x += (float) (cameraSpeed * dt);
+
+        if(position.x < (camera.getWidth() - 8  * camera.getZoom()) / (camera.getAspectRatio()))
+            position.x = (camera.getWidth() - 8  * camera.getZoom()) / (camera.getAspectRatio());
+
+        if(position.y < (camera.getHeight() - 8 * camera.getZoom()) / (camera.getAspectRatio()))
+            position.y = (camera.getHeight() - 8 * camera.getZoom()) / (camera.getAspectRatio());
 
         camera.setPosition(position);
     }
@@ -122,6 +132,13 @@ public class TestScene extends SceneAdapter{
         mapRender.render(batch);
 
         batch.end();
+    }
+
+    @Override
+    public void imgui() {
+        ImGui.begin("Test Inventory");
+
+        ImGui.end();
     }
 
     @Override
