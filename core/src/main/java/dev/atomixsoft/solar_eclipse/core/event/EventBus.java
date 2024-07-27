@@ -54,6 +54,8 @@ public class EventBus {
      * @param <T> the reflection of the event's class
      */
     public <T extends Event> void post(T event) {
+        if(event.handled) return;
+
         m_Executor.submit(() -> {
             Class<?> eventType = event.getClass();
 

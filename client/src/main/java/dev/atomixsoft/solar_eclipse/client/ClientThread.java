@@ -5,6 +5,7 @@ import dev.atomixsoft.solar_eclipse.client.logging.Logger;
 import dev.atomixsoft.solar_eclipse.client.util.ImGuiManager;
 import dev.atomixsoft.solar_eclipse.client.util.input.Controller;
 import dev.atomixsoft.solar_eclipse.core.event.EventBus;
+import dev.atomixsoft.solar_eclipse.core.event.types.InputEvent;
 import org.lwjgl.glfw.GLFWErrorCallback;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -51,7 +52,6 @@ public class ClientThread implements Runnable {
 
         this.m_Controller = new Controller();
         this.m_EventBus = new EventBus();
-        logger.debug("EventBus starting up...");
 
         this.m_Thread = new Thread(this, "Main_Thread");
         this.m_Logger = logger;
@@ -84,12 +84,6 @@ public class ClientThread implements Runnable {
     private void initialize() {
         m_GUIManager.init(m_Window.getHandle(), "#version 130");
         AudioMaster.Init();
-
-        //TODO: Load Input from config
-        m_Controller.addBinding("camUp", GLFW_KEY_UP);
-        m_Controller.addBinding("camDown", GLFW_KEY_DOWN);
-        m_Controller.addBinding("camLeft", GLFW_KEY_LEFT);
-        m_Controller.addBinding("camRight", GLFW_KEY_RIGHT);
 
         m_Scenes.addScene("Test", new TestScene());
         m_Scenes.addScene("Main", new MainScene());
@@ -125,7 +119,7 @@ public class ClientThread implements Runnable {
             this.m_Logger.debug("Client thread terminated.");
             System.exit(0);
         } catch (InterruptedException e) {
-            m_Logger.error(e.getMessage());
+            this.m_Logger.error(e.getMessage());
             System.exit(-1);
         }
     }
@@ -150,6 +144,7 @@ public class ClientThread implements Runnable {
         double frameTime = 0.0;
 
         InputHandler input = InputHandler.Instance();
+        ClientThread.eventBus().register(InputEvent.class, InputHandler.Instance());
         while(m_Running) {
             if(m_Window.shouldClose()) {
                 stop();

@@ -9,22 +9,28 @@ public class InputEvent extends Event {
         UP, DOWN, LEFT, RIGHT
     }
 
-    private final int m_UserID;
+    private final String m_UserID;
     private final InputType m_InputData;
+    private final boolean m_PressData;
 
-    public InputEvent(int user, InputType input) {
+    public InputEvent(String user, InputType input, boolean pressed) {
         super("Input Event");
 
         m_UserID = user;
         m_InputData = input;
+        m_PressData = pressed;
     }
 
-    public int getUserID() {
+    public String getUserID() {
         return m_UserID;
     }
 
     public InputType getInputData() {
         return m_InputData;
+    }
+
+    public boolean getPressData() {
+        return m_PressData;
     }
 
 }

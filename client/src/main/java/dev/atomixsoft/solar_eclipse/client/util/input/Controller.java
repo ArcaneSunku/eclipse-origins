@@ -1,5 +1,9 @@
 package dev.atomixsoft.solar_eclipse.client.util.input;
 
+import dev.atomixsoft.solar_eclipse.client.Client;
+import dev.atomixsoft.solar_eclipse.client.config.Configuration;
+import static dev.atomixsoft.solar_eclipse.core.event.types.InputEvent.InputType;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -10,45 +14,41 @@ import java.util.Map;
  */
 public class Controller {
     private final InputHandler m_In;
-    private final Map<String, List<Integer>> m_InputMap;
+    private final Map<String, Integer> m_InputMap;
 
 
     public Controller() {
         m_In = InputHandler.Instance();
         m_InputMap = new HashMap<>();
+        updateBindings();
     }
 
-    public boolean isPressed(String controlName) {
-        if(!m_InputMap.containsKey(controlName)) return false;
-
-        List<Integer> bindings = m_InputMap.get(controlName);
-        for(Integer key : bindings)
-            if(m_In.isKeyDown(key)) return m_In.isKeyDown(key);
-
-        return false;
-    }
-
-    public boolean justPressed(String controlName) {
-        if(!m_InputMap.containsKey(controlName)) return false;
-
-        List<Integer> bindings = m_InputMap.get(controlName);
-        for(Integer key : bindings)
-            if(m_In.keyJustPressed(key)) return m_In.keyJustPressed(key);
-
-        return false;
-    }
-
-    public void addBinding(String controlName, int input) {
-        m_InputMap.putIfAbsent(controlName, new ArrayList<>());
-        List<Integer> bindings = m_InputMap.get(controlName);
-
-        for(int keyBind : bindings) {
-            if (keyBind == input) {
-                System.out.println(controlName + " is already bound with " + input + "!");
-                return;
+    public void updateBindings() {
+        for(InputType type : InputType.values()) {
+            switch (type) {
+                case PICKUP -> addBinding(type, m_In.ConvertInputToGLFW(Client.ConfigInfo.getPickUpKey()));
+                case ACTION -> addBinding(type, m_In.ConvertInputToGLFW(Client.ConfigInfo.getActionKey()));
+                case CANCEL -> addBinding(type, m_In.ConvertInputToGLFW(Client.ConfigInfo.getCancelKey()));
+                case RUN    -> addBinding(type, m_In.ConvertInputToGLFW(Client.ConfigInfo.getRunKey()));
+                case UP     -> addBinding(type, m_In.ConvertInputToGLFW(Client.ConfigInfo.getUpKey()));
+                case DOWN   -> addBinding(type, m_In.ConvertInputToGLFW(Client.ConfigInfo.getDownKey()));
+                case LEFT   -> addBinding(type, m_In.ConvertInputToGLFW(Client.ConfigInfo.getLeftKey()));
+                case RIGHT  -> addBinding(type, m_In.ConvertInputToGLFW(Client.ConfigInfo.getRightKey()));
             }
         }
+    }
 
-        bindings.add(input);
+    public boolean isPressed(InputType controlName) {
+        if(!m_InputMap.containsKey(controlName.name())) return false;
+        return m_In.isKeyDown(m_InputMap.get(controlName.name()));
+    }
+
+    public boolean justPressed(InputType controlName) {
+        if(!m_InputMap.containsKey(controlName.name())) return false;
+        return m_In.keyJustPressed(m_InputMap.get(controlName.name()));
+    }
+
+    private void addBinding(InputType controlName, int input) {
+        m_InputMap.put(controlName.name(), input);
     }
 }

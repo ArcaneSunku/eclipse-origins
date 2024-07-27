@@ -1,7 +1,5 @@
 package dev.atomixsoft.solar_eclipse.client.scene;
 
-import dev.atomixsoft.solar_eclipse.client.Client;
-import dev.atomixsoft.solar_eclipse.client.ClientThread;
 import dev.atomixsoft.solar_eclipse.client.graphics.GameRenderer;
 import dev.atomixsoft.solar_eclipse.core.game.Actuator;
 import dev.atomixsoft.solar_eclipse.core.game.character.Character;
@@ -18,6 +16,8 @@ import dev.atomixsoft.solar_eclipse.client.AssetLoader;
 
 import dev.atomixsoft.solar_eclipse.client.graphics.render2D.SpriteBatch;
 import dev.atomixsoft.solar_eclipse.client.graphics.cameras.OrthoCamera;
+
+import static dev.atomixsoft.solar_eclipse.core.event.types.InputEvent.InputType;
 
 /**
  * <p>Purely for prototyping features in the earlier stages of development.</p>
@@ -106,14 +106,14 @@ public class TestScene extends SceneAdapter{
         float cameraSpeed = 300; // Adjust this as needed
 
         // Example control: move the camera with arrow keys
-        if (input.isPressed("camUp"))
+        if (input.isPressed(InputType.UP))
             position.y += (float) (cameraSpeed * dt);
-        else if (input.isPressed("camDown"))
+        else if (input.isPressed(InputType.DOWN))
             position.y -= (float) (cameraSpeed * dt);
 
-        if (input.isPressed("camLeft"))
+        if (input.isPressed(InputType.LEFT))
             position.x -= (float) (cameraSpeed * dt);
-        else if (input.isPressed("camRight"))
+        else if (input.isPressed(InputType.RIGHT))
             position.x += (float) (cameraSpeed * dt);
 
         if(position.x < (camera.getWidth() - 8  * camera.getZoom()) / (camera.getAspectRatio()))
