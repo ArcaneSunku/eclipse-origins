@@ -69,10 +69,10 @@ public class InputHandler implements EventListener <InputEvent>{
 
     @Override
     public void handleEvent(InputEvent event) {
-        Key mapped = Instance().m_Keys.get(m_Bindings.get(event.getInputData()));
+        Key mapped = Instance().m_Keys.get(m_Bindings.get(event.getInputType()));
         if(mapped == null) return;
 
-        ClientThread.log().debug(String.format("Input Event[%s, %s, %b]", event.getUserID(), event.getInputData(), event.getPressData()));
+        ClientThread.log().debug(String.format("Input Event[%s, %s, %b]", event.getUserID(), event.getInputType(), event.getPressData()));
 
         mapped.toggle(event.getPressData());
         process();
@@ -101,7 +101,7 @@ public class InputHandler implements EventListener <InputEvent>{
     }
 
     public static void key_callback(long window, int key, int scancode, int action, int mods) {
-        if(!ms_Instance.m_Bindings.containsValue(key)) {
+        if(!ms_Instance.m_Bindings.containsValue(key) || mods == GLFW_MOD_ALT) {
             Key mapped = Instance().m_Keys.get(key);
             if(mapped == null) return;
 
@@ -109,15 +109,13 @@ public class InputHandler implements EventListener <InputEvent>{
             return;
         }
 
-        InputEvent event = null;
         for(InputType type : InputType.values()) {
             if(ms_Instance.m_Bindings.get(type) == key) {
-                event = new InputEvent("ArcaneSunku", type, action != GLFW_RELEASE);
-                break;
+                InputEvent event = new InputEvent("ArcaneSunku", type, action != GLFW_RELEASE);
+                ClientThread.eventBus().post(event);
+                return;
             }
         }
-
-        if(event != null) ClientThread.eventBus().post(event);
     }
 
     public static void mouse_button_callback(long window, int button, int action, int mods) {
