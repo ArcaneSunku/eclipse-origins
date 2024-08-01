@@ -75,6 +75,7 @@ public class Window {
 
         glfwSetWindowSizeCallback(m_Handle, this::resize);
         glfwSetKeyCallback(m_Handle, InputHandler::key_callback);
+        glfwSetMouseButtonCallback(m_Handle, InputHandler::mouse_button_callback);
 
         GL.createCapabilities();
     }
