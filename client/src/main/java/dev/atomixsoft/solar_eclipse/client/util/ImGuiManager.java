@@ -26,7 +26,7 @@ public class ImGuiManager {
         ImGui.createContext();
         ImGuiIO io = ImGui.getIO();
 
-        io.setIniFilename(null);
+        io.setIniFilename("client/ui.conf");
 
         m_imguiImplGL3.init(glslVersion);
         m_imguiImplGLFW.init(window, true);

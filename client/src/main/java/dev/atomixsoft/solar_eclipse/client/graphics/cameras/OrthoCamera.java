@@ -43,7 +43,7 @@ public class OrthoCamera extends Camera {
             this.m_AspectRatio = m_Height / m_Width;
 
         m_Projection.identity();
-        m_Projection.ortho(-m_Width / m_AspectRatio, m_Width / m_AspectRatio, -m_Height / m_AspectRatio, m_Height / m_AspectRatio, -1.0f, 1.0f);
+        m_Projection.ortho(0, m_Width / m_AspectRatio, 0, m_Height / m_AspectRatio, -1.0f, 1.0f);
     }
 
     public float getAspectRatio() {
@@ -51,10 +51,10 @@ public class OrthoCamera extends Camera {
     }
 
     public float getWidth() {
-        return this.m_Width;
+        return this.m_Width / m_AspectRatio;
     }
 
     public float getHeight() {
-        return this.m_Height;
+        return this.m_Height / m_AspectRatio;
     }
 }

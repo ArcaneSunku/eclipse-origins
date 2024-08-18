@@ -5,7 +5,9 @@ import dev.atomixsoft.solar_eclipse.client.logging.Logger;
 import dev.atomixsoft.solar_eclipse.client.util.ImGuiManager;
 import dev.atomixsoft.solar_eclipse.client.util.input.Controller;
 import dev.atomixsoft.solar_eclipse.core.event.EventBus;
+import dev.atomixsoft.solar_eclipse.core.event.interfaces.EventConsumer;
 import dev.atomixsoft.solar_eclipse.core.event.types.InputEvent;
+import dev.atomixsoft.solar_eclipse.core.event.types.ShutdownEvent;
 import org.lwjgl.glfw.GLFWErrorCallback;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -23,7 +25,7 @@ import dev.atomixsoft.solar_eclipse.client.scene.MainScene;
 import dev.atomixsoft.solar_eclipse.client.scene.TestScene;
 
 
-public class ClientThread implements Runnable {
+public class ClientThread implements Runnable, EventConsumer<ShutdownEvent> {
     private static ClientThread s_Instance = null;
     public static Logger log() {
         return s_Instance.m_Logger;
@@ -58,6 +60,7 @@ public class ClientThread implements Runnable {
         this.m_GUIManager = new ImGuiManager();
 
         if(s_Instance == null) s_Instance = this;
+        m_EventBus.register(ShutdownEvent.class, this);
     }
 
     public synchronized void start() {
@@ -115,12 +118,20 @@ public class ClientThread implements Runnable {
 
             glfwTerminate();
             m_Thread.join(1);
-
-            this.m_Logger.debug("Client thread terminated.");
             System.exit(0);
         } catch (InterruptedException e) {
             this.m_Logger.error(e.getMessage());
             System.exit(-1);
+        }
+    }
+
+    @Override
+    public void accept(ShutdownEvent event) {
+        if(event.handled) return;
+
+        if(!event.isServer()) {
+            stop();
+            event.handled = true;
         }
     }
 

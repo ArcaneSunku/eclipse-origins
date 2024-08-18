@@ -118,4 +118,12 @@ public class GameRenderer {
         return m_Map;
     }
 
+    public int getMapWidth() {
+        return m_Map.width;
+    }
+
+    public int getMapHeight() {
+        return m_Map.height;
+    }
+
 }

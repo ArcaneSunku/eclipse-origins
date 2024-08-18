@@ -72,11 +72,7 @@ public class InputHandler implements EventListener <InputEvent>{
         Key mapped = Instance().m_Keys.get(m_Bindings.get(event.getInputType()));
         if(mapped == null) return;
 
-        ClientThread.log().debug(String.format("Input Event[%s, %s, %b]", event.getUserID(), event.getInputType(), event.getPressData()));
-
         mapped.toggle(event.getPressData());
-        process();
-
         event.handled = true;
     }
 

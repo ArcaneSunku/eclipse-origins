@@ -1,11 +1,19 @@
 package dev.atomixsoft.solar_eclipse.client.scene;
 
+import dev.atomixsoft.solar_eclipse.client.ClientThread;
 import dev.atomixsoft.solar_eclipse.client.graphics.GameRenderer;
+import dev.atomixsoft.solar_eclipse.core.event.types.ShutdownEvent;
 import dev.atomixsoft.solar_eclipse.core.game.Actuator;
 import dev.atomixsoft.solar_eclipse.core.game.character.Character;
 import dev.atomixsoft.solar_eclipse.core.game.map.GameMap;
 import dev.atomixsoft.solar_eclipse.core.game.map.Tile;
 import imgui.ImGui;
+import imgui.ImGuiIO;
+import imgui.ImVec2;
+import imgui.flag.ImGuiWindowFlags;
+import imgui.type.ImBoolean;
+import org.joml.Math;
+import org.joml.Vector2f;
 import org.joml.Vector3f;
 
 import dev.atomixsoft.solar_eclipse.core.game.Constants;
@@ -28,21 +36,27 @@ public class TestScene extends SceneAdapter{
     private SpriteBatch batch;
     private GameRenderer mapRender;
 
-    int mapSize = 10;
+
+    private ShutdownEvent sdEvent;
+
+    private boolean debugMenu;
+    private boolean exit;
+
 
     @Override
     public void show() {
+        debugMenu = false;
+        exit = false;
+
+        sdEvent = new ShutdownEvent("dev", false);
+
         mapRender = new GameRenderer();
         camera = new OrthoCamera(800, 600);
 
         AssetLoader.AddShader("basic", "basic");
         batch = new SpriteBatch(AssetLoader.GetShader("basic"));
 
-        camera.setZoom(3);
-        Vector3f pos = camera.getPosition();
-        pos.x = 0;
-        pos.y = 0;
-        camera.setPosition(pos);
+        camera.setZoom(1.5f);
 
         AssetLoader.AddTexture("tileset1", "tilesets/1.bmp");
         AssetLoader.AddTexture("tileset2", "tilesets/2.bmp");
@@ -65,12 +79,15 @@ public class TestScene extends SceneAdapter{
         trunkTile.textureX = 4;
         trunkTile.textureY = 0;
         trunkTile.type = Constants.TILE_TYPE_BLOCKED;
+        trunkTile.roof = false;
 
         Actuator.FillMapLayer(testMap, grassTile, 0);
 
         Actuator.AddTileToMap(testMap, trunkTile, 1, 2, 2);
         Actuator.AddTileToMap(testMap, trunkTile, 1, 10, 8);
         Actuator.AddTileToMap(testMap, trunkTile, 1, 10, 13);
+        Actuator.AddTileToMap(testMap, trunkTile, 1, 39, 2);
+        Actuator.AddTileToMap(testMap, trunkTile, 1, 2, 39);
 
         Character testChar = new Character();
         testChar.name = "Angel";
@@ -101,6 +118,11 @@ public class TestScene extends SceneAdapter{
 
     @Override
     public void update(Controller input, double dt) {
+        if(exit) {
+            ClientThread.eventBus().post(sdEvent);
+            return;
+        }
+
         Vector3f position = camera.getPosition();
 
         float cameraSpeed = 300; // Adjust this as needed
@@ -116,13 +138,11 @@ public class TestScene extends SceneAdapter{
         else if (input.isPressed(InputType.RIGHT))
             position.x += (float) (cameraSpeed * dt);
 
-        if(position.x < (camera.getWidth() - 8  * camera.getZoom()) / (camera.getAspectRatio()))
-            position.x = (camera.getWidth() - 8  * camera.getZoom()) / (camera.getAspectRatio());
+        float tileSize = GameRenderer.TILE_SIZE * camera.getZoom();
+        float tileHalf = tileSize * 0.5f;
 
-        if(position.y < (camera.getHeight() - 8 * camera.getZoom()) / (camera.getAspectRatio()))
-            position.y = (camera.getHeight() - 8 * camera.getZoom()) / (camera.getAspectRatio());
-
-        camera.setPosition(position);
+        position.x = Math.clamp(0f, (mapRender.getMapWidth() * tileSize)  - (camera.getWidth() + tileHalf), position.x);
+        position.y = Math.clamp(0f, (mapRender.getMapHeight() * tileSize)  - (camera.getHeight() + tileHalf), position.y);
     }
 
     @Override
