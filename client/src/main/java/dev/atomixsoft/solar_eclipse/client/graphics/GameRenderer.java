@@ -3,6 +3,7 @@ package dev.atomixsoft.solar_eclipse.client.graphics;
 import dev.atomixsoft.solar_eclipse.client.AssetLoader;
 
 import dev.atomixsoft.solar_eclipse.client.ClientThread;
+import dev.atomixsoft.solar_eclipse.client.graphics.cameras.OrthoCamera;
 import dev.atomixsoft.solar_eclipse.client.graphics.render2D.Sprite;
 import dev.atomixsoft.solar_eclipse.client.graphics.render2D.SpriteBatch;
 import dev.atomixsoft.solar_eclipse.core.game.Actuator;
@@ -11,6 +12,7 @@ import dev.atomixsoft.solar_eclipse.core.game.Item;
 import dev.atomixsoft.solar_eclipse.core.game.character.Character;
 import dev.atomixsoft.solar_eclipse.core.game.map.GameMap;
 import dev.atomixsoft.solar_eclipse.core.game.map.Tile;
+import org.joml.Vector3f;
 
 import java.util.List;
 
@@ -29,17 +31,17 @@ public class GameRenderer {
         m_Map = map;
     }
 
-    public void render(SpriteBatch batch) {
+    public void render(SpriteBatch batch, OrthoCamera camera) {
         if(m_Map == null) return;
         int numLayers = Math.min(m_Map.TileMap.keySet().size(), Constants.MAX_MAP_LAYERS);
 
-        renderTiles(batch, numLayers, false);
-        renderItems(batch, m_Map.WorldItems);
-        renderCharacters(batch, m_Map.MapCharacters);
-        renderTiles(batch, numLayers, true);
+        renderTiles(batch, camera, numLayers, false);
+        renderItems(batch, camera, m_Map.WorldItems);
+        renderCharacters(batch, camera, m_Map.MapCharacters);
+        renderTiles(batch, camera, numLayers, true);
     }
 
-    private void renderTiles(SpriteBatch batch, int layers, boolean roofs) {
+    private void renderTiles(SpriteBatch batch, OrthoCamera camera, int layers, boolean roofs) {
         for(var layer = 0; layer < layers; ++layer) {
             for(var x = 0; x < m_Map.width; ++x) {
                 for(var y = 0; y < m_Map.height; ++y) {
@@ -58,13 +60,21 @@ public class GameRenderer {
                     sprite.setPosition(x * TILE_SIZE, y * TILE_SIZE, 0);
                     sprite.setSize(TILE_SIZE, TILE_SIZE);
 
+                    Vector3f camPos = camera.getPosition();
+
+                    if((sprite.getPosition().x + sprite.getSize().x) * camera.getZoom() < camPos.x) continue;
+                    if((sprite.getPosition().y + sprite.getSize().y) * camera.getZoom() < camPos.y) continue;
+
+                    if(sprite.getPosition().x * camera.getZoom() > camPos.x + camera.getWidth()  + TILE_SIZE) continue;
+                    if(sprite.getPosition().y * camera.getZoom() > camPos.y + camera.getHeight() + TILE_SIZE) continue;
+
                     sprite.draw(batch);
                 }
             }
         }
     }
 
-    private void renderItems(SpriteBatch batch, List<Item> worldItems) {
+    private void renderItems(SpriteBatch batch, OrthoCamera camera, List<Item> worldItems) {
         int count = 0;
         for(var i = 0; i < worldItems.size(); ++i) {
             Item item = worldItems.get(i);
@@ -77,6 +87,14 @@ public class GameRenderer {
             itemSprite.setPosition(item.worldX * TILE_SIZE, item.worldY * TILE_SIZE, 0);
             itemSprite.setSize(TILE_SIZE, TILE_SIZE);
 
+            Vector3f camPos = camera.getPosition();
+
+            if((itemSprite.getPosition().x + itemSprite.getSize().x) * camera.getZoom() < camPos.x) continue;
+            if((itemSprite.getPosition().y + itemSprite.getSize().y) * camera.getZoom() < camPos.y) continue;
+
+            if(itemSprite.getPosition().x * camera.getZoom() > camPos.x + camera.getWidth()  + TILE_SIZE) continue;
+            if(itemSprite.getPosition().y * camera.getZoom() > camPos.y + camera.getHeight() + TILE_SIZE) continue;
+
             itemSprite.draw(batch);
             count++;
         }
@@ -85,7 +103,7 @@ public class GameRenderer {
             ClientThread.log().info("Items Rendered: " + count + ", Items ");
     }
 
-    private void renderCharacters(SpriteBatch batch, List<Character> charList) {
+    private void renderCharacters(SpriteBatch batch, OrthoCamera camera, List<Character> charList) {
         for(var i = 0; i < charList.size(); ++i) {
             Character c = charList.get(i);
             if(c == null || c.removed) continue;
@@ -105,6 +123,14 @@ public class GameRenderer {
 
             sprite.setPosition(c.x * cellWidth, c.y * cellHeight + 16 + 8, 0);
             sprite.setSize(cellWidth, cellHeight);
+
+            Vector3f camPos = camera.getPosition();
+
+            if((sprite.getPosition().x + sprite.getSize().x) * camera.getZoom() < camPos.x) continue;
+            if((sprite.getPosition().y + sprite.getSize().y) * camera.getZoom() < camPos.y) continue;
+
+            if(sprite.getPosition().x * camera.getZoom() > camPos.x + camera.getWidth()  + cellWidth) continue;
+            if(sprite.getPosition().y * camera.getZoom() > camPos.y + camera.getHeight() + cellHeight) continue;
 
             sprite.draw(batch);
         }

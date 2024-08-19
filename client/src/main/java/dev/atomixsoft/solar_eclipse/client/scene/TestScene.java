@@ -118,13 +118,15 @@ public class TestScene extends SceneAdapter{
 
     @Override
     public void update(Controller input, double dt) {
+        if(input.isPressed(InputType.CANCEL))
+            exit = true;
+
         if(exit) {
             ClientThread.eventBus().post(sdEvent);
             return;
         }
 
         Vector3f position = camera.getPosition();
-
         float cameraSpeed = 300; // Adjust this as needed
 
         // Example control: move the camera with arrow keys
@@ -148,9 +150,7 @@ public class TestScene extends SceneAdapter{
     @Override
     public void render() {
         batch.begin(camera);
-
-        mapRender.render(batch);
-
+        mapRender.render(batch, camera);
         batch.end();
     }
 
