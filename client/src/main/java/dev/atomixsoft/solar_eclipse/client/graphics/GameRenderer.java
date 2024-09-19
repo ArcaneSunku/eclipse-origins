@@ -12,6 +12,7 @@ import dev.atomixsoft.solar_eclipse.core.game.Item;
 import dev.atomixsoft.solar_eclipse.core.game.character.Character;
 import dev.atomixsoft.solar_eclipse.core.game.map.GameMap;
 import dev.atomixsoft.solar_eclipse.core.game.map.Tile;
+import org.joml.Math;
 import org.joml.Vector3f;
 
 import java.util.List;
@@ -29,6 +30,19 @@ public class GameRenderer {
     public GameRenderer(GameMap map) {
         this();
         m_Map = map;
+    }
+
+    public void update(OrthoCamera camera) {
+        float width = camera.getWidth() / camera.getAspectRatio();
+        float height = camera.getHeight() / camera.getAspectRatio();
+
+        float tileSize = GameRenderer.TILE_SIZE * camera.getZoom();
+        float tileHalf = tileSize * 0.5f;
+
+        Vector3f position = camera.getPosition();
+
+        position.x = Math.clamp(width - tileHalf, (getMapWidth() * tileSize) - (width + tileHalf), position.x);
+        position.y = Math.clamp(height - tileHalf, (getMapHeight() * tileSize) - (height + tileHalf), position.y);
     }
 
     public void render(SpriteBatch batch, OrthoCamera camera) {
@@ -62,11 +76,14 @@ public class GameRenderer {
 
                     Vector3f camPos = camera.getPosition();
 
-                    if((sprite.getPosition().x + sprite.getSize().x) * camera.getZoom() < camPos.x) continue;
-                    if((sprite.getPosition().y + sprite.getSize().y) * camera.getZoom() < camPos.y) continue;
+                    float width = camera.getWidth() / camera.getAspectRatio();
+                    float height = camera.getHeight() / camera.getAspectRatio();
 
-                    if(sprite.getPosition().x * camera.getZoom() > camPos.x + camera.getWidth()  + TILE_SIZE) continue;
-                    if(sprite.getPosition().y * camera.getZoom() > camPos.y + camera.getHeight() + TILE_SIZE) continue;
+                    if((sprite.getPosition().x + sprite.getSize().x) * camera.getZoom() < camPos.x - width) continue;
+                    if((sprite.getPosition().y + sprite.getSize().y) * camera.getZoom() < camPos.y - height) continue;
+
+                    if(sprite.getPosition().x * camera.getZoom() > camPos.x + width  + TILE_SIZE) continue;
+                    if(sprite.getPosition().y * camera.getZoom() > camPos.y + height + TILE_SIZE) continue;
 
                     sprite.draw(batch);
                 }
@@ -89,11 +106,14 @@ public class GameRenderer {
 
             Vector3f camPos = camera.getPosition();
 
-            if((itemSprite.getPosition().x + itemSprite.getSize().x) * camera.getZoom() < camPos.x) continue;
-            if((itemSprite.getPosition().y + itemSprite.getSize().y) * camera.getZoom() < camPos.y) continue;
+            float width = camera.getWidth() / camera.getAspectRatio();
+            float height = camera.getHeight() / camera.getAspectRatio();
 
-            if(itemSprite.getPosition().x * camera.getZoom() > camPos.x + camera.getWidth()  + TILE_SIZE) continue;
-            if(itemSprite.getPosition().y * camera.getZoom() > camPos.y + camera.getHeight() + TILE_SIZE) continue;
+            if((itemSprite.getPosition().x + itemSprite.getSize().x) * camera.getZoom() < camPos.x - width) continue;
+            if((itemSprite.getPosition().y + itemSprite.getSize().y) * camera.getZoom() < camPos.y - height) continue;
+
+            if(itemSprite.getPosition().x * camera.getZoom() > camPos.x + width  + TILE_SIZE) continue;
+            if(itemSprite.getPosition().y * camera.getZoom() > camPos.y + height + TILE_SIZE) continue;
 
             itemSprite.draw(batch);
             count++;
@@ -126,11 +146,14 @@ public class GameRenderer {
 
             Vector3f camPos = camera.getPosition();
 
-            if((sprite.getPosition().x + sprite.getSize().x) * camera.getZoom() < camPos.x) continue;
-            if((sprite.getPosition().y + sprite.getSize().y) * camera.getZoom() < camPos.y) continue;
+            float width = camera.getWidth() / camera.getAspectRatio();
+            float height = camera.getHeight() / camera.getAspectRatio();
 
-            if(sprite.getPosition().x * camera.getZoom() > camPos.x + camera.getWidth()  + cellWidth) continue;
-            if(sprite.getPosition().y * camera.getZoom() > camPos.y + camera.getHeight() + cellHeight) continue;
+            if((sprite.getPosition().x + sprite.getSize().x) * camera.getZoom() < camPos.x - width) continue;
+            if((sprite.getPosition().y + sprite.getSize().y) * camera.getZoom() < camPos.y - height) continue;
+
+            if(sprite.getPosition().x * camera.getZoom() > camPos.x + width  + cellWidth) continue;
+            if(sprite.getPosition().y * camera.getZoom() > camPos.y + height + cellHeight) continue;
 
             sprite.draw(batch);
         }

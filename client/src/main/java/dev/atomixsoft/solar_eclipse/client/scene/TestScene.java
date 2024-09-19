@@ -10,6 +10,9 @@ import dev.atomixsoft.solar_eclipse.core.game.map.Tile;
 import imgui.ImGui;
 import imgui.ImGuiIO;
 import imgui.ImVec2;
+import imgui.flag.ImGuiTableBgTarget;
+import imgui.flag.ImGuiTableFlags;
+import imgui.flag.ImGuiTableRowFlags;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
 import org.joml.Math;
@@ -24,6 +27,8 @@ import dev.atomixsoft.solar_eclipse.client.AssetLoader;
 
 import dev.atomixsoft.solar_eclipse.client.graphics.render2D.SpriteBatch;
 import dev.atomixsoft.solar_eclipse.client.graphics.cameras.OrthoCamera;
+
+import javax.imageio.ImageIO;
 
 import static dev.atomixsoft.solar_eclipse.core.event.types.InputEvent.InputType;
 
@@ -56,7 +61,7 @@ public class TestScene extends SceneAdapter{
         AssetLoader.AddShader("basic", "basic");
         batch = new SpriteBatch(AssetLoader.GetShader("basic"));
 
-        camera.setZoom(1.5f);
+        camera.setZoom(2.5f);
 
         AssetLoader.AddTexture("tileset1", "tilesets/1.bmp");
         AssetLoader.AddTexture("tileset2", "tilesets/2.bmp");
@@ -64,6 +69,13 @@ public class TestScene extends SceneAdapter{
         AssetLoader.AddTexture("char1", "characters/1.bmp");
         AssetLoader.AddTexture("char2", "characters/2.bmp");
         AssetLoader.AddTexture("char3", "characters/3.bmp");
+
+        AssetLoader.AddTexture("item1", "items/1.bmp");
+        AssetLoader.AddTexture("item2", "items/2.bmp");
+        AssetLoader.AddTexture("item3", "items/3.bmp");
+        AssetLoader.AddTexture("item4", "items/4.bmp");
+        AssetLoader.AddTexture("item5", "items/5.bmp");
+        AssetLoader.AddTexture("item6", "items/6.bmp");
 
         GameMap testMap = new GameMap(0, 0, 40, 40);
 
@@ -140,11 +152,7 @@ public class TestScene extends SceneAdapter{
         else if (input.isPressed(InputType.RIGHT))
             position.x += (float) (cameraSpeed * dt);
 
-        float tileSize = GameRenderer.TILE_SIZE * camera.getZoom();
-        float tileHalf = tileSize * 0.5f;
-
-        position.x = Math.clamp(0f, (mapRender.getMapWidth() * tileSize)  - (camera.getWidth() + tileHalf), position.x);
-        position.y = Math.clamp(0f, (mapRender.getMapHeight() * tileSize)  - (camera.getHeight() + tileHalf), position.y);
+        mapRender.update(camera);
     }
 
     @Override
@@ -156,8 +164,38 @@ public class TestScene extends SceneAdapter{
 
     @Override
     public void imgui() {
-        ImGui.begin("Test Inventory");
+        ImGuiIO io = ImGui.getIO();
 
+        ImVec2 winSize = ImGui.getWindowSize();
+
+        ImGui.beginGroup();
+        ImGui.begin("Hot Bar");
+
+        ImGui.end();
+        ImGui.endGroup();
+
+
+        ImGui.setNextWindowSize(32 * 5.25f, 32 * 9.5f);
+        ImGui.begin("Test Inventory", ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBackground);
+
+        int tableFlags = ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.Reorderable | ImGuiTableFlags.NoPadOuterX | ImGuiTableFlags.NoHostExtendX;
+        if(ImGui.beginTable("#inventory", 4, tableFlags, 0, 0, 0)) {
+            for(int i = 0; i < 8; i++) {
+                ImGui.tableNextColumn();
+                ImGui.tableSetBgColor(ImGuiTableBgTarget.CellBg, 0xff000000);
+                ImGui.image(AssetLoader.GetTexture("item3").getTextureId(), 32, 32, 0.5f, 0, 1, 1);
+                ImGui.tableNextColumn();
+                ImGui.tableSetBgColor(ImGuiTableBgTarget.CellBg, 0xff000000);
+                ImGui.image(AssetLoader.GetTexture("item2").getTextureId(), 32, 32, 0.5f, 0, 1, 1);
+                ImGui.tableNextColumn();
+                ImGui.tableSetBgColor(ImGuiTableBgTarget.CellBg, 0xff000000);
+                ImGui.image(AssetLoader.GetTexture("item5").getTextureId(), 32, 32, 0.5f, 0, 1, 1);
+                ImGui.tableNextColumn();
+                ImGui.tableSetBgColor(ImGuiTableBgTarget.CellBg, 0xff000000);
+                ImGui.image(AssetLoader.GetTexture("item4").getTextureId(), 32, 32, 0.5f, 0, 1, 1);
+            }
+            ImGui.endTable();
+        }
         ImGui.end();
     }
 
