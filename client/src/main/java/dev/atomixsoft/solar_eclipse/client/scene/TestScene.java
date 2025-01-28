@@ -57,11 +57,10 @@ public class TestScene extends SceneAdapter{
 
         mapRender = new GameRenderer();
         camera = new OrthoCamera(800, 600);
+        camera.setZoom(128.0f);
 
         AssetLoader.AddShader("basic", "basic");
         batch = new SpriteBatch(AssetLoader.GetShader("basic"));
-
-        camera.setZoom(2.5f);
 
         AssetLoader.AddTexture("tileset1", "tilesets/1.bmp");
         AssetLoader.AddTexture("tileset2", "tilesets/2.bmp");

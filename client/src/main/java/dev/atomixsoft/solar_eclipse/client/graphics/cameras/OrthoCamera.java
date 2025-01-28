@@ -25,12 +25,11 @@ public class OrthoCamera extends Camera {
         float zoom = getZoom();
 
         m_View.identity();
-
-        if(inverted) m_View.translate(-position.x, -position.y, 0.0f);
-        else m_View.translate(position.x, position.y, 0.0f);
-
+        m_View.translate(position.x, position.y, 0.0f);
         m_View.rotate(rotation);
-        m_View.scale(zoom, zoom, 1.0f);
+
+        if(inverted)
+            m_View.invert();
     }
 
     public void resize(float width, float height) {
@@ -43,7 +42,12 @@ public class OrthoCamera extends Camera {
             this.m_AspectRatio = m_Height / m_Width;
 
         m_Projection.identity();
-        m_Projection.ortho(-(m_Width / m_AspectRatio), m_Width / m_AspectRatio, -(m_Height / m_AspectRatio), m_Height / m_AspectRatio, -1.0f, 1.0f);
+        m_Projection.ortho(-m_AspectRatio * m_Zoom, m_AspectRatio * m_Zoom, -m_Zoom, m_Zoom, -1.0f, 1.0f);
+    }
+
+    public void setZoom(float zoom) {
+        super.setZoom(zoom);
+        resize(m_Width, m_Height);
     }
 
     public float getAspectRatio() {
