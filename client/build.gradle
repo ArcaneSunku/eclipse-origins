@@ -5,7 +5,7 @@ plugins {
 ext {
     jomlVersion = "1.10.5"
     lwjglVersion = "3.3.3"
-    imguiVersion = "1.86.11"
+    imguiVersion = "1.88.0"
 }
 
 def dataDir = "${rootProject.projectDir}/data"

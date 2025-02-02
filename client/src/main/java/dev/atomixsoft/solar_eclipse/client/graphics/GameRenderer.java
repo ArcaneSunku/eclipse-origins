@@ -22,7 +22,7 @@ import java.util.List;
  */
 public class GameRenderer {
     private static final int SPRITE_CELL_SIZE = 32;
-    public static final int TILE_SIZE = 16;
+    public static final int TILE_SIZE = 32;
 
     private GameMap m_Map;
     public GameRenderer() { }
@@ -141,8 +141,8 @@ public class GameRenderer {
                 case RIGHT -> sprite.setCellPos(keyFrame * cellWidth, cellHeight * 2);
             }
 
-            sprite.setPosition(c.x * cellWidth, c.y * cellHeight + (TILE_SIZE * 1.5f), 0);
-            sprite.setSize(cellWidth, cellHeight);
+            sprite.setPosition(c.x * TILE_SIZE, c.y * TILE_SIZE + (cellHeight * 0.5f), 0);
+            sprite.setSize(cellWidth * 1.5f, cellHeight * 1.5f);
 
             Vector3f camPos = camera.getPosition();
 
@@ -153,7 +153,7 @@ public class GameRenderer {
             if((sprite.getPosition().y + sprite.getSize().y) < camPos.y - height) continue;
 
             if(sprite.getPosition().x > camPos.x + width  + cellWidth) continue;
-            if(sprite.getPosition().y > camPos.y + height + cellHeight + (TILE_SIZE * 1.5f)) continue;
+            if(sprite.getPosition().y > camPos.y + height + cellHeight + (cellHeight * 1.5f) / 2.5f) continue;
 
             sprite.draw(batch);
         }

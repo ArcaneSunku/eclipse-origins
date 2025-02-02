@@ -34,6 +34,7 @@ public class ImGuiManager {
 
     public void setup() {
         m_imguiImplGLFW.newFrame();
+        m_imguiImplGL3.newFrame();
         ImGui.newFrame();
     }
 
@@ -50,8 +51,8 @@ public class ImGuiManager {
     }
 
     public void dispose() {
-        m_imguiImplGL3.dispose();
-        m_imguiImplGLFW.dispose();
+        m_imguiImplGL3.shutdown();
+        m_imguiImplGLFW.shutdown();
 
         ImGui.destroyContext();
     }

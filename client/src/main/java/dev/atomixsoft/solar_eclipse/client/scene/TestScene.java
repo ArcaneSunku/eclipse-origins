@@ -57,7 +57,7 @@ public class TestScene extends SceneAdapter{
 
         mapRender = new GameRenderer();
         camera = new OrthoCamera(800, 600);
-        camera.setZoom(128.0f);
+        camera.setZoom(16 * 10);
 
         AssetLoader.AddShader("basic", "basic");
         batch = new SpriteBatch(AssetLoader.GetShader("basic"));
@@ -76,7 +76,7 @@ public class TestScene extends SceneAdapter{
         AssetLoader.AddTexture("item5", "items/5.bmp");
         AssetLoader.AddTexture("item6", "items/6.bmp");
 
-        GameMap testMap = new GameMap(0, 0, 40, 40);
+        GameMap testMap = new GameMap(0, 0, 10, 10);
 
         Tile grassTile = new Tile();
         grassTile.textureId = 1;
@@ -95,10 +95,10 @@ public class TestScene extends SceneAdapter{
         Actuator.FillMapLayer(testMap, grassTile, 0);
 
         Actuator.AddTileToMap(testMap, trunkTile, 1, 2, 2);
-        Actuator.AddTileToMap(testMap, trunkTile, 1, 10, 8);
-        Actuator.AddTileToMap(testMap, trunkTile, 1, 10, 13);
-        Actuator.AddTileToMap(testMap, trunkTile, 1, 39, 2);
-        Actuator.AddTileToMap(testMap, trunkTile, 1, 2, 39);
+        Actuator.AddTileToMap(testMap, trunkTile, 1, 9, 8);
+        Actuator.AddTileToMap(testMap, trunkTile, 1, 9, 9);
+        Actuator.AddTileToMap(testMap, trunkTile, 1, 9, 2);
+        Actuator.AddTileToMap(testMap, trunkTile, 1, 2, 9);
 
         Character testChar = new Character();
         testChar.name = "Angel";
@@ -112,12 +112,12 @@ public class TestScene extends SceneAdapter{
         testChar2.name = "Jim";
         testChar2.textureId = 1;
         testChar2.keyFrame = 0;
-        testChar2.facing = Character.Direction.UP;
+        testChar2.facing = Character.Direction.DOWN;
         testChar2.player = true;
         testChar2.sex = Constants.SEX_MALE;
 
         Actuator.AddCharacterToMap(testMap, testChar, 0, 0);
-        Actuator.AddCharacterToMap(testMap, testChar2, 3, 10);
+        Actuator.AddCharacterToMap(testMap, testChar2, 2, 3);
 
         mapRender.setMap(testMap);
     }
