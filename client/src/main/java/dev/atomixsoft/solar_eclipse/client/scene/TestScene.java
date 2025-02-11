@@ -1,21 +1,17 @@
 package dev.atomixsoft.solar_eclipse.client.scene;
 
 import dev.atomixsoft.solar_eclipse.client.ClientThread;
+import dev.atomixsoft.solar_eclipse.client.graphics.FrameBuffer;
 import dev.atomixsoft.solar_eclipse.client.graphics.GameRenderer;
+import dev.atomixsoft.solar_eclipse.client.graphics.Texture;
 import dev.atomixsoft.solar_eclipse.core.event.types.ShutdownEvent;
 import dev.atomixsoft.solar_eclipse.core.game.Actuator;
+import dev.atomixsoft.solar_eclipse.core.game.Item;
 import dev.atomixsoft.solar_eclipse.core.game.character.Character;
 import dev.atomixsoft.solar_eclipse.core.game.map.GameMap;
 import dev.atomixsoft.solar_eclipse.core.game.map.Tile;
-import imgui.ImGui;
-import imgui.ImGuiIO;
-import imgui.ImVec2;
-import imgui.flag.ImGuiTableBgTarget;
-import imgui.flag.ImGuiTableFlags;
-import imgui.flag.ImGuiTableRowFlags;
-import imgui.flag.ImGuiWindowFlags;
-import imgui.type.ImBoolean;
-import org.joml.Math;
+import imgui.*;
+import imgui.flag.*;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 
@@ -28,55 +24,41 @@ import dev.atomixsoft.solar_eclipse.client.AssetLoader;
 import dev.atomixsoft.solar_eclipse.client.graphics.render2D.SpriteBatch;
 import dev.atomixsoft.solar_eclipse.client.graphics.cameras.OrthoCamera;
 
-import javax.imageio.ImageIO;
-
 import static dev.atomixsoft.solar_eclipse.core.event.types.InputEvent.InputType;
+import static org.lwjgl.opengl.GL11.*;
 
 /**
  * <p>Purely for prototyping features in the earlier stages of development.</p>
  */
-public class TestScene extends SceneAdapter{
+public class TestScene extends SceneAdapter {
 
     private OrthoCamera camera;
     private SpriteBatch batch;
-    private GameRenderer mapRender;
+    private FrameBuffer frameBuffer;
 
-
-    private ShutdownEvent sdEvent;
-
-    private boolean debugMenu;
-    private boolean exit;
-
+    private GameRenderer gameRender;
 
     @Override
     public void show() {
-        debugMenu = false;
-        exit = false;
-
-        sdEvent = new ShutdownEvent("dev", false);
-
-        mapRender = new GameRenderer();
-        camera = new OrthoCamera(800, 600);
-        camera.setZoom(16 * 10);
+        camera = new OrthoCamera(476, 380);
+        camera.setZoom(16 * 9);
 
         AssetLoader.AddShader("basic", "basic");
         batch = new SpriteBatch(AssetLoader.GetShader("basic"));
 
-        AssetLoader.AddTexture("tileset1", "tilesets/1.bmp");
-        AssetLoader.AddTexture("tileset2", "tilesets/2.bmp");
+        frameBuffer = new FrameBuffer(476, 380);
+        gameRender = new GameRenderer();
 
-        AssetLoader.AddTexture("char1", "characters/1.bmp");
-        AssetLoader.AddTexture("char2", "characters/2.bmp");
-        AssetLoader.AddTexture("char3", "characters/3.bmp");
+        loadNonUITextures("animation", 3);
+        loadNonUITextures("character", 3);
+        loadNonUITextures("face", 3);
+        loadNonUITextures("item", 14);
+        loadNonUITextures("tileset", 2);
 
-        AssetLoader.AddTexture("item1", "items/1.bmp");
-        AssetLoader.AddTexture("item2", "items/2.bmp");
-        AssetLoader.AddTexture("item3", "items/3.bmp");
-        AssetLoader.AddTexture("item4", "items/4.bmp");
-        AssetLoader.AddTexture("item5", "items/5.bmp");
-        AssetLoader.AddTexture("item6", "items/6.bmp");
+        loadGUITextures("menu");
+        loadGUITextures("main");
 
-        GameMap testMap = new GameMap(0, 0, 10, 10);
+        GameMap testMap = new GameMap(0, 0, 12, 10);
 
         Tile grassTile = new Tile();
         grassTile.textureId = 1;
@@ -119,7 +101,7 @@ public class TestScene extends SceneAdapter{
         Actuator.AddCharacterToMap(testMap, testChar, 0, 0);
         Actuator.AddCharacterToMap(testMap, testChar2, 2, 3);
 
-        mapRender.setMap(testMap);
+        gameRender.setMap(testMap);
     }
 
     @Override
@@ -130,77 +112,134 @@ public class TestScene extends SceneAdapter{
     @Override
     public void update(Controller input, double dt) {
         if(input.isPressed(InputType.CANCEL))
-            exit = true;
+            ClientThread.eventBus().post(new ShutdownEvent("dev", false));
 
-        if(exit) {
-            ClientThread.eventBus().post(sdEvent);
-            return;
-        }
-
-        Vector3f position = camera.getPosition();
-        float cameraSpeed = 300; // Adjust this as needed
-
-        // Example control: move the camera with arrow keys
-        if (input.isPressed(InputType.UP))
-            position.y += (float) (cameraSpeed * dt);
-        else if (input.isPressed(InputType.DOWN))
-            position.y -= (float) (cameraSpeed * dt);
-
-        if (input.isPressed(InputType.LEFT))
-            position.x -= (float) (cameraSpeed * dt);
-        else if (input.isPressed(InputType.RIGHT))
-            position.x += (float) (cameraSpeed * dt);
-
-        mapRender.update(camera);
+        gameRender.update(camera);
     }
 
     @Override
     public void render() {
+        frameBuffer.bind();
+        glViewport(0, 0, frameBuffer.getWidth(), frameBuffer.getHeight());
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         batch.begin(camera);
-        mapRender.render(batch, camera);
+        gameRender.render(batch, camera);
         batch.end();
+        frameBuffer.unbind();
+
+        glViewport(0, 0, (int) ClientThread.size().x, (int) ClientThread.size().y);
     }
 
     @Override
     public void imgui() {
         ImGuiIO io = ImGui.getIO();
 
-        ImVec2 winSize = ImGui.getWindowSize();
+        ImGui.pushStyleColor(ImGuiCol.Border, 1, 1, 1, 0);
+        ImGui.pushStyleVar(ImGuiStyleVar.WindowBorderSize, 0);
+        ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 0, 0);
+        ImGui.pushStyleVar(ImGuiStyleVar.FramePadding, 0, 0);
+        ImGui.pushStyleVar(ImGuiStyleVar.CellPadding, 0, 0);
 
-        ImGui.beginGroup();
-        ImGui.begin("Hot Bar");
+        Texture main_bg = AssetLoader.GetTexture("ui_main_main");
+        Texture hotbar = AssetLoader.GetTexture("ui_main_hotbar");
+
+        ImGui.setNextWindowPos(0, 0);
+        ImGui.setNextWindowSize(main_bg.getWidth(), main_bg.getHeight());
+
+        ImGui.begin("Background", ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBringToFrontOnFocus);
+        // Background Image
+        ImGui.image(main_bg.getTextureId(), ImGui.getContentRegionAvail());
+
+        // Game Buffer
+        ImGui.setCursorPos(12, 12);
+        ImGui.image(frameBuffer.getColorBufferId(), new ImVec2(frameBuffer.getWidth(), frameBuffer.getHeight()), new ImVec2(0, 1), new ImVec2(1, 0));
+
+        // Hotbar Image
+        ImGui.setCursorPos(12, 399);
+        ImGui.image(hotbar.getTextureId(), hotbar.getWidth(), hotbar.getHeight());
 
         ImGui.end();
-        ImGui.endGroup();
 
-
-        ImGui.setNextWindowSize(32 * 5.25f, 32 * 9.5f);
-        ImGui.begin("Test Inventory", ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBackground);
-
-        int tableFlags = ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.Reorderable | ImGuiTableFlags.NoPadOuterX | ImGuiTableFlags.NoHostExtendX;
-        if(ImGui.beginTable("#inventory", 4, tableFlags, 0, 0, 0)) {
-            for(int i = 0; i < 8; i++) {
-                ImGui.tableNextColumn();
-                ImGui.tableSetBgColor(ImGuiTableBgTarget.CellBg, 0xff000000);
-                ImGui.image(AssetLoader.GetTexture("item3").getTextureId(), 32, 32, 0.5f, 0, 1, 1);
-                ImGui.tableNextColumn();
-                ImGui.tableSetBgColor(ImGuiTableBgTarget.CellBg, 0xff000000);
-                ImGui.image(AssetLoader.GetTexture("item2").getTextureId(), 32, 32, 0.5f, 0, 1, 1);
-                ImGui.tableNextColumn();
-                ImGui.tableSetBgColor(ImGuiTableBgTarget.CellBg, 0xff000000);
-                ImGui.image(AssetLoader.GetTexture("item5").getTextureId(), 32, 32, 0.5f, 0, 1, 1);
-                ImGui.tableNextColumn();
-                ImGui.tableSetBgColor(ImGuiTableBgTarget.CellBg, 0xff000000);
-                ImGui.image(AssetLoader.GetTexture("item4").getTextureId(), 32, 32, 0.5f, 0, 1, 1);
-            }
-            ImGui.endTable();
-        }
-        ImGui.end();
+        ImGui.popStyleVar(4);
+        ImGui.popStyleColor();
     }
 
     @Override
     public void dispose() {
         if(batch != null)
             batch.dispose();
+
+        frameBuffer.dispose();
+    }
+
+    /**
+     * Loads the GUI textures related to the name you pass. </br>
+     * This will search for a folder with the given name and load what you specify from there. </br>
+     * Calls to {@link #loadButtonTextures(String, String)} should be called in here somewhere.
+     *
+     * @param name the name of the folder you want to load the UI textures for
+     */
+    private void loadGUITextures(String name) {
+        if(name.equalsIgnoreCase("main")) {
+            AssetLoader.AddTexture("ui_" + name + "_bank",       "gui/" + name + "/bank.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_character",  "gui/" + name + "/character.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_itemDesc",   "gui/" + name + "/description_item.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_spellDesc",  "gui/" + name + "/description_spell.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_dragbox",    "gui/" + name + "/dragbox.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_hotbar",     "gui/" + name + "/hotbar.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_inventory",  "gui/" + name + "/inventory.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_main",       "gui/" + name + "/main.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_options",    "gui/" + name + "/options.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_party",      "gui/" + name + "/party.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_shop",       "gui/" + name + "/shop.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_skills",     "gui/" + name + "/skills.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_trade",      "gui/" + name + "/trade.jpg");
+
+            AssetLoader.AddTexture("ui_" + name + "_health_bar",       "gui/" + name + "/bars/health.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_spirit_bar",       "gui/" + name + "/bars/spirit.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_exp_bar",          "gui/" + name + "/bars/experience.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_party_health_bar", "gui/" + name + "/bars/party_health.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_party_spirit_bar", "gui/" + name + "/bars/party_spirit.jpg");
+
+            loadButtonTextures(name, "char");
+            loadButtonTextures(name, "exit");
+            loadButtonTextures(name, "inv");
+            loadButtonTextures(name, "opt");
+            loadButtonTextures(name, "party");
+            loadButtonTextures(name, "skills");
+            loadButtonTextures(name, "trade");
+        } else if(name.equalsIgnoreCase("menu")) {
+            AssetLoader.AddTexture("ui_" + name + "_background", "gui/" + name + "/background.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_character",  "gui/" + name + "/character.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_credits",    "gui/" + name + "/credits.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_loading",    "gui/" + name + "/loading.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_login",      "gui/" + name + "/login.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_main",       "gui/" + name + "/main.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_register",   "gui/" + name + "/register.jpg");
+
+            loadButtonTextures(name, "credits");
+            loadButtonTextures(name, "exit");
+            loadButtonTextures(name, "login");
+            loadButtonTextures(name, "register");
+        }
+    }
+
+    /**
+     * Loads the button textures in the relative paths to the menu fold you specify.</br>
+     * Keep in mind, this loads the click, hover, and idle versions of the button, no need to do it separately.
+     *
+     * @param uiName the name of the folder we search the GUI folder for
+     * @param name name of the button you want to add.
+     */
+    private void loadButtonTextures(String uiName, String name) {
+        AssetLoader.AddTexture("btn_" + uiName + "_" + name, "gui/" + uiName + "/buttons/" + name + "_click.jpg");
+        AssetLoader.AddTexture("btn_" + uiName + "_" + name, "gui/" + uiName + "/buttons/" + name + "_hover.jpg");
+        AssetLoader.AddTexture("btn_" + uiName + "_" + name, "gui/" + uiName + "/buttons/" + name + "_norm.jpg");
+    }
+
+    private void loadNonUITextures(String name, int amount) {
+        for(var i = 1; i <= amount; ++i)
+            AssetLoader.AddTexture(name + i, name + "s/" + i + ".bmp");
     }
 }

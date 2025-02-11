@@ -83,7 +83,7 @@ public class SpriteBatch {
         }
 
         ByteBuffer wBuffer = MemoryUtil.memAlloc(4);
-        wBuffer.put(0, new byte[] { (byte) 255, (byte) 255, (byte) 255, (byte) 255});
+        wBuffer.put(0, new byte[] { 127, 127, 127, 127 });
 
         m_WhiteTexture = new Texture(1, 1, wBuffer);
         m_TextureSlots.put(0, m_WhiteTexture);
@@ -183,7 +183,7 @@ public class SpriteBatch {
 
         if (textureSlot == 0.0f)
         {
-            if (m_IndexCount >= m_Size * 6)
+            if(m_TextureSlotIndex > MAX_TEXTURE_SLOTS)
                 nextBatch();
 
             textureSlot = (float) m_TextureSlotIndex;
@@ -199,7 +199,7 @@ public class SpriteBatch {
         m_IndexCount+= 6;
 
         if(m_Vertices.remaining() <= m_Size * 4)
-            nextBatch();
+            flush();
     }
 
     public void end() {

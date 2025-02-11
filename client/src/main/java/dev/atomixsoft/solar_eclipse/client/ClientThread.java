@@ -8,6 +8,7 @@ import dev.atomixsoft.solar_eclipse.core.event.EventBus;
 import dev.atomixsoft.solar_eclipse.core.event.interfaces.EventConsumer;
 import dev.atomixsoft.solar_eclipse.core.event.types.InputEvent;
 import dev.atomixsoft.solar_eclipse.core.event.types.ShutdownEvent;
+import org.joml.Vector2f;
 import org.lwjgl.glfw.GLFWErrorCallback;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -32,6 +33,9 @@ public class ClientThread implements Runnable, EventConsumer<ShutdownEvent> {
     }
     public static EventBus eventBus() {
         return s_Instance.m_EventBus;
+    }
+    public static Vector2f size() {
+        return new Vector2f(s_Instance.m_Window.getWidth(), s_Instance.m_Window.getHeight());
     }
 
     private final Controller m_Controller;
@@ -139,7 +143,7 @@ public class ClientThread implements Runnable, EventConsumer<ShutdownEvent> {
     public void run() {
         this.m_Logger.debug("Client thread running...");
 
-        m_Window = new Window(m_Title, 800, 600);
+        m_Window = new Window(m_Title, 785, 594);
         m_Window.show();
 
         RenderCmd.Init();

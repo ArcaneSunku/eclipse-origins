@@ -15,6 +15,7 @@ import dev.atomixsoft.solar_eclipse.core.game.map.Tile;
 import org.joml.Math;
 import org.joml.Vector3f;
 
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -47,7 +48,7 @@ public class GameRenderer {
 
     public void render(SpriteBatch batch, OrthoCamera camera) {
         if(m_Map == null) return;
-        int numLayers = Math.min(m_Map.TileMap.keySet().size(), Constants.MAX_MAP_LAYERS);
+        int numLayers = Math.min(m_Map.TileMap.size(), Constants.MAX_MAP_LAYERS);
 
         renderTiles(batch, camera, numLayers, false);
         renderItems(batch, camera, m_Map.WorldItems);
@@ -97,7 +98,7 @@ public class GameRenderer {
             Item item = worldItems.get(i);
             if(item == null || !item.inWorld) continue;
 
-            Sprite itemSprite = new Sprite(AssetLoader.GetTexture("items" + i));
+            Sprite itemSprite = new Sprite(AssetLoader.GetTexture(item.textureName));
             itemSprite.setCellPos(0, 0);
             itemSprite.setCellSize(32, 32);
 
@@ -118,18 +119,17 @@ public class GameRenderer {
             itemSprite.draw(batch);
             count++;
         }
-
-        if(count != 0)
-            ClientThread.log().info("Items Rendered: " + count + ", Items ");
     }
 
     private void renderCharacters(SpriteBatch batch, OrthoCamera camera, List<Character> charList) {
+        charList.sort(Comparator.comparingInt(c -> -c.y));
+
         for(var i = 0; i < charList.size(); ++i) {
             Character c = charList.get(i);
             if(c == null || c.removed) continue;
 
             int keyFrame = Math.max(0, Math.min(c.keyFrame, 3));
-            Sprite sprite = new Sprite(AssetLoader.GetTexture("char" + c.textureId));
+            Sprite sprite = new Sprite(AssetLoader.GetTexture("character" + c.textureId));
 
             float cellWidth = sprite.getTexture().getWidth() / 4.0f, cellHeight = sprite.getTexture().getHeight() / 4.0f;
             sprite.setCellSize(cellWidth, cellHeight);

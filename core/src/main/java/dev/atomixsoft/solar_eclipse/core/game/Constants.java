@@ -23,7 +23,7 @@ public class Constants {
     public static final long MAX_LEVELS = 100;
     public static final long MAX_BANK = 99;
     public static final long MAX_HOTBAR = 12;
-    public static final long MAX_PARTYS = 35;
+    public static final long MAX_PARTIES = 35;
     public static final long MAX_PARTY_MEMBERS = 4;
 
     // Boolean Constants
@@ -52,12 +52,12 @@ public class Constants {
     public static byte TILE_TYPE_BLOCKED = 1;
     public static byte TILE_TYPE_WARP = 2;
     public static byte TILE_TYPE_ITEM = 3;
-    public static byte TILE_TYPE_NPCAVOID = 4;
+    public static byte TILE_TYPE_NPC_AVOID = 4;
     public static byte TILE_TYPE_KEY = 5;
-    public static byte TILE_TYPE_KEYOPEN = 6;
+    public static byte TILE_TYPE_KEY_OPEN = 6;
     public static byte TILE_TYPE_RESOURCE = 7;
     public static byte TILE_TYPE_DOOR = 8;
-    public static byte TILE_TYPE_NPCSPAWN = 9;
+    public static byte TILE_TYPE_NPC_SPAWN = 9;
     public static byte TILE_TYPE_SHOP = 10;
     public static byte TILE_TYPE_BANK = 11;
     public static byte TILE_TYPE_HEAL = 12;
