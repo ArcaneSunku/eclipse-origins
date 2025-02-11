@@ -62,7 +62,7 @@ public class Shader {
     public void createUniform(String name) {
         int location = glGetUniformLocation(m_ProgramId, name);
         if(location < 0)
-            throw new RuntimeException(String.format("Failed to create uniform [%s]!", name));
+            return;
 
         m_UniformMap.putIfAbsent(name, location);
     }

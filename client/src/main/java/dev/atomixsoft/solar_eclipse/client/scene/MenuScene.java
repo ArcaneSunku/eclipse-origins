@@ -31,7 +31,8 @@ public class MenuScene extends SceneAdapter {
         uiState = UIState.Main;
 
         ImGuiIO io = ImGui.getIO();
-        georgia = io.getFonts().addFontFromFileTTF("client/assets/fonts/georgia.ttf", 16);
+        if(georgia == null)
+            georgia = io.getFonts().addFontFromFileTTF("client/assets/fonts/georgia.ttf", 16);
     }
 
     @Override

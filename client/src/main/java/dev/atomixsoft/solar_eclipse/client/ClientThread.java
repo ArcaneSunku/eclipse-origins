@@ -165,7 +165,6 @@ public class ClientThread implements Runnable, EventConsumer<ShutdownEvent> {
     public void run() {
         this.m_Logger.debug("Client thread running...");
 
-//        m_Window = new Window(m_Title, 785, 594); // In Game Size
         m_Window = new Window(m_Title, 515, 352);
         m_Window.show();
 

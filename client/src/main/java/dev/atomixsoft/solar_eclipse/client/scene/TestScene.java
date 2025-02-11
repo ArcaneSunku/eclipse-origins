@@ -95,14 +95,12 @@ public class TestScene extends SceneAdapter {
     }
 
     @Override
-    public void hide() {
-        dispose();
-    }
-
-    @Override
     public void update(Controller input, double dt) {
-        if(input.isPressed(InputType.CANCEL))
-            ClientThread.eventBus().post(new ShutdownEvent("dev", false));
+        if(input.isPressed(InputType.CANCEL)) {
+            ClientThread.set_size(515, 352);
+            ClientThread.set_scene("Menu");
+            return;
+        }
 
         gameRender.update(camera);
     }
