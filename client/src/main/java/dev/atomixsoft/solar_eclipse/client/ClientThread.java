@@ -2,12 +2,15 @@ package dev.atomixsoft.solar_eclipse.client;
 
 import dev.atomixsoft.solar_eclipse.client.logging.Logger;
 
+import dev.atomixsoft.solar_eclipse.client.scene.MainScene;
 import dev.atomixsoft.solar_eclipse.client.util.ImGuiManager;
 import dev.atomixsoft.solar_eclipse.client.util.input.Controller;
 import dev.atomixsoft.solar_eclipse.core.event.EventBus;
 import dev.atomixsoft.solar_eclipse.core.event.interfaces.EventConsumer;
 import dev.atomixsoft.solar_eclipse.core.event.types.InputEvent;
 import dev.atomixsoft.solar_eclipse.core.event.types.ShutdownEvent;
+import imgui.ImGui;
+import imgui.ImGuiIO;
 import org.joml.Vector2f;
 import org.lwjgl.glfw.GLFWErrorCallback;
 
@@ -22,7 +25,7 @@ import dev.atomixsoft.solar_eclipse.client.audio.AudioMaster;
 import dev.atomixsoft.solar_eclipse.client.graphics.RenderCmd;
 
 import dev.atomixsoft.solar_eclipse.client.scene.SceneHandler;
-import dev.atomixsoft.solar_eclipse.client.scene.MainScene;
+import dev.atomixsoft.solar_eclipse.client.scene.MenuScene;
 import dev.atomixsoft.solar_eclipse.client.scene.TestScene;
 
 
@@ -36,6 +39,13 @@ public class ClientThread implements Runnable, EventConsumer<ShutdownEvent> {
     }
     public static Vector2f size() {
         return new Vector2f(s_Instance.m_Window.getWidth(), s_Instance.m_Window.getHeight());
+    }
+
+    public static void set_size(int width, int height) {
+        s_Instance.m_Window.setSize(width, height);
+    }
+    public static void set_scene(String name) {
+        s_Instance.m_Scenes.setActiveScene(name);
     }
 
     private final Controller m_Controller;
@@ -92,10 +102,22 @@ public class ClientThread implements Runnable, EventConsumer<ShutdownEvent> {
         m_GUIManager.init(m_Window.getHandle(), "#version 130");
         AudioMaster.Init();
 
+        loadGUITextures("menu");
+        loadGUITextures("main");
+
+        loadNonUITextures("animation", 3);
+        loadNonUITextures("character", 3);
+        loadNonUITextures("face", 3);
+        loadNonUITextures("item", 14);
+        loadNonUITextures("tileset", 2);
+
+        AssetLoader.AddShader("basic", "basic");
+
         m_Scenes.addScene("Test", new TestScene());
+        m_Scenes.addScene("Menu", new MenuScene());
         m_Scenes.addScene("Main", new MainScene());
 
-        m_Scenes.setActiveScene("Test");
+        m_Scenes.setActiveScene("Menu");
         m_Scenes.getActiveScene().resize(m_Window.getWidth(), m_Window.getHeight());
     }
 
@@ -143,7 +165,8 @@ public class ClientThread implements Runnable, EventConsumer<ShutdownEvent> {
     public void run() {
         this.m_Logger.debug("Client thread running...");
 
-        m_Window = new Window(m_Title, 785, 594);
+//        m_Window = new Window(m_Title, 785, 594); // In Game Size
+        m_Window = new Window(m_Title, 515, 352);
         m_Window.show();
 
         RenderCmd.Init();
@@ -166,7 +189,7 @@ public class ClientThread implements Runnable, EventConsumer<ShutdownEvent> {
                 continue;
             }
 
-            if(m_Window.hasResized() && m_Window.isResizable()) {
+            if(m_Window.hasResized()) {
                 m_Scenes.resize(m_Window.getWidth(), m_Window.getHeight());
                 m_Window.setResized(false);
             }
@@ -205,5 +228,75 @@ public class ClientThread implements Runnable, EventConsumer<ShutdownEvent> {
         } catch (InterruptedException e) {
             m_Logger.debug(e.getMessage());
         }
+    }
+
+    /**
+     * Loads the GUI textures related to the name you pass. </br>
+     * This will search for a folder with the given name and load what you specify from there. </br>
+     * Calls to {@link #loadButtonTextures(String, String)} should be called in here somewhere.
+     *
+     * @param name the name of the folder you want to load the UI textures for
+     */
+    private void loadGUITextures(String name) {
+        if(name.equalsIgnoreCase("main")) {
+            AssetLoader.AddTexture("ui_" + name + "_bank",       "gui/" + name + "/bank.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_character",  "gui/" + name + "/character.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_itemDesc",   "gui/" + name + "/description_item.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_spellDesc",  "gui/" + name + "/description_spell.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_dragbox",    "gui/" + name + "/dragbox.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_hotbar",     "gui/" + name + "/hotbar.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_inventory",  "gui/" + name + "/inventory.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_main",       "gui/" + name + "/main.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_options",    "gui/" + name + "/options.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_party",      "gui/" + name + "/party.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_shop",       "gui/" + name + "/shop.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_skills",     "gui/" + name + "/skills.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_trade",      "gui/" + name + "/trade.jpg");
+
+            AssetLoader.AddTexture("ui_" + name + "_health_bar",       "gui/" + name + "/bars/health.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_spirit_bar",       "gui/" + name + "/bars/spirit.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_exp_bar",          "gui/" + name + "/bars/experience.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_party_health_bar", "gui/" + name + "/bars/party_health.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_party_spirit_bar", "gui/" + name + "/bars/party_spirit.jpg");
+
+            loadButtonTextures(name, "char");
+            loadButtonTextures(name, "exit");
+            loadButtonTextures(name, "inv");
+            loadButtonTextures(name, "opt");
+            loadButtonTextures(name, "party");
+            loadButtonTextures(name, "skills");
+            loadButtonTextures(name, "trade");
+        } else if(name.equalsIgnoreCase("menu")) {
+            AssetLoader.AddTexture("ui_" + name + "_background", "gui/" + name + "/background.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_character",  "gui/" + name + "/character.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_credits",    "gui/" + name + "/credits.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_loading",    "gui/" + name + "/loading.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_login",      "gui/" + name + "/login.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_main",       "gui/" + name + "/main.jpg");
+            AssetLoader.AddTexture("ui_" + name + "_register",   "gui/" + name + "/register.jpg");
+
+            loadButtonTextures(name, "credits");
+            loadButtonTextures(name, "exit");
+            loadButtonTextures(name, "login");
+            loadButtonTextures(name, "register");
+        }
+    }
+
+    /**
+     * Loads the button textures in the relative paths to the menu fold you specify.</br>
+     * Keep in mind, this loads the click, hover, and idle versions of the button, no need to do it separately.
+     *
+     * @param uiName the name of the folder we search the GUI folder for
+     * @param name name of the button you want to add.
+     */
+    private void loadButtonTextures(String uiName, String name) {
+        AssetLoader.AddTexture("btn_" + uiName + "_" + name + "_click", "gui/" + uiName + "/buttons/" + name + "_click.jpg");
+        AssetLoader.AddTexture("btn_" + uiName + "_" + name + "_hover", "gui/" + uiName + "/buttons/" + name + "_hover.jpg");
+        AssetLoader.AddTexture("btn_" + uiName + "_" + name, "gui/" + uiName + "/buttons/" + name + "_norm.jpg");
+    }
+
+    private void loadNonUITextures(String name, int amount) {
+        for(var i = 1; i <= amount; ++i)
+            AssetLoader.AddTexture(name + i, name + "s/" + i + ".bmp");
     }
 }

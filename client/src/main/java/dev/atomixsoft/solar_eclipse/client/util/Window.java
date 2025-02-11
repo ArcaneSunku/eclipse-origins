@@ -114,6 +114,10 @@ public class Window {
         }
     }
 
+    public void setSize(int width, int height) {
+        glfwSetWindowSize(m_Handle, width, height);
+    }
+
     private void resize(long window, int width, int height) {
         glViewport(0, 0, width, height);
 

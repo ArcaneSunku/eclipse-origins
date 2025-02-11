@@ -43,20 +43,10 @@ public class TestScene extends SceneAdapter {
         camera = new OrthoCamera(476, 380);
         camera.setZoom(16 * 9);
 
-        AssetLoader.AddShader("basic", "basic");
         batch = new SpriteBatch(AssetLoader.GetShader("basic"));
 
         frameBuffer = new FrameBuffer(476, 380);
         gameRender = new GameRenderer();
-
-        loadNonUITextures("animation", 3);
-        loadNonUITextures("character", 3);
-        loadNonUITextures("face", 3);
-        loadNonUITextures("item", 14);
-        loadNonUITextures("tileset", 2);
-
-        loadGUITextures("menu");
-        loadGUITextures("main");
 
         GameMap testMap = new GameMap(0, 0, 12, 10);
 
@@ -170,76 +160,7 @@ public class TestScene extends SceneAdapter {
         if(batch != null)
             batch.dispose();
 
-        frameBuffer.dispose();
-    }
-
-    /**
-     * Loads the GUI textures related to the name you pass. </br>
-     * This will search for a folder with the given name and load what you specify from there. </br>
-     * Calls to {@link #loadButtonTextures(String, String)} should be called in here somewhere.
-     *
-     * @param name the name of the folder you want to load the UI textures for
-     */
-    private void loadGUITextures(String name) {
-        if(name.equalsIgnoreCase("main")) {
-            AssetLoader.AddTexture("ui_" + name + "_bank",       "gui/" + name + "/bank.jpg");
-            AssetLoader.AddTexture("ui_" + name + "_character",  "gui/" + name + "/character.jpg");
-            AssetLoader.AddTexture("ui_" + name + "_itemDesc",   "gui/" + name + "/description_item.jpg");
-            AssetLoader.AddTexture("ui_" + name + "_spellDesc",  "gui/" + name + "/description_spell.jpg");
-            AssetLoader.AddTexture("ui_" + name + "_dragbox",    "gui/" + name + "/dragbox.jpg");
-            AssetLoader.AddTexture("ui_" + name + "_hotbar",     "gui/" + name + "/hotbar.jpg");
-            AssetLoader.AddTexture("ui_" + name + "_inventory",  "gui/" + name + "/inventory.jpg");
-            AssetLoader.AddTexture("ui_" + name + "_main",       "gui/" + name + "/main.jpg");
-            AssetLoader.AddTexture("ui_" + name + "_options",    "gui/" + name + "/options.jpg");
-            AssetLoader.AddTexture("ui_" + name + "_party",      "gui/" + name + "/party.jpg");
-            AssetLoader.AddTexture("ui_" + name + "_shop",       "gui/" + name + "/shop.jpg");
-            AssetLoader.AddTexture("ui_" + name + "_skills",     "gui/" + name + "/skills.jpg");
-            AssetLoader.AddTexture("ui_" + name + "_trade",      "gui/" + name + "/trade.jpg");
-
-            AssetLoader.AddTexture("ui_" + name + "_health_bar",       "gui/" + name + "/bars/health.jpg");
-            AssetLoader.AddTexture("ui_" + name + "_spirit_bar",       "gui/" + name + "/bars/spirit.jpg");
-            AssetLoader.AddTexture("ui_" + name + "_exp_bar",          "gui/" + name + "/bars/experience.jpg");
-            AssetLoader.AddTexture("ui_" + name + "_party_health_bar", "gui/" + name + "/bars/party_health.jpg");
-            AssetLoader.AddTexture("ui_" + name + "_party_spirit_bar", "gui/" + name + "/bars/party_spirit.jpg");
-
-            loadButtonTextures(name, "char");
-            loadButtonTextures(name, "exit");
-            loadButtonTextures(name, "inv");
-            loadButtonTextures(name, "opt");
-            loadButtonTextures(name, "party");
-            loadButtonTextures(name, "skills");
-            loadButtonTextures(name, "trade");
-        } else if(name.equalsIgnoreCase("menu")) {
-            AssetLoader.AddTexture("ui_" + name + "_background", "gui/" + name + "/background.jpg");
-            AssetLoader.AddTexture("ui_" + name + "_character",  "gui/" + name + "/character.jpg");
-            AssetLoader.AddTexture("ui_" + name + "_credits",    "gui/" + name + "/credits.jpg");
-            AssetLoader.AddTexture("ui_" + name + "_loading",    "gui/" + name + "/loading.jpg");
-            AssetLoader.AddTexture("ui_" + name + "_login",      "gui/" + name + "/login.jpg");
-            AssetLoader.AddTexture("ui_" + name + "_main",       "gui/" + name + "/main.jpg");
-            AssetLoader.AddTexture("ui_" + name + "_register",   "gui/" + name + "/register.jpg");
-
-            loadButtonTextures(name, "credits");
-            loadButtonTextures(name, "exit");
-            loadButtonTextures(name, "login");
-            loadButtonTextures(name, "register");
-        }
-    }
-
-    /**
-     * Loads the button textures in the relative paths to the menu fold you specify.</br>
-     * Keep in mind, this loads the click, hover, and idle versions of the button, no need to do it separately.
-     *
-     * @param uiName the name of the folder we search the GUI folder for
-     * @param name name of the button you want to add.
-     */
-    private void loadButtonTextures(String uiName, String name) {
-        AssetLoader.AddTexture("btn_" + uiName + "_" + name, "gui/" + uiName + "/buttons/" + name + "_click.jpg");
-        AssetLoader.AddTexture("btn_" + uiName + "_" + name, "gui/" + uiName + "/buttons/" + name + "_hover.jpg");
-        AssetLoader.AddTexture("btn_" + uiName + "_" + name, "gui/" + uiName + "/buttons/" + name + "_norm.jpg");
-    }
-
-    private void loadNonUITextures(String name, int amount) {
-        for(var i = 1; i <= amount; ++i)
-            AssetLoader.AddTexture(name + i, name + "s/" + i + ".bmp");
+        if(frameBuffer != null)
+            frameBuffer.dispose();
     }
 }
