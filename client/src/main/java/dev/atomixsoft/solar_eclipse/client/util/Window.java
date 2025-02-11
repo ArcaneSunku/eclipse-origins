@@ -116,6 +116,9 @@ public class Window {
 
     public void setSize(int width, int height) {
         glfwSetWindowSize(m_Handle, width, height);
+        GLFWVidMode vidMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+        assert(vidMode != null);
+        glfwSetWindowPos(m_Handle, (vidMode.width() - width) / 2, (vidMode.height() - height) / 2);
     }
 
     private void resize(long window, int width, int height) {
