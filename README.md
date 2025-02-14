@@ -2,7 +2,7 @@
 
 > Welcome to _**Eclipse Origins 4**_, a love letter to Visual Basic 2D ORPG Engines. 
 
-&emsp; This build, nicknamed _Solar Eclipse_, is version `4.3.1.1-alpha`.
+&emsp; This build, nicknamed _Solar Eclipse_, is version `4.4.1.1-alpha`.
 
 
 ## Table of Contents
@@ -30,7 +30,7 @@
 ## Requirements
 - **Written in Java 17**
 - * OpenJDK "Temurin" version 21-0.3+9 (Eclipse Adoptium JRE)
-- **Built with:** Gradle 8.5 (Groovy configuration)
+- **Built with:** Gradle 8.12 (Groovy configuration)
 
 
 
@@ -41,7 +41,7 @@ Currently only tested on Windows 10 & 11.
 
 Version strings follow the **MAJOR**(#?).**MODEL**(#??).**CONTROLLER**(#??).**VIEW**(#??)-**MILESTONE** format.  
 
-So, Solar Eclipse (`v4`) is currently using Model `v3`, Controller `v1`, View `v1`, and is in its `alpha` milestone.
+So, Solar Eclipse (`v4`) is currently using Model `v4`, Controller `v1`, View `v1`, and is in its `alpha` milestone.
 
 The project's packages and modules exist within the `dev.atomixsoft.solar_eclipse` namespace.  The only module is `core` - `server`, `editor`, and `client` sub-projects are comprised of a series of packages.
 
