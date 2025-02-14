@@ -169,16 +169,13 @@ public class ClientThread implements Runnable, EventConsumer<ShutdownEvent> {
         m_Window.show();
 
         RenderCmd.Init();
-        RenderCmd.ClearColor(0.05f, 0.05f, 0.05f);
-
         m_Scenes = new SceneHandler(m_Controller, m_Window);
         initialize();
 
         double accumulator = 0.0;
         double optimal = 1.0 / 60.0;
         double currentTime = System.nanoTime() / 1e9;
-        double newTime = System.nanoTime() / 1e9;
-        double frameTime = 0.0;
+        double newTime, frameTime;
 
         InputHandler input = InputHandler.Instance();
         ClientThread.eventBus().register(InputEvent.class, InputHandler.Instance());

@@ -23,6 +23,10 @@ public class Inventory {
         maxCapacity = maxInv;
     }
 
+    public boolean isFull() {
+        return sack.size() == maxCapacity;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

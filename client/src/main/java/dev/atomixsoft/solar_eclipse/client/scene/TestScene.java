@@ -3,7 +3,10 @@ package dev.atomixsoft.solar_eclipse.client.scene;
 import dev.atomixsoft.solar_eclipse.client.ClientThread;
 import dev.atomixsoft.solar_eclipse.client.graphics.FrameBuffer;
 import dev.atomixsoft.solar_eclipse.client.graphics.GameRenderer;
+import dev.atomixsoft.solar_eclipse.client.graphics.RenderCmd;
 import dev.atomixsoft.solar_eclipse.client.graphics.Texture;
+import dev.atomixsoft.solar_eclipse.client.graphics.ui.GameMenu;
+import dev.atomixsoft.solar_eclipse.client.graphics.ui.Hotbar;
 import dev.atomixsoft.solar_eclipse.core.event.types.ShutdownEvent;
 import dev.atomixsoft.solar_eclipse.core.game.Actuator;
 import dev.atomixsoft.solar_eclipse.core.game.Item;
@@ -37,6 +40,7 @@ public class TestScene extends SceneAdapter {
     private FrameBuffer frameBuffer;
 
     private GameRenderer gameRender;
+    private GameMenu gameMenu;
 
     @Override
     public void show() {
@@ -47,6 +51,7 @@ public class TestScene extends SceneAdapter {
 
         frameBuffer = new FrameBuffer(476, 380);
         gameRender = new GameRenderer();
+        gameMenu = new GameMenu();
 
         GameMap testMap = new GameMap(0, 0, 12, 10);
 
@@ -58,38 +63,13 @@ public class TestScene extends SceneAdapter {
         grassTile.type = Constants.TILE_TYPE_WALKABLE;
         grassTile.roof = false;
 
-        Tile trunkTile = new Tile(grassTile);
-        trunkTile.textureX = 4;
-        trunkTile.textureY = 0;
-        trunkTile.type = Constants.TILE_TYPE_BLOCKED;
-        trunkTile.roof = false;
-
         Actuator.FillMapLayer(testMap, grassTile, 0);
 
-        Actuator.AddTileToMap(testMap, trunkTile, 1, 2, 2);
-        Actuator.AddTileToMap(testMap, trunkTile, 1, 9, 8);
-        Actuator.AddTileToMap(testMap, trunkTile, 1, 9, 9);
-        Actuator.AddTileToMap(testMap, trunkTile, 1, 9, 2);
-        Actuator.AddTileToMap(testMap, trunkTile, 1, 2, 9);
+        Character player = new Character();
+        player.name = "Jim";
+        player.player = true;
 
-        Character testChar = new Character();
-        testChar.name = "Angel";
-        testChar.textureId = 3;
-        testChar.keyFrame = 0;
-        testChar.facing = Character.Direction.DOWN;
-        testChar.player = false;
-        testChar.sex = Constants.SEX_OTHER;
-
-        Character testChar2 = new Character();
-        testChar2.name = "Jim";
-        testChar2.textureId = 1;
-        testChar2.keyFrame = 0;
-        testChar2.facing = Character.Direction.DOWN;
-        testChar2.player = true;
-        testChar2.sex = Constants.SEX_MALE;
-
-        Actuator.AddCharacterToMap(testMap, testChar, 0, 0);
-        Actuator.AddCharacterToMap(testMap, testChar2, 2, 3);
+        Actuator.AddCharacterToMap(testMap, player, 2, 3);
 
         gameRender.setMap(testMap);
     }
@@ -109,6 +89,7 @@ public class TestScene extends SceneAdapter {
     public void render() {
         frameBuffer.bind();
         glViewport(0, 0, frameBuffer.getWidth(), frameBuffer.getHeight());
+        RenderCmd.ClearColor(0.05f, 0.05f, 0.05f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         batch.begin(camera);
@@ -130,7 +111,6 @@ public class TestScene extends SceneAdapter {
         ImGui.pushStyleVar(ImGuiStyleVar.CellPadding, 0, 0);
 
         Texture main_bg = AssetLoader.GetTexture("ui_main_main");
-        Texture hotbar = AssetLoader.GetTexture("ui_main_hotbar");
 
         ImGui.setNextWindowPos(0, 0);
         ImGui.setNextWindowSize(main_bg.getWidth(), main_bg.getHeight());
@@ -143,9 +123,7 @@ public class TestScene extends SceneAdapter {
         ImGui.setCursorPos(12, 12);
         ImGui.image(frameBuffer.getColorBufferId(), new ImVec2(frameBuffer.getWidth(), frameBuffer.getHeight()), new ImVec2(0, 1), new ImVec2(1, 0));
 
-        // Hotbar Image
-        ImGui.setCursorPos(12, 399);
-        ImGui.image(hotbar.getTextureId(), hotbar.getWidth(), hotbar.getHeight());
+        gameMenu.render(gameRender);
 
         ImGui.end();
 

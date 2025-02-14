@@ -1,7 +1,6 @@
 package dev.atomixsoft.solar_eclipse.client.scene;
 
 import dev.atomixsoft.solar_eclipse.client.AssetLoader;
-import dev.atomixsoft.solar_eclipse.client.Client;
 import dev.atomixsoft.solar_eclipse.client.ClientThread;
 import dev.atomixsoft.solar_eclipse.client.graphics.Texture;
 import dev.atomixsoft.solar_eclipse.client.util.input.Controller;
