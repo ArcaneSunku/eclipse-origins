@@ -86,9 +86,9 @@ The `client` sub-project is the game front-end.
 
 | **Dependencies**:
 - `:core`
-- [lwjgl 3.3.3](https://www.lwjgl.org/)
+- [lwjgl 3.3.6](https://www.lwjgl.org/)
 - * [joml 1.10.5](https://joml-ci.github.io/JOML/)
-- * [imgui-java 1.86.11](https://github.com/SpaiR/imgui-java)
+- * [imgui-java 1.89.0](https://github.com/SpaiR/imgui-java)
 
 
 ## Building
