@@ -2,6 +2,10 @@ plugins {
     id 'application'
 }
 
+ext {
+    nettyVersion = "4.2.0.Final"
+}
+
 def dataDir = "${rootProject.projectDir}/data"
 
 application {
@@ -10,9 +14,10 @@ application {
 
 dependencies {
     implementation project(':core')
+    implementation 'io.netty:netty-all:' + nettyVersion
 }
 
-task debug(type: JavaExec) {
+tasks.register('debug', JavaExec).configure {
     doFirst {
         classpath = files(dataDir) + sourceSets.main.runtimeClasspath
         workingDir = file(dataDir)

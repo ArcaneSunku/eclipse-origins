@@ -39,6 +39,8 @@ subprojects {
                 classpath = files(dataDir) + classpath
                 workingDir = file(dataDir)
             }
+
+            standardInput = System.in
         }
     }
 

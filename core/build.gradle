@@ -4,6 +4,7 @@ ext {
     log4jVersion = "2.23.1"
     disruptorVersion = "4.0.0"
     beanUtilsVersion = "1.9.4"
+    nettyVersion = "4.2.0.Final"
 }
 
 dependencies { 
@@ -14,4 +15,5 @@ dependencies {
   implementation 'org.apache.logging.log4j:log4j-core:' + log4jVersion
   implementation 'org.apache.logging.log4j:log4j-api:' + log4jVersion
   implementation 'org.apache.logging.log4j:log4j-jcl:' + log4jVersion
+  implementation 'io.netty:netty-all:' + nettyVersion
 }
