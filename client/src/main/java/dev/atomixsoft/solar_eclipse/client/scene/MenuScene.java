@@ -3,6 +3,7 @@ package dev.atomixsoft.solar_eclipse.client.scene;
 import dev.atomixsoft.solar_eclipse.client.AssetLoader;
 import dev.atomixsoft.solar_eclipse.client.ClientThread;
 import dev.atomixsoft.solar_eclipse.client.graphics.Texture;
+import dev.atomixsoft.solar_eclipse.client.graphics.ui.Button;
 import dev.atomixsoft.solar_eclipse.client.util.input.Controller;
 import dev.atomixsoft.solar_eclipse.core.event.types.InputEvent;
 import dev.atomixsoft.solar_eclipse.core.event.types.ShutdownEvent;
@@ -10,8 +11,14 @@ import dev.atomixsoft.solar_eclipse.core.event.types.ShutdownEvent;
 import dev.atomixsoft.solar_eclipse.core.utils.FileUtils;
 import imgui.*;
 import imgui.flag.ImGuiCol;
+import imgui.flag.ImGuiInputTextFlags;
 import imgui.flag.ImGuiStyleVar;
 import imgui.flag.ImGuiWindowFlags;
+import imgui.type.ImBoolean;
+import imgui.type.ImString;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * <p>Represents the Main Menu of our game, from here you'll see everything involving the login screen for the client.</p>
@@ -25,9 +32,26 @@ public class MenuScene extends SceneAdapter {
     private UIState uiState;
     private ImFont georgia;
 
+    private ImString userName;
+    private ImString password;
+    private ImBoolean showPass;
+
+    private Map<String, Button> buttons;
+
     @Override
     public void show() {
         uiState = UIState.Main;
+
+        userName = new ImString();
+        password = new ImString();
+        showPass = new ImBoolean(false);
+
+        buttons = new HashMap<>();
+
+        buttons.put("login", new Button("btn_menu_login"));
+        buttons.put("register", new Button("btn_menu_register"));
+        buttons.put("credits", new Button("btn_menu_credits"));
+        buttons.put("exit", new Button("btn_menu_exit"));
 
         ImGuiIO io = ImGui.getIO();
         if(georgia == null)
@@ -37,6 +61,7 @@ public class MenuScene extends SceneAdapter {
     @Override
     public void hide() {
         uiState = UIState.Main;
+        buttons.clear();
     }
 
     @Override
@@ -44,9 +69,6 @@ public class MenuScene extends SceneAdapter {
         if(input.justPressed(InputEvent.InputType.CANCEL) && uiState != UIState.Main)
             uiState = UIState.Main;
     }
-
-    private int exitFlag = 0, loginFlag = 0;
-    private int registerFlag = 0, creditFlag = 0;
 
     private void renderUI(UIState state) {
         ImGui.setCursorPos(38, 12);
@@ -94,8 +116,39 @@ public class MenuScene extends SceneAdapter {
             case Login -> {
                 Texture main_menu = AssetLoader.GetTexture("ui_menu_login");
                 ImGui.image(main_menu.getTextureId(), main_menu.getWidth(), main_menu.getHeight());
-                ClientThread.set_size(785, 594);
-                ClientThread.set_scene("Test");
+
+                ImGui.pushStyleColor(ImGuiCol.Border, 1, 1, 1, 0);
+                ImGui.pushStyleColor(ImGuiCol.WindowBg, 1, 1, 1, 0);
+                ImGui.pushStyleVar(ImGuiStyleVar.WindowBorderSize, 0);
+                ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 0, 0);
+                ImGui.pushStyleVar(ImGuiStyleVar.FramePadding, 0, 0);
+                ImGui.pushStyleVar(ImGuiStyleVar.CellPadding, 0, 0);
+
+                ImGui.setNextWindowSize(main_menu.getWidth() / 1.5f, main_menu.getHeight() / 4f);
+
+                ImGui.begin("Login_Window", ImGuiWindowFlags.NoDecoration);
+                ImGui.text("Username: ");
+                ImGui.sameLine();
+                ImGui.pushItemWidth(100);
+                ImGui.inputText("##Username", userName);
+                ImGui.popItemWidth();
+
+                ImGui.text("Password: ");
+                ImGui.sameLine();
+                int inputFlags = !showPass.get() ? ImGuiInputTextFlags.Password : ImGuiInputTextFlags.None;
+                ImGui.pushItemWidth(100);
+                ImGui.inputText("##Password", password, inputFlags);
+                ImGui.popItemWidth();
+                ImGui.sameLine();
+                ImGui.checkbox("Show Pass", showPass);
+
+                ImGui.end();
+
+                ImGui.popStyleColor(2);
+                ImGui.popStyleVar(4);
+
+//                ClientThread.set_size(785, 594);
+//                ClientThread.set_scene("Test");
             }
             case Register -> {
                 Texture main_menu = AssetLoader.GetTexture("ui_menu_register");
@@ -109,64 +162,36 @@ public class MenuScene extends SceneAdapter {
             }
         }
 
-        Texture[] btn_login = new Texture[] {
-                AssetLoader.GetTexture("btn_menu_login"),
-                AssetLoader.GetTexture("btn_menu_login_hover"),
-                AssetLoader.GetTexture("btn_menu_login_click"),
-        };
+        Button login_button = buttons.get("login");
+        if(login_button != null) {
+            login_button.render("Login", 64, 287);
 
-        ImGui.setCursorPos(64, 287);
-        if(ImGui.imageButton("Login", btn_login[loginFlag].getTextureId(), btn_login[loginFlag].getWidth(), btn_login[loginFlag].getHeight())) {
-            loginFlag = 2;
-            uiState = UIState.Login;
-        } else {
-            if(ImGui.isItemHovered()) loginFlag = 1;
-            else if(!ImGui.isItemHovered()) loginFlag = 0;
+            if(login_button.getState() == Button.State.CLICKED)
+                uiState = UIState.Login;
         }
 
-        Texture[] btn_register = new Texture[] {
-                AssetLoader.GetTexture("btn_menu_register"),
-                AssetLoader.GetTexture("btn_menu_register_hover"),
-                AssetLoader.GetTexture("btn_menu_register_click"),
-        };
+        Button register_button = buttons.get("register");
+        if(register_button != null) {
+            register_button.render("Register", 64 + (11 + register_button.getWidth()), 287);
 
-        ImGui.setCursorPos(64 + (11 + btn_register[registerFlag].getWidth()), 287);
-        if(ImGui.imageButton("Register", btn_register[registerFlag].getTextureId(), btn_register[registerFlag].getWidth(), btn_register[registerFlag].getHeight())) {
-            registerFlag = 2;
-            uiState = UIState.Register;
-        } else {
-            if(ImGui.isItemHovered()) registerFlag = 1;
-            else if(!ImGui.isItemHovered()) registerFlag = 0;
+            if(register_button.getState() == Button.State.CLICKED)
+                uiState = UIState.Register;
         }
 
-        Texture[] btn_credits = new Texture[] {
-                AssetLoader.GetTexture("btn_menu_credits"),
-                AssetLoader.GetTexture("btn_menu_credits_hover"),
-                AssetLoader.GetTexture("btn_menu_credits_click"),
-        };
+        Button credits_button = buttons.get("credits");
+        if(credits_button != null) {
+            credits_button.render("Credits", 64 + (11 + credits_button.getWidth()) * 2, 287);
 
-        ImGui.setCursorPos(64 + (11 + btn_credits[creditFlag].getWidth()) * 2, 287);
-        if(ImGui.imageButton("Credits", btn_credits[creditFlag].getTextureId(), btn_credits[creditFlag].getWidth(), btn_credits[creditFlag].getHeight())) {
-            creditFlag = 2;
-            uiState = UIState.Credits;
-        } else {
-            if(ImGui.isItemHovered()) creditFlag = 1;
-            else if(!ImGui.isItemHovered()) creditFlag = 0;
+            if(credits_button.getState() == Button.State.CLICKED)
+                uiState = UIState.Credits;
         }
 
-        Texture[] btn_exit = new Texture[] {
-                AssetLoader.GetTexture("btn_menu_exit"),
-                AssetLoader.GetTexture("btn_menu_exit_hover"),
-                AssetLoader.GetTexture("btn_menu_exit_click"),
-        };
+        Button exit_button = buttons.get("exit");
+        if(exit_button != null) {
+            exit_button.render("Exit", 64 + (11 + exit_button.getWidth()) * 3, 287);
 
-        ImGui.setCursorPos(64 + (11 + btn_exit[exitFlag].getWidth()) * 3, 287);
-        if(ImGui.imageButton("Exit", btn_exit[exitFlag].getTextureId(), btn_exit[exitFlag].getWidth(), btn_exit[exitFlag].getHeight())) {
-            exitFlag = 2;
-            ClientThread.eventBus().post(new ShutdownEvent("dev", false));
-        } else {
-            if(ImGui.isItemHovered()) exitFlag = 1;
-            else if(!ImGui.isItemHovered()) exitFlag = 0;
+            if(exit_button.getState() == Button.State.CLICKED)
+                ClientThread.eventBus().post(new ShutdownEvent("dev", false));
         }
     }
 

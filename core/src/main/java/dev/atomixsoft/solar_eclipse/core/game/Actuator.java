@@ -155,6 +155,56 @@ public class Actuator {
             AddCharacterToMap(map, c, x, y);
     }
 
+    public static void MoveCharacter(GameMap map, Character character, int x, int y) {
+        if (x > 0) character.facing = Character.Direction.RIGHT;
+        else if(x < 0) character.facing = Character.Direction.LEFT;
+
+        if (y > 0) character.facing = Character.Direction.UP;
+        else if(y < 0) character.facing = Character.Direction.DOWN;
+
+        if(character.moving) return;
+        character.moving = true;
+
+        if(!map.MapCharacters.contains(character)) {
+            if(x < 0) x = 0;
+            if(x >= map.width) x = map.width - 1;
+
+            if(y < 0) y = 0;
+            if(y >= map.height) y = map.height - 1;
+
+            AddCharacterToMap(map, character, x, y);
+            character.moving = false;
+            return;
+        }
+
+        int xOffs = character.x + x, yOffs = character.y + y;
+        if(xOffs <= 0) xOffs = 0;
+        else if(xOffs >= map.width) xOffs = map.width - 1;
+
+        if(yOffs <= 0) yOffs = 0;
+        else if(yOffs >= map.height) yOffs = map.height - 1;
+
+        Tile destination = Actuator.GetTileFromMap(map, 0, xOffs, yOffs);
+        if(destination == null) {
+            character.moving = false;
+            return;
+        }
+
+        if(destination.type == Constants.TILE_TYPE_WALKABLE) {
+            character.x += x;
+            character.y += y;
+
+            if(character.x <= 0) character.x = 0;
+            else if(character.x >= map.width) character.x = map.width - 1;
+
+            if(character.y <= 0) character.y = 0;
+            else if(character.y >= map.height) character.y = map.height - 1;
+
+            character.moving = true;
+        }
+
+    }
+
     // Item portion of the map part
 
     public static Item GetItemOnMap(GameMap map, int x, int y) {

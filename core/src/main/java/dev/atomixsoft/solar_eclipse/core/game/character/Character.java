@@ -23,7 +23,7 @@ public class Character {
 
     public int x, y;
     public byte sex;
-    public boolean player;
+    public boolean player, moving;
 
     public Character() {
         this.textureId = 1;
@@ -35,6 +35,7 @@ public class Character {
         this.x = this.y = 0;
         this.sex = Constants.SEX_MALE;
         this.player = false;
+        this.moving = false;
         this.removed = false;
     }
 

@@ -43,6 +43,11 @@ public class Controller {
         return m_In.isKeyDown(m_InputMap.get(controlName.name()));
     }
 
+    public boolean MovementInput() {
+        return isPressed(InputType.UP)   || isPressed(InputType.DOWN) ||
+               isPressed(InputType.LEFT) || isPressed(InputType.RIGHT);
+    }
+
     public boolean justPressed(InputType controlName) {
         if(!m_InputMap.containsKey(controlName.name())) return false;
         return m_In.keyJustPressed(m_InputMap.get(controlName.name()));

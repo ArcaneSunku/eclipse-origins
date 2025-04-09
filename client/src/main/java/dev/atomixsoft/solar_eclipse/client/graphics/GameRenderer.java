@@ -128,17 +128,17 @@ public class GameRenderer {
             Character c = charList.get(i);
             if(c == null || c.removed) continue;
 
-            int keyFrame = Math.max(0, Math.min(c.keyFrame, 3));
+            int keyFrame = c.keyFrame;
             Sprite sprite = new Sprite(AssetLoader.GetTexture("character" + c.textureId));
 
             float cellWidth = sprite.getTexture().getWidth() / 4.0f, cellHeight = sprite.getTexture().getHeight() / 4.0f;
             sprite.setCellSize(cellWidth, cellHeight);
 
             switch (c.facing) {
-                case UP -> sprite.setCellPos(keyFrame * cellWidth, cellHeight * 3);
-                case DOWN -> sprite.setCellPos(keyFrame * cellWidth, 0);
-                case LEFT -> sprite.setCellPos(keyFrame * cellWidth, cellHeight);
+                case DOWN  -> sprite.setCellPos(keyFrame * cellWidth, 0);
+                case LEFT  -> sprite.setCellPos(keyFrame * cellWidth, cellHeight);
                 case RIGHT -> sprite.setCellPos(keyFrame * cellWidth, cellHeight * 2);
+                case UP    -> sprite.setCellPos(keyFrame * cellWidth, cellHeight * 3);
             }
 
             sprite.setPosition(c.x * TILE_SIZE, c.y * TILE_SIZE + (cellHeight * 0.5f), 0);

@@ -183,7 +183,7 @@ public class SpriteBatch {
 
         if (textureSlot == 0.0f)
         {
-            if(m_TextureSlotIndex > MAX_TEXTURE_SLOTS)
+            if(m_TextureSlotIndex >= MAX_TEXTURE_SLOTS)
                 nextBatch();
 
             textureSlot = (float) m_TextureSlotIndex;
@@ -198,7 +198,7 @@ public class SpriteBatch {
 
         m_IndexCount+= 6;
 
-        if(m_Vertices.remaining() <= m_Size * 4)
+        if(m_Vertices.remaining() <= m_Size * 6)
             flush();
     }
 

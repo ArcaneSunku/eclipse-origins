@@ -41,6 +41,9 @@ public class TestScene extends SceneAdapter {
 
     private GameRenderer gameRender;
     private GameMenu gameMenu;
+    private boolean focused;
+
+    private Character player;
 
     @Override
     public void show() {
@@ -65,14 +68,18 @@ public class TestScene extends SceneAdapter {
 
         Actuator.FillMapLayer(testMap, grassTile, 0);
 
-        Character player = new Character();
-        player.name = "Jim";
+        player = new Character();
+        player.name = "Dev";
         player.player = true;
 
         Actuator.AddCharacterToMap(testMap, player, 2, 3);
 
         gameRender.setMap(testMap);
+        focused = true;
     }
+
+    private float frameTime = 0;
+    private float tickTime = 0;
 
     @Override
     public void update(Controller input, double dt) {
@@ -81,12 +88,55 @@ public class TestScene extends SceneAdapter {
             ClientThread.set_scene("Menu");
             return;
         }
+        tickTime += (float) dt;
+
+
+        if(!player.moving) {
+            if (input.isPressed(InputType.UP)) {
+                Actuator.MoveCharacter(gameRender.getMap(), player, 0, 1);
+            } else if (input.isPressed(InputType.DOWN)) {
+                Actuator.MoveCharacter(gameRender.getMap(), player, 0, -1);
+            } else if (input.isPressed(InputType.LEFT)) {
+                Actuator.MoveCharacter(gameRender.getMap(), player, -1, 0);
+            } else if (input.isPressed(InputType.RIGHT)) {
+                Actuator.MoveCharacter(gameRender.getMap(), player, 1, 0);
+            }
+        }
+
+        if(tickTime >= 0.65f) {
+            boolean updated = false;
+            if(!input.MovementInput()) {
+                player.moving = false;
+                tickTime = 0.0f;
+                updated = true;
+            }
+
+            if(!updated) {
+                if (player.moving) player.moving = false;
+                tickTime = 0.0f;
+            }
+        }
+
+        if(player.moving) {
+            frameTime += (float) dt;
+
+            if(frameTime >= 0.35f) {
+                if(player.keyFrame == 0) player.keyFrame = 1;
+                if(player.keyFrame == 1) player.keyFrame += 2;
+                if(player.keyFrame == 3) player.keyFrame = 1;
+
+                frameTime = 0.0f;
+            }
+        } else {
+            player.keyFrame = 0;
+        }
 
         gameRender.update(camera);
     }
 
     @Override
     public void render() {
+
         frameBuffer.bind();
         glViewport(0, 0, frameBuffer.getWidth(), frameBuffer.getHeight());
         RenderCmd.ClearColor(0.05f, 0.05f, 0.05f);
@@ -120,8 +170,13 @@ public class TestScene extends SceneAdapter {
         ImGui.image(main_bg.getTextureId(), ImGui.getContentRegionAvail());
 
         // Game Buffer
-        ImGui.setCursorPos(12, 12);
-        ImGui.image(frameBuffer.getColorBufferId(), new ImVec2(frameBuffer.getWidth(), frameBuffer.getHeight()), new ImVec2(0, 1), new ImVec2(1, 0));
+        ImGui.setNextWindowPos(12, 12);
+        ImGui.setNextWindowSize(frameBuffer.getWidth(), frameBuffer.getHeight());
+
+        ImGui.begin("Game_Window", ImGuiWindowFlags.NoDecoration);
+        ImGui.image(frameBuffer.getColorBufferId(), ImGui.getContentRegionAvail(), new ImVec2(0, 1), new ImVec2(1, 0));
+        focused = ImGui.isWindowFocused();
+        ImGui.end();
 
         gameMenu.render(gameRender);
 

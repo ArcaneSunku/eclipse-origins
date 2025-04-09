@@ -22,21 +22,18 @@ public class GameMenu {
         Options, Trading, Party
     }
 
+    private final Map<String, Texture> m_MenuTextures;
+    private final Map<String, Button> m_Buttons;
+
     private Hotbar m_Hotbar;
     private InventoryMenu m_Inventory;
 
     private MenuState m_State;
     private Character m_Player;
 
-    private int m_InvFlag, m_SkillsFlag, m_CharFlag;
-    private int m_OptFlag, m_TradeFlag, m_PartyFlag;
-
-    private final Map<String, Texture> m_MenuTextures;
-    private final Map<String, List<Texture>> m_ButtonTextures;
-
     public GameMenu() {
         m_MenuTextures = new LinkedHashMap<>();
-        m_ButtonTextures = new LinkedHashMap<>();
+        m_Buttons = new LinkedHashMap<>();
 
         gatherTextures();
         setup();
@@ -49,53 +46,17 @@ public class GameMenu {
         m_MenuTextures.put("character", AssetLoader.GetTexture("ui_main_character"));
         m_MenuTextures.put("options", AssetLoader.GetTexture("ui_main_options"));
         m_MenuTextures.put("party", AssetLoader.GetTexture("ui_main_party"));
-
-        List<Texture> buttons = new ArrayList<>();
-        buttons.add(AssetLoader.GetTexture("btn_main_inv"));
-        buttons.add(AssetLoader.GetTexture("btn_main_inv_hover"));
-        buttons.add(AssetLoader.GetTexture("btn_main_inv_click"));
-        m_ButtonTextures.put("btn_inv", buttons);
-
-        buttons = new ArrayList<>();
-        buttons.add(AssetLoader.GetTexture("btn_main_skills"));
-        buttons.add(AssetLoader.GetTexture("btn_main_skills_hover"));
-        buttons.add(AssetLoader.GetTexture("btn_main_skills_click"));
-        m_ButtonTextures.put("btn_skills", buttons);
-
-
-        buttons = new ArrayList<>();
-        buttons.add(AssetLoader.GetTexture("btn_main_char"));
-        buttons.add(AssetLoader.GetTexture("btn_main_char_hover"));
-        buttons.add(AssetLoader.GetTexture("btn_main_char_click"));
-        m_ButtonTextures.put("btn_char", buttons);
-
-
-        buttons = new ArrayList<>();
-        buttons.add(AssetLoader.GetTexture("btn_main_opt"));
-        buttons.add(AssetLoader.GetTexture("btn_main_opt_hover"));
-        buttons.add(AssetLoader.GetTexture("btn_main_opt_click"));
-        m_ButtonTextures.put("btn_opt", buttons);
-
-
-        buttons = new ArrayList<>();
-        buttons.add(AssetLoader.GetTexture("btn_main_party"));
-        buttons.add(AssetLoader.GetTexture("btn_main_party_hover"));
-        buttons.add(AssetLoader.GetTexture("btn_main_party_click"));
-        m_ButtonTextures.put("btn_party", buttons);
-
-
-        buttons = new ArrayList<>();
-        buttons.add(AssetLoader.GetTexture("btn_main_trade"));
-        buttons.add(AssetLoader.GetTexture("btn_main_trade_hover"));
-        buttons.add(AssetLoader.GetTexture("btn_main_trade_click"));
-        m_ButtonTextures.put("btn_trade", buttons);
     }
 
     public void setup() {
         m_State = MenuState.Inventory;
 
-        m_InvFlag = m_SkillsFlag = m_CharFlag = 0;
-        m_OptFlag = m_TradeFlag = m_PartyFlag = 0;
+        m_Buttons.put("btn_inv", new Button("btn_main_inv"));
+        m_Buttons.put("btn_skills", new Button("btn_main_skills"));
+        m_Buttons.put("btn_char", new Button("btn_main_char"));
+        m_Buttons.put("btn_opt", new Button("btn_main_opt"));
+        m_Buttons.put("btn_party", new Button("btn_main_party"));
+        m_Buttons.put("btn_trade", new Button("btn_main_trade"));
 
         if(m_Hotbar == null) m_Hotbar = new Hotbar(m_MenuTextures.get("hotbar"), 12, 399);
         if(m_Inventory == null) m_Inventory = new InventoryMenu(m_MenuTextures.get("inventory"), 541, 283);
@@ -130,70 +91,53 @@ public class GameMenu {
         ImGui.pushStyleVar(ImGuiStyleVar.CellPadding, 0, 0);
 
         ImGui.begin("Menu_Buttons", ImGuiWindowFlags.NoDecoration);
-        Texture inv_btn = m_ButtonTextures.get("btn_inv").get(m_InvFlag);
-        ImGui.setCursorPos(5, 5);
 
-        if(ImGui.imageButton("Inventory_Button", inv_btn.getTextureId(), inv_btn.getWidth(), inv_btn.getHeight())) {
-            m_State = MenuState.Inventory;
-            m_InvFlag = 2;
-        } else {
-            if(ImGui.isItemHovered()) m_InvFlag = 1;
-            else if(!ImGui.isItemHovered()) m_InvFlag = 0;
+        Button inv_button = m_Buttons.get("btn_inv");
+        if(inv_button != null) {
+            inv_button.render("Inventory_Button", 5, 5);
+
+            if(inv_button.getState() == Button.State.CLICKED)
+                m_State = MenuState.Inventory;
         }
 
-        Texture skills_btn = m_ButtonTextures.get("btn_skills").get(m_SkillsFlag);
-        ImGui.setCursorPos(16 + skills_btn.getWidth(), 5);
+        Button skills_button = m_Buttons.get("btn_skills");
+        if(skills_button != null) {
+            skills_button.render("Skills_Button", 16 + skills_button.getWidth(), 5);
 
-        if(ImGui.imageButton("Skills_Button", skills_btn.getTextureId(), skills_btn.getWidth(), skills_btn.getHeight())) {
-            m_State = MenuState.Skills;
-            m_SkillsFlag = 2;
-        } else {
-            if(ImGui.isItemHovered()) m_SkillsFlag = 1;
-            else if(!ImGui.isItemHovered()) m_SkillsFlag = 0;
+            if(skills_button.getState() == Button.State.CLICKED)
+                m_State = MenuState.Skills;
         }
 
-        Texture char_button = m_ButtonTextures.get("btn_char").get(m_CharFlag);
-        ImGui.setCursorPos(16 + skills_btn.getWidth() * 2 + 11, 5);
+        Button char_button = m_Buttons.get("btn_char");
+        if(char_button != null) {
+            char_button.render("Character_Button", 16 + char_button.getWidth() * 2 + 11, 5);
 
-        if(ImGui.imageButton("Character_Button", char_button.getTextureId(), char_button.getWidth(), char_button.getHeight())) {
-            m_State = MenuState.Character;
-            m_CharFlag = 2;
-        } else {
-            if(ImGui.isItemHovered()) m_CharFlag = 1;
-            else if(!ImGui.isItemHovered()) m_CharFlag = 0;
+            if(char_button.getState() == Button.State.CLICKED)
+                m_State = MenuState.Character;
         }
 
-        Texture opt_btn = m_ButtonTextures.get("btn_opt").get(m_OptFlag);
-        ImGui.setCursorPos(5, 16 + opt_btn.getHeight());
+        Button opt_btn = m_Buttons.get("btn_char");
+        if(opt_btn != null) {
+            opt_btn.render("Option_Button", 5, 16 + opt_btn.getHeight());
 
-        if(ImGui.imageButton("Option_Button", opt_btn.getTextureId(), opt_btn.getWidth(), opt_btn.getHeight())) {
-            m_State = MenuState.Options;
-            m_OptFlag = 2;
-        } else {
-            if(ImGui.isItemHovered()) m_OptFlag = 1;
-            else if(!ImGui.isItemHovered()) m_OptFlag = 0;
+            if(opt_btn.getState() == Button.State.CLICKED)
+                m_State = MenuState.Options;
         }
 
-        Texture trade_btn = m_ButtonTextures.get("btn_trade").get(m_TradeFlag);
-        ImGui.setCursorPos(16 + trade_btn.getWidth(), 16 + trade_btn.getHeight());
+        Button trade_btn = m_Buttons.get("btn_trade");
+        if(trade_btn != null) {
+            trade_btn.render("Trade_Button", 16 + trade_btn.getWidth(), 16 + trade_btn.getHeight());
 
-        if(ImGui.imageButton("Trade_Button", trade_btn.getTextureId(), trade_btn.getWidth(), trade_btn.getHeight())) {
-//            m_State = MenuState.Options;
-            m_TradeFlag = 2;
-        } else {
-            if(ImGui.isItemHovered()) m_TradeFlag = 1;
-            else if(!ImGui.isItemHovered()) m_TradeFlag = 0;
+//            if(trade_btn.getState() == Button.State.CLICKED)
+//                m_State = MenuState.Options;
         }
 
-        Texture party_btn = m_ButtonTextures.get("btn_party").get(m_PartyFlag);
-        ImGui.setCursorPos(16 + party_btn.getWidth() * 2 + 11, 16 + party_btn.getHeight());
+        Button party_btn = m_Buttons.get("btn_party");
+        if(party_btn != null) {
+            party_btn.render("Party_Button", 16 + party_btn.getWidth() * 2 + 11, 16 + party_btn.getHeight());
 
-        if(ImGui.imageButton("Party_Button", party_btn.getTextureId(), party_btn.getWidth(), party_btn.getHeight())) {
-            m_State = MenuState.Party;
-            m_PartyFlag = 2;
-        } else {
-            if(ImGui.isItemHovered()) m_PartyFlag = 1;
-            else if(!ImGui.isItemHovered()) m_PartyFlag = 0;
+            if(party_btn.getState() == Button.State.CLICKED)
+                m_State = MenuState.Party;
         }
         ImGui.end();
 
