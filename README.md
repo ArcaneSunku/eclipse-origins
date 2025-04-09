@@ -28,9 +28,9 @@
 
 
 ## Requirements
-- **Written in Java 17**
+- **Written in Java 21**
 - * OpenJDK "Temurin" version 21-0.3+9 (Eclipse Adoptium JRE)
-- **Built with:** Gradle 8.12 (Groovy configuration)
+- **Built with:** Gradle 8.12.x (Groovy configuration)
 
 
 
@@ -68,6 +68,7 @@ The `core` sub-project includes essential libraries and classes shared across th
 - [apache-commons-configuration 2.10.1](https://commons.apache.org/proper/commons-configuration/)
 - [apache-commons-logging 1.3.2](https://commons.apache.org/proper/commons-logging/)
 - [junit-jupiter 5.10.0](https://junit.org/junit5/)
+- [netty-all 4.2.0 Final](https://netty.io/)
 
 ### Server
 The `server` sub-project handles the back-end operations of the game.
