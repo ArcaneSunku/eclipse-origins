@@ -3,6 +3,7 @@ package dev.atomixsoft.solar_eclipse.client.util.input;
 import dev.atomixsoft.solar_eclipse.client.Client;
 import dev.atomixsoft.solar_eclipse.client.config.Configuration;
 import static dev.atomixsoft.solar_eclipse.core.event.types.InputEvent.InputType;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,6 +27,7 @@ public class Controller {
     public void updateBindings() {
         for(InputType type : InputType.values()) {
             switch (type) {
+                case ESCAPE -> addBinding(type, GLFW_KEY_ESCAPE);
                 case PICKUP -> addBinding(type, m_In.ConvertInputToGLFW(Client.ConfigInfo.getPickUpKey()));
                 case ACTION -> addBinding(type, m_In.ConvertInputToGLFW(Client.ConfigInfo.getActionKey()));
                 case CANCEL -> addBinding(type, m_In.ConvertInputToGLFW(Client.ConfigInfo.getCancelKey()));

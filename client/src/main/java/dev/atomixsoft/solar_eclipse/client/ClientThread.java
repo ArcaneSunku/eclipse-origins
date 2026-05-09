@@ -195,8 +195,8 @@ public class ClientThread implements Runnable, EventConsumer<ShutdownEvent> {
             currentTime = newTime;
             accumulator += frameTime;
 
+            input.process();
             while(accumulator >= optimal) {
-                input.process();
                 m_Scenes.update(optimal);
                 accumulator -= optimal;
             }

@@ -48,7 +48,7 @@ public class TestScene extends SceneAdapter {
     @Override
     public void show() {
         camera = new OrthoCamera(476, 380);
-        camera.setZoom(16 * 9);
+        camera.setZoom(16 * 12);
 
         batch = new SpriteBatch(AssetLoader.GetShader("basic"));
 

@@ -6,7 +6,7 @@ public class InputEvent extends Event {
 
     public enum InputType {
         PICKUP, ACTION, CANCEL, RUN,
-        UP, DOWN, LEFT, RIGHT
+        UP, DOWN, LEFT, RIGHT, ESCAPE
     }
 
     private final String m_UserID;

@@ -10,14 +10,12 @@ import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiStyleVar;
 import imgui.flag.ImGuiWindowFlags;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 public class GameMenu {
 
-    public enum MenuState {
+    public enum GameMenuState {
         Inventory, Skills, Character,
         Options, Trading, Party
     }
@@ -28,7 +26,7 @@ public class GameMenu {
     private Hotbar m_Hotbar;
     private InventoryMenu m_Inventory;
 
-    private MenuState m_State;
+    private GameMenuState m_State;
     private Character m_Player;
 
     public GameMenu() {
@@ -49,7 +47,7 @@ public class GameMenu {
     }
 
     public void setup() {
-        m_State = MenuState.Inventory;
+        m_State = GameMenuState.Inventory;
 
         m_Buttons.put("btn_inv", new Button("btn_main_inv"));
         m_Buttons.put("btn_skills", new Button("btn_main_skills"));
@@ -73,8 +71,8 @@ public class GameMenu {
             }
         }
 
-        renderButtons();
         renderMenu();
+        renderButtons();
 
         m_Hotbar.render();
     }
@@ -97,7 +95,7 @@ public class GameMenu {
             inv_button.render("Inventory_Button", 5, 5);
 
             if(inv_button.getState() == Button.State.CLICKED)
-                m_State = MenuState.Inventory;
+                m_State = GameMenuState.Inventory;
         }
 
         Button skills_button = m_Buttons.get("btn_skills");
@@ -105,7 +103,7 @@ public class GameMenu {
             skills_button.render("Skills_Button", 16 + skills_button.getWidth(), 5);
 
             if(skills_button.getState() == Button.State.CLICKED)
-                m_State = MenuState.Skills;
+                m_State = GameMenuState.Skills;
         }
 
         Button char_button = m_Buttons.get("btn_char");
@@ -113,15 +111,15 @@ public class GameMenu {
             char_button.render("Character_Button", 16 + char_button.getWidth() * 2 + 11, 5);
 
             if(char_button.getState() == Button.State.CLICKED)
-                m_State = MenuState.Character;
+                m_State = GameMenuState.Character;
         }
 
-        Button opt_btn = m_Buttons.get("btn_char");
+        Button opt_btn = m_Buttons.get("btn_opt");
         if(opt_btn != null) {
             opt_btn.render("Option_Button", 5, 16 + opt_btn.getHeight());
 
             if(opt_btn.getState() == Button.State.CLICKED)
-                m_State = MenuState.Options;
+                m_State = GameMenuState.Options;
         }
 
         Button trade_btn = m_Buttons.get("btn_trade");
@@ -137,7 +135,7 @@ public class GameMenu {
             party_btn.render("Party_Button", 16 + party_btn.getWidth() * 2 + 11, 16 + party_btn.getHeight());
 
             if(party_btn.getState() == Button.State.CLICKED)
-                m_State = MenuState.Party;
+                m_State = GameMenuState.Party;
         }
         ImGui.end();
 
@@ -193,7 +191,7 @@ public class GameMenu {
         }
     }
 
-    public MenuState getState() {
+    public GameMenuState getState() {
         return m_State;
     }
 

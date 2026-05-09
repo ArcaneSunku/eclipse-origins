@@ -55,6 +55,7 @@ public class InputHandler implements EventListener <InputEvent>{
     public void updateBindings(Configuration conf) {
         for(InputType type : InputType.values()) {
             switch (type) {
+                case ESCAPE -> m_Bindings.put(type, GLFW_KEY_ESCAPE);
                 case PICKUP -> m_Bindings.put(type, ConvertInputToGLFW(conf.getPickUpKey()));
                 case ACTION -> m_Bindings.put(type, ConvertInputToGLFW(conf.getActionKey()));
                 case CANCEL -> m_Bindings.put(type, ConvertInputToGLFW(conf.getCancelKey()));

@@ -20,7 +20,6 @@ public class SceneHandler {
 
     private Scene m_ActiveScene;
 
-
     public abstract static class Scene {
 
         public abstract void show();
