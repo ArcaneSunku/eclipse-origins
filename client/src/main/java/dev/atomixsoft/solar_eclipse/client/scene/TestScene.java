@@ -83,7 +83,7 @@ public class TestScene extends SceneAdapter {
 
     @Override
     public void update(Controller input, double dt) {
-        if(input.isPressed(InputType.CANCEL)) {
+        if(input.isPressed(InputType.ESCAPE)) {
             ClientThread.set_size(515, 352);
             ClientThread.set_scene("Menu");
             return;
