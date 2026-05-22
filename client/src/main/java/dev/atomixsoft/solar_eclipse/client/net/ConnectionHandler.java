@@ -1,9 +1,8 @@
-package dev.atomixsoft.solar_eclipse.client;
+package dev.atomixsoft.solar_eclipse.client.net;
 
 import dev.atomixsoft.solar_eclipse.client.logging.Logger;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelOutboundHandlerAdapter;
 
 public class ConnectionHandler extends ChannelInboundHandlerAdapter {
 
@@ -25,9 +24,9 @@ public class ConnectionHandler extends ChannelInboundHandlerAdapter {
     }
 
     private String processMessage(String message) {
-        // TODO:  But actual game server logic here.
+        // TODO:  Put actual game client logic here.
         //        For now, this is just an echo test.
-        return "Server Received: " + message;
+        return "Client Received: " + message;
     }
 
     @Override
