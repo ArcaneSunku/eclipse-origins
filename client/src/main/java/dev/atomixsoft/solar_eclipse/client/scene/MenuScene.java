@@ -1,6 +1,9 @@
 package dev.atomixsoft.solar_eclipse.client.scene;
 
 import dev.atomixsoft.solar_eclipse.client.AssetLoader;
+import dev.atomixsoft.solar_eclipse.client.Client;
+import dev.atomixsoft.solar_eclipse.client.audio.AudioMaster;
+import dev.atomixsoft.solar_eclipse.client.audio.AudioSource;
 import dev.atomixsoft.solar_eclipse.client.graphics.Texture;
 import dev.atomixsoft.solar_eclipse.client.graphics.ui.MainMenu;
 import dev.atomixsoft.solar_eclipse.client.util.input.Controller;
@@ -18,6 +21,7 @@ public class MenuScene extends SceneAdapter {
 
     private MainMenu m_MainMenu;
     private final ImFont m_Font;
+    private AudioSource m_MainMenuSource;
 
     public MenuScene() {
         ImGuiIO io  = ImGui.getIO();
@@ -28,11 +32,21 @@ public class MenuScene extends SceneAdapter {
     public void show() {
         m_MainMenu = new MainMenu();
         m_MainMenu.setFont(m_Font);
+
+        m_MainMenuSource = new AudioSource();
+
+        if(Boolean.parseBoolean(Client.ConfigInfo.getMusic())) {
+            int mainMenuMusic = AudioMaster.LoadMusic("reddwarf.mid", "client/assets/music/" + Client.ConfigInfo.getMenuMusic());
+            m_MainMenuSource.start(mainMenuMusic);
+            m_MainMenuSource.setVolume(25);
+            m_MainMenuSource.setLooping(true);
+        }
     }
 
     @Override
     public void hide() {
         m_MainMenu.dispose();
+        m_MainMenuSource.dispose();
     }
 
     @Override

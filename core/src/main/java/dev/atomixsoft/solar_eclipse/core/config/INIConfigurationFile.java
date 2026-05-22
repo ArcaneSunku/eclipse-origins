@@ -12,7 +12,6 @@ import java.util.HashMap;
 public class INIConfigurationFile implements ConfigurationFile {
     private INIConfiguration m_Config;
 
-
     @Override
     public void load(String path) throws Exception {
         Configurations configs = new Configurations();

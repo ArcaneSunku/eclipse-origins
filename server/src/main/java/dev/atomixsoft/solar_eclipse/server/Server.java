@@ -5,7 +5,7 @@ import dev.atomixsoft.solar_eclipse.server.config.Configuration;
 import dev.atomixsoft.solar_eclipse.server.logging.Logger;
 
 public class Server {
-    public static final Configuration ConfigInfo = new Configuration(Configuration.SupportedConfigFileTypes.INI, "server_data/server.ini");
+    public static final Configuration ConfigInfo = new Configuration(Configuration.SupportedConfigFileTypes.INI, "server/server.ini");
     public static volatile boolean running = true;
 
     public static void main(String[] args) throws Exception {

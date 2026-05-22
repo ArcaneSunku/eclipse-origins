@@ -1,5 +1,6 @@
 package dev.atomixsoft.solar_eclipse.client;
 
+import dev.atomixsoft.solar_eclipse.client.config.Configuration;
 import dev.atomixsoft.solar_eclipse.client.logging.Logger;
 
 import dev.atomixsoft.solar_eclipse.client.scene.MainScene;

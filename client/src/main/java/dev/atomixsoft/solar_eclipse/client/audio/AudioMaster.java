@@ -22,7 +22,6 @@ public class AudioMaster {
 
     private final Map<String, Integer> m_BufferMap;
 
-    
     private ALCapabilities m_alCapabilities;
     private ALCCapabilities m_alcCapabilities;
 
@@ -78,8 +77,10 @@ public class AudioMaster {
      * @return a buffer ID to be used with {@link AudioSource}
      */
     public static int LoadMusic(String name, String fileName) {
-        int buffer = AL11.alGenBuffers();
+        if(Instance().m_BufferMap.containsKey(name))
+            return Instance().m_BufferMap.get(name);
 
+        int buffer = AL11.alGenBuffers();
         ByteBuffer byteBuffer = null;
         try {
             Midi file = new Midi(fileName);
@@ -107,8 +108,10 @@ public class AudioMaster {
      * @return a buffer ID to be used with {@link AudioSource}
      */
     public static int LoadSound(String name, String fileName) {
-        int buffer = AL11.alGenBuffers();
+        if(Instance().m_BufferMap.containsKey(name))
+            return Instance().m_BufferMap.get(name);
 
+        int buffer = AL11.alGenBuffers();
         ByteBuffer byteBuffer = null;
         try {
             Wav file = new Wav(fileName);
