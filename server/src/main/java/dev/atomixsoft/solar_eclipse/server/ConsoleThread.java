@@ -4,6 +4,8 @@ import dev.atomixsoft.solar_eclipse.server.logging.Logger;
 
 import java.util.Scanner;
 
+// My initial attempt to get a "proper" console server working.
+// I don't do backend development so it's been put on the back burner for later use, maybe?
 public class ConsoleThread implements Runnable {
 
     private final Logger m_Logger;
