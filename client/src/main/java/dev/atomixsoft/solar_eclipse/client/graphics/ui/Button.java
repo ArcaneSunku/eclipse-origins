@@ -2,15 +2,17 @@ package dev.atomixsoft.solar_eclipse.client.graphics.ui;
 
 import dev.atomixsoft.solar_eclipse.client.AssetLoader;
 import dev.atomixsoft.solar_eclipse.client.graphics.Texture;
-
-import imgui.ImGui;
+import dev.atomixsoft.solar_eclipse.client.graphics.render2D.SpriteBatch;
+import dev.atomixsoft.solar_eclipse.client.graphics.ui.base.Actor;
+import org.joml.Vector2f;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class Button {
+public class Button extends Actor {
 
-    public static enum State {
+    public enum State {
         NORMAL,
         HOVERED,
         CLICKED
@@ -19,70 +21,42 @@ public class Button {
     private final List<Texture> m_Textures;
     private State m_State;
 
-    /**
-     * <p>Creates a button from a list of {@link Texture}s relative to the button's state.</br>
-     * i.e. button, button_hover, button_click
-     * </p>
-     * @param textures a list of textures containing the normal, hover, and clicked states
-     */
     public Button(List<Texture> textures) {
+        super();
         m_Textures = textures;
         m_State = State.NORMAL;
     }
 
     public Button(String texture_name) {
+        super();
         m_Textures = new ArrayList<>();
 
         m_Textures.add(AssetLoader.GetTexture(texture_name));
         m_Textures.add(AssetLoader.GetTexture(texture_name + "_hover"));
         m_Textures.add(AssetLoader.GetTexture(texture_name + "_click"));
 
+        m_Size = new Vector2f(100, 75);
         m_State = State.NORMAL;
     }
 
-    public void render(String id, int x, int y) {
-        int flag = -1;
-        switch (m_State) {
-            case NORMAL -> flag = 0;
-            case HOVERED -> flag = 1;
-            case CLICKED -> flag = 2;
-        }
-
-        Texture button = m_Textures.get(flag);
-
-        ImGui.setCursorPos(x, y);
-        if(ImGui.imageButton(id, button.getTextureId(), button.getWidth(), button.getHeight())) {
-            m_State = State.CLICKED;
-        } else {
-            if(ImGui.isItemHovered()) m_State = State.HOVERED;
-            else if(!ImGui.isItemHovered()) m_State = State.NORMAL;
-        }
+    @Override
+    public void draw(SpriteBatch batch) {
+        batch.render(m_Textures.get(m_State.ordinal()), m_Position, 0, m_Size, new Vector3f(1.0f));
+        super.draw(batch);
     }
 
-    public int getWidth() {
-        int flag = -1;
-        switch (m_State) {
-            case NORMAL -> flag = 0;
-            case HOVERED -> flag = 1;
-            case CLICKED -> flag = 2;
-        }
-
-        return m_Textures.get(flag).getWidth();
+    @Override
+    public void act(float delta) {
+        super.act(delta);
     }
 
-    public int getHeight() {
-        int flag = -1;
-        switch (m_State) {
-            case NORMAL -> flag = 0;
-            case HOVERED -> flag = 1;
-            case CLICKED -> flag = 2;
-        }
+    @Override
+    public void onAdd() {
 
-        return m_Textures.get(flag).getHeight();
     }
 
-    public State getState() {
-        return m_State;
-    }
+    @Override
+    public void onRemove() {
 
+    }
 }

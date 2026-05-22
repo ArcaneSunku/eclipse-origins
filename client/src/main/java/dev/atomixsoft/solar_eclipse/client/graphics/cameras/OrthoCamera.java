@@ -42,7 +42,7 @@ public class OrthoCamera extends Camera {
             this.m_AspectRatio = m_Height / m_Width;
 
         m_Projection.identity();
-        m_Projection.ortho(-m_AspectRatio * m_Zoom, m_AspectRatio * m_Zoom, -m_Zoom, m_Zoom, -1.0f, 1.0f);
+        m_Projection.ortho(-m_AspectRatio * m_Zoom, m_AspectRatio * m_Zoom, -m_Zoom, m_Zoom, -1000.0f, 1000.0f);
     }
 
     public void setZoom(float zoom) {

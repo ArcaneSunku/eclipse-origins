@@ -13,7 +13,7 @@ uniform sampler2D u_Textures[32];
 vec4 transparentKey(vec4 testColor)
 {
     if((testColor.r == 1 && testColor.g == 0 && testColor.b == 1) || (testColor.r == 0 && testColor.g == 1 && testColor.b == 0))
-    return vec4(testColor.rgb, 0);
+        return vec4(testColor.rgb, 0);
 
     return testColor;
 }

@@ -2,7 +2,7 @@ package dev.atomixsoft.solar_eclipse.client.scene;
 
 import dev.atomixsoft.solar_eclipse.client.AssetLoader;
 import dev.atomixsoft.solar_eclipse.client.graphics.Texture;
-import dev.atomixsoft.solar_eclipse.client.graphics.ui.MainMenu;
+import dev.atomixsoft.solar_eclipse.client.graphics.ui.old.MainMenu;
 import dev.atomixsoft.solar_eclipse.client.util.input.Controller;
 import dev.atomixsoft.solar_eclipse.core.event.types.InputEvent;
 

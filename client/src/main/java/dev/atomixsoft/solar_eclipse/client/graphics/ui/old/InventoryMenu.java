@@ -1,4 +1,4 @@
-package dev.atomixsoft.solar_eclipse.client.graphics.ui;
+package dev.atomixsoft.solar_eclipse.client.graphics.ui.old;
 
 import dev.atomixsoft.solar_eclipse.client.graphics.Texture;
 import dev.atomixsoft.solar_eclipse.core.game.character.Character;

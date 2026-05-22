@@ -2,7 +2,6 @@ package dev.atomixsoft.solar_eclipse.client.graphics;
 
 import dev.atomixsoft.solar_eclipse.client.AssetLoader;
 
-import dev.atomixsoft.solar_eclipse.client.ClientThread;
 import dev.atomixsoft.solar_eclipse.client.graphics.cameras.OrthoCamera;
 import dev.atomixsoft.solar_eclipse.client.graphics.render2D.Sprite;
 import dev.atomixsoft.solar_eclipse.client.graphics.render2D.SpriteBatch;

@@ -5,18 +5,15 @@ import dev.atomixsoft.solar_eclipse.client.graphics.FrameBuffer;
 import dev.atomixsoft.solar_eclipse.client.graphics.GameRenderer;
 import dev.atomixsoft.solar_eclipse.client.graphics.RenderCmd;
 import dev.atomixsoft.solar_eclipse.client.graphics.Texture;
-import dev.atomixsoft.solar_eclipse.client.graphics.ui.GameMenu;
-import dev.atomixsoft.solar_eclipse.client.graphics.ui.Hotbar;
-import dev.atomixsoft.solar_eclipse.core.event.types.ShutdownEvent;
+import dev.atomixsoft.solar_eclipse.client.graphics.ui.Button;
+import dev.atomixsoft.solar_eclipse.client.graphics.ui.base.Stage;
+import dev.atomixsoft.solar_eclipse.client.graphics.ui.old.GameMenu;
 import dev.atomixsoft.solar_eclipse.core.game.Actuator;
-import dev.atomixsoft.solar_eclipse.core.game.Item;
 import dev.atomixsoft.solar_eclipse.core.game.character.Character;
 import dev.atomixsoft.solar_eclipse.core.game.map.GameMap;
 import dev.atomixsoft.solar_eclipse.core.game.map.Tile;
 import imgui.*;
 import imgui.flag.*;
-import org.joml.Vector2f;
-import org.joml.Vector3f;
 
 import dev.atomixsoft.solar_eclipse.core.game.Constants;
 
@@ -26,6 +23,7 @@ import dev.atomixsoft.solar_eclipse.client.AssetLoader;
 
 import dev.atomixsoft.solar_eclipse.client.graphics.render2D.SpriteBatch;
 import dev.atomixsoft.solar_eclipse.client.graphics.cameras.OrthoCamera;
+import org.joml.Vector2f;
 
 import static dev.atomixsoft.solar_eclipse.core.event.types.InputEvent.InputType;
 import static org.lwjgl.opengl.GL11.*;
@@ -37,10 +35,12 @@ public class TestScene extends SceneAdapter {
 
     private OrthoCamera camera;
     private SpriteBatch batch;
+    private Stage stage;
     private FrameBuffer frameBuffer;
 
     private GameRenderer gameRender;
     private GameMenu gameMenu;
+    private Button testButton;
     private boolean focused;
 
     private Character player;
@@ -51,10 +51,15 @@ public class TestScene extends SceneAdapter {
         camera.setZoom(16 * 12);
 
         batch = new SpriteBatch(AssetLoader.GetShader("basic"));
+        stage = new Stage(476, 380);
 
         frameBuffer = new FrameBuffer(476, 380);
         gameRender = new GameRenderer();
         gameMenu = new GameMenu();
+
+        testButton = new Button("btn_main_inv");
+        testButton.setPosition(new Vector2f(0, 0));
+        stage.getRoot().addChild(testButton);
 
         GameMap testMap = new GameMap(0, 0, 12, 10);
 
@@ -131,6 +136,7 @@ public class TestScene extends SceneAdapter {
             player.keyFrame = 0;
         }
 
+        stage.act((float) dt);
         gameRender.update(camera);
     }
 
@@ -145,6 +151,7 @@ public class TestScene extends SceneAdapter {
         batch.begin(camera);
         gameRender.render(batch, camera);
         batch.end();
+
         frameBuffer.unbind();
 
         glViewport(0, 0, (int) ClientThread.size().x, (int) ClientThread.size().y);
@@ -184,6 +191,8 @@ public class TestScene extends SceneAdapter {
 
         ImGui.popStyleVar(4);
         ImGui.popStyleColor();
+
+        stage.draw();
     }
 
     @Override

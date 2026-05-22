@@ -5,7 +5,6 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.*;
 
-import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 
@@ -169,8 +168,8 @@ public class SpriteBatch {
             nextBatch();
 
         Vector2f halfSize = new Vector2f(size.x * 0.5f, size.y * 0.5f);
-        Vector2f uv1 = new Vector2f(cellPos.x == 0.0f ? cellPos.x : cellPos.x / texture.getWidth(), cellPos.y == 0.0f ? cellPos.y : cellPos.y / texture.getHeight());
-        Vector2f uv2 = new Vector2f(cellSize.x == 1.0f ? cellSize.x : (cellPos.x + cellSize.x) / texture.getWidth(), cellSize.y == 1.0f ? cellSize.y : (cellPos.y + cellSize.y) / texture.getHeight());
+        Vector2f uv1 = new Vector2f(cellPos.x / texture.getWidth(), cellPos.y / texture.getHeight());
+        Vector2f uv2 = new Vector2f((cellPos.x + cellSize.x) / texture.getWidth(),(cellPos.y + cellSize.y) / texture.getHeight());
 
         float textureSlot = 0.0f;
         for(int i = 0; i < m_TextureSlotIndex; i++) {
