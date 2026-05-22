@@ -8,7 +8,8 @@ public class Configuration {
     private String NAME_VAR;
     private String MOTD_VAR;
     private String IP_VAR;
-    private String PORT_VAR;
+    private Integer PORT_VAR;
+    private String DEBUG_VAR;
 
     private final ConfigurationFile m_ConfigFile;
 
@@ -33,15 +34,16 @@ public class Configuration {
         this(fileType);
 
         try {
-            this.m_ConfigFile.load(path);
+            m_ConfigFile.load(path);
 
-            this.NAME_VAR = this.m_ConfigFile.getValue("server.sName");
-            this.MOTD_VAR = this.m_ConfigFile.getValue("server.sMoTD");
-            this.IP_VAR = this.m_ConfigFile.getValue("server.sIP");
-            this.PORT_VAR = this.m_ConfigFile.getValue("server.iPort");
+            NAME_VAR  = m_ConfigFile.getValue("server.sName");
+            MOTD_VAR  = m_ConfigFile.getValue("server.sMoTD");
+            IP_VAR    = m_ConfigFile.getValue("server.sIP");
+            PORT_VAR  = Integer.parseInt(m_ConfigFile.getValue("server.iPort"));
+            DEBUG_VAR = m_ConfigFile.getValue("server.debug");
 
-            this.LOG_LEVEL_VAR = this.m_ConfigFile.getValue("logging.sLevel");
-            this.LOG_PATTERN_VAR = this.m_ConfigFile.getValue("logging.sPattern");
+            LOG_LEVEL_VAR   = m_ConfigFile.getValue("logging.sLevel");
+            LOG_PATTERN_VAR = m_ConfigFile.getValue("logging.sPattern");
 
         } catch (Exception e) {
             throw new IllegalArgumentException("Could not load the configuration file");
@@ -49,27 +51,31 @@ public class Configuration {
     }
 
     public String getName() {
-        return this.NAME_VAR;
+        return NAME_VAR;
     }
 
     public String getMoTD() {
-        return this.MOTD_VAR;
+        return MOTD_VAR;
     }
 
     public String getIP() {
-        return this.IP_VAR;
+        return IP_VAR;
     }
 
-    public String getPort() {
-        return this.PORT_VAR;
+    public Integer getPort() {
+        return PORT_VAR;
+    }
+
+    public String getDebug() {
+        return DEBUG_VAR;
     }
 
     public String getLogLevel() {
-        return this.LOG_LEVEL_VAR;
+        return LOG_LEVEL_VAR;
     }
 
     public String getLogPattern() {
-        return this.LOG_PATTERN_VAR;
+        return LOG_PATTERN_VAR;
     }
 
 }

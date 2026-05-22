@@ -3,33 +3,69 @@ package dev.atomixsoft.solar_eclipse.server;
 
 import dev.atomixsoft.solar_eclipse.server.config.Configuration;
 import dev.atomixsoft.solar_eclipse.server.logging.Logger;
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.*;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.string.StringDecoder;
+import io.netty.handler.codec.string.StringEncoder;
 
 public class Server {
-    public static final Configuration ConfigInfo = new Configuration(Configuration.SupportedConfigFileTypes.INI, "server/server.ini");
-    public static volatile boolean running = true;
+
+    private final int m_Port;
+
+    private final EventLoopGroup m_IncomingConnections;
+    private final EventLoopGroup m_ClientWorkers;
+
+    private final Configuration m_ConfigInfo;
+    private final Logger m_Logger;
+
+    public Server() {
+        m_ConfigInfo = new Configuration(Configuration.SupportedConfigFileTypes.INI, "server/server.ini");
+        m_Logger = new Logger(Server.class.getSimpleName(), Logger.SupportedLogHandlerTypes.ASYNC_CONSOLE,
+                m_ConfigInfo.getLogLevel(), m_ConfigInfo.getLogPattern());
+
+        m_Port = m_ConfigInfo.getPort();
+        m_IncomingConnections = new NioEventLoopGroup();
+        m_ClientWorkers = new NioEventLoopGroup();
+    }
+
+    public void run() throws Exception {
+        try {
+            ServerBootstrap bootstrap = new ServerBootstrap();
+            bootstrap.group(m_IncomingConnections, m_ClientWorkers)
+                    .channel(NioServerSocketChannel.class)
+                    .childHandler(new ChannelInitializer<SocketChannel>() {
+                        @Override
+                        protected void initChannel(SocketChannel ch) throws Exception {
+                            ChannelPipeline pipeline = ch.pipeline();
+                            pipeline.addLast(new StringDecoder());
+                            pipeline.addLast(new StringEncoder());
+                            pipeline.addLast(new ConnectionHandler(new Logger(Server.class.getSimpleName(),
+                                                                   Logger.SupportedLogHandlerTypes.ASYNC_CONSOLE,
+                                                                   m_ConfigInfo.getLogLevel(),
+                                                                   m_ConfigInfo.getLogPattern())));
+                        }
+                    })
+                    .option(ChannelOption.SO_BACKLOG, 128)
+                    .childOption(ChannelOption.SO_KEEPALIVE, true);
+
+            ChannelFuture future = bootstrap.bind(m_Port).sync();
+            m_Logger.info(m_ConfigInfo.getName() + " server instance accepting RPC on port " + m_Port + ".");
+
+            future.channel().closeFuture().sync();
+        } finally {
+            m_IncomingConnections.shutdownGracefully();
+            m_ClientWorkers.shutdownGracefully();
+        }
+    }
 
     public static void main(String[] args) throws Exception {
-        Logger logger = new Logger(ConfigInfo.getName() + " - Server",
-                Logger.SupportedLogHandlerTypes.ASYNC_CONSOLE,
-                ConfigInfo.getLogLevel(),
-                ConfigInfo.getLogPattern());
-
-        logger.debug("Spinning up threads...");
-
-        NettyServer server = new NettyServer(logger);
-        server.start(Integer.parseInt(ConfigInfo.getPort()));
-
-        Thread console = new Thread(new ConsoleThread(logger, () -> {
-            logger.info("Closing server...");
-            running = false;
-            server.shutdown();
-        }), "Server_Thread");
-
-        console.setDaemon(true);
-        console.start();
-
-        while(running) {
-            Thread.sleep(1000);
+        try {
+            new Server().run();
+        } catch (Exception e) {
+            throw new RuntimeException("Server failed to start: " + e.getMessage());
         }
     }
 }
