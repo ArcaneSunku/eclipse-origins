@@ -1,9 +1,13 @@
 package dev.atomixsoft.solar_eclipse.server;
 
 
+import dev.atomixsoft.solar_eclipse.core.event.EventBus;
 import dev.atomixsoft.solar_eclipse.core.net.codec.PacketDecoder;
 import dev.atomixsoft.solar_eclipse.core.net.codec.PacketEncoder;
 import dev.atomixsoft.solar_eclipse.server.config.Configuration;
+import dev.atomixsoft.solar_eclipse.server.console.ConsoleThread;
+import dev.atomixsoft.solar_eclipse.server.console.events.CommandEvent;
+import dev.atomixsoft.solar_eclipse.server.console.events.CommandListener;
 import dev.atomixsoft.solar_eclipse.server.logging.Logger;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
@@ -15,7 +19,15 @@ import io.netty.handler.codec.LengthFieldPrepender;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 
+import java.util.concurrent.TimeUnit;
+
 public class Server {
+
+    private static Server m_Instance = null;
+
+    public static EventBus event_bus() {
+        return m_Instance.m_EventBus;
+    }
 
     private final int m_Port;
 
@@ -25,6 +37,10 @@ public class Server {
     private final Configuration m_ConfigInfo;
     private final Logger m_Logger;
 
+    private Thread m_Console;
+    private EventBus m_EventBus;
+    private Channel m_ServerChannel;
+
     public Server() {
         m_ConfigInfo = new Configuration(Configuration.SupportedConfigFileTypes.INI, "server/server.ini");
         m_Logger = new Logger(Server.class.getSimpleName(), Logger.SupportedLogHandlerTypes.ASYNC_CONSOLE,
@@ -33,9 +49,22 @@ public class Server {
         m_Port = m_ConfigInfo.getPort();
         m_IncomingConnections = new NioEventLoopGroup();
         m_ClientWorkers = new NioEventLoopGroup();
+
+        if(m_Instance == null)
+            m_Instance = this;
+    }
+
+    private void initialize() {
+        m_EventBus = new EventBus();
+
+        m_Console = new Thread(new ConsoleThread(m_EventBus, this::shutdown), "Console_Thread");
+        m_Console.setDaemon(true);
+        m_Console.start();
     }
 
     public void run() throws Exception {
+        initialize();
+
         try {
             ServerBootstrap bootstrap = new ServerBootstrap();
             bootstrap.group(m_IncomingConnections, m_ClientWorkers)
@@ -61,12 +90,28 @@ public class Server {
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
 
             ChannelFuture future = bootstrap.bind(m_Port).sync();
+            m_ServerChannel = future.channel();
             m_Logger.info(m_ConfigInfo.getName() + " server instance accepting RPC on port " + m_Port + ".");
 
             future.channel().closeFuture().sync();
         } finally {
-            m_IncomingConnections.shutdownGracefully();
-            m_ClientWorkers.shutdownGracefully();
+            shutdown();
+        }
+    }
+
+    private void shutdown() {
+        try {
+            if(m_ServerChannel != null)
+                m_ServerChannel.close();
+
+            m_Console.join(1L);
+        } catch (Exception e) {
+            m_Logger.error(e.getMessage());
+        } finally {
+            m_EventBus.shutdown();
+
+            m_IncomingConnections.shutdownGracefully(0, 0, TimeUnit.NANOSECONDS);
+            m_ClientWorkers.shutdownGracefully(0, 0, TimeUnit.NANOSECONDS);
         }
     }
 
