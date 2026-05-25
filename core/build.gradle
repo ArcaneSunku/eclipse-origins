@@ -4,7 +4,7 @@ ext {
     log4jVersion = "2.23.1"
     disruptorVersion = "4.0.0"
     beanUtilsVersion = "1.9.4"
-    nettyVersion = "4.2.0.Final"
+    nettyVersion = "4.2.14.Final"
 }
 
 dependencies { 

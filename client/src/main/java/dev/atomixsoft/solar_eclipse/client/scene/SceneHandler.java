@@ -98,6 +98,20 @@ public class SceneHandler {
         m_SceneMap.remove(name);
     }
 
+    public String getActiveSceneName() {
+        String name = "";
+
+        for(String n :  m_SceneMap.keySet()) {
+            Scene scene = m_SceneMap.get(n);
+            if(scene != m_ActiveScene)
+                continue;
+
+            name = n;
+        }
+
+        return name;
+    }
+
     public Scene getActiveScene() {
         return m_ActiveScene;
     }

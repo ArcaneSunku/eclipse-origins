@@ -1,15 +1,25 @@
 package dev.atomixsoft.solar_eclipse.client;
 
 import dev.atomixsoft.solar_eclipse.client.config.Configuration;
+import dev.atomixsoft.solar_eclipse.client.events.PacketListener;
+import dev.atomixsoft.solar_eclipse.client.events.ShutdownListener;
 import dev.atomixsoft.solar_eclipse.client.logging.Logger;
 
+import dev.atomixsoft.solar_eclipse.client.net.NetworkClient;
 import dev.atomixsoft.solar_eclipse.client.scene.MainScene;
 import dev.atomixsoft.solar_eclipse.client.util.ImGuiManager;
 import dev.atomixsoft.solar_eclipse.client.util.input.Controller;
+import dev.atomixsoft.solar_eclipse.core.event.Event;
 import dev.atomixsoft.solar_eclipse.core.event.EventBus;
 import dev.atomixsoft.solar_eclipse.core.event.interfaces.EventConsumer;
 import dev.atomixsoft.solar_eclipse.core.event.types.InputEvent;
+import dev.atomixsoft.solar_eclipse.core.event.types.SendPacketEvent;
 import dev.atomixsoft.solar_eclipse.core.event.types.ShutdownEvent;
+import dev.atomixsoft.solar_eclipse.core.game.Actuator;
+import dev.atomixsoft.solar_eclipse.core.net.packet.Packet;
+import dev.atomixsoft.solar_eclipse.core.net.packet.impl.EntityMovePacket;
+import dev.atomixsoft.solar_eclipse.core.net.packet.impl.LoginPacket;
+import dev.atomixsoft.solar_eclipse.core.net.packet.impl.ShutdownPacket;
 import imgui.ImGui;
 import imgui.ImGuiIO;
 import org.joml.Vector2f;
@@ -29,8 +39,10 @@ import dev.atomixsoft.solar_eclipse.client.scene.SceneHandler;
 import dev.atomixsoft.solar_eclipse.client.scene.MenuScene;
 import dev.atomixsoft.solar_eclipse.client.scene.TestScene;
 
+import java.util.Locale;
 
-public class ClientThread implements Runnable, EventConsumer<ShutdownEvent> {
+
+public class ClientThread implements Runnable {
     private static ClientThread s_Instance = null;
     public static Logger log() {
         return s_Instance.m_Logger;
@@ -48,6 +60,7 @@ public class ClientThread implements Runnable, EventConsumer<ShutdownEvent> {
     public static void set_scene(String name) {
         s_Instance.m_Scenes.setActiveScene(name);
     }
+    public static String get_scene_name() { return s_Instance.m_Scenes.getActiveSceneName(); }
 
     private final Controller m_Controller;
     private final EventBus m_EventBus;
@@ -62,6 +75,7 @@ public class ClientThread implements Runnable, EventConsumer<ShutdownEvent> {
     private SceneHandler m_Scenes;
     private ImGuiManager m_GUIManager;
 
+    private NetworkClient m_Network;
 
     public ClientThread(String title, Logger logger) {
         m_Title = title;
@@ -75,7 +89,8 @@ public class ClientThread implements Runnable, EventConsumer<ShutdownEvent> {
         this.m_GUIManager = new ImGuiManager();
 
         if(s_Instance == null) s_Instance = this;
-        m_EventBus.register(ShutdownEvent.class, this);
+
+        m_EventBus.register(ShutdownEvent.class, new ShutdownListener(this));
     }
 
     public synchronized void start() {
@@ -120,6 +135,16 @@ public class ClientThread implements Runnable, EventConsumer<ShutdownEvent> {
 
         m_Scenes.setActiveScene("Menu");
         m_Scenes.getActiveScene().resize(m_Window.getWidth(), m_Window.getHeight());
+
+        m_Network = new NetworkClient();
+        try {
+            m_Network.connect(Client.ConfigInfo.getIP(), Client.ConfigInfo.getPort(), m_Logger);
+        } catch (Exception e) {
+            m_Logger.error(e.getMessage());
+        }
+
+        if(m_Network.connected())
+            m_EventBus.register(SendPacketEvent.class, new PacketListener(m_Network));
     }
 
     private void dispose() {
@@ -127,39 +152,26 @@ public class ClientThread implements Runnable, EventConsumer<ShutdownEvent> {
 
         AudioMaster.CleanUp();
 
-        try {
-            if(m_Scenes != null)
-                m_Scenes.dispose();
+        if(m_Scenes != null)
+            m_Scenes.dispose();
 
-            if(m_Window != null)
-                m_Window.close();
+        if(m_Network != null)
+            m_Network.disconnect();
 
-            m_GUIManager.dispose();
-            AssetLoader.Dispose();
-            m_EventBus.shutdown();
+        if(m_Window != null)
+            m_Window.close();
 
-            if(m_ErrorCallback != null) {
-                m_ErrorCallback.free();
-                glfwSetErrorCallback(null);
-            }
+        m_GUIManager.dispose();
+        AssetLoader.Dispose();
+        m_EventBus.shutdown();
 
-            glfwTerminate();
-            m_Thread.join(1);
-            System.exit(0);
-        } catch (InterruptedException e) {
-            this.m_Logger.error(e.getMessage());
-            System.exit(-1);
+        if(m_ErrorCallback != null) {
+            m_ErrorCallback.free();
+            glfwSetErrorCallback(null);
         }
-    }
 
-    @Override
-    public void accept(ShutdownEvent event) {
-        if(event.handled) return;
-
-        if(!event.isServer()) {
-            stop();
-            event.handled = true;
-        }
+        glfwTerminate();
+        System.exit(0);
     }
 
     @Override
@@ -197,8 +209,11 @@ public class ClientThread implements Runnable, EventConsumer<ShutdownEvent> {
             accumulator += frameTime;
 
             while(accumulator >= optimal) {
+                processIncomingPackets();
+
                 input.process();
                 m_Scenes.update(optimal);
+
                 accumulator -= optimal;
             }
 
@@ -212,6 +227,36 @@ public class ClientThread implements Runnable, EventConsumer<ShutdownEvent> {
         }
 
         dispose();
+    }
+
+    private void processIncomingPackets() {
+        Packet packet;
+
+        while((packet = m_Network.poll()) != null)
+            handlePacket(packet);
+    }
+
+    private void handlePacket(Packet packet) {
+        switch (packet) {
+
+            case LoginPacket p -> {
+                m_Logger.info("Logged in as: " + p.username());
+            }
+
+            case EntityMovePacket p -> {
+                // Get GameMap via Map_Id
+                // Get Entity from NPC/Character_Id
+                // Use the Actuator to move the Entity
+            }
+
+            case ShutdownPacket p -> {
+                m_EventBus.post(new ShutdownEvent("Server", true));
+            }
+
+            default -> {
+                m_Logger.error("Unhandled packet: " + packet.getClass().getSimpleName());
+            }
+        }
     }
 
     private void sleep(double currentTime) {

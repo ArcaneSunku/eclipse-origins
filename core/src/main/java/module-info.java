@@ -3,6 +3,9 @@ module dev.atomixsoft.solar_eclipse.core {
     requires transitive org.apache.commons.logging;
     requires transitive org.apache.logging.log4j;
     requires org.apache.logging.log4j.core;
+    requires io.netty.codec;
+    requires io.netty.transport;
+    requires io.netty.buffer;
 
     opens dev.atomixsoft.solar_eclipse.core.config to org.apache.commons.configuration2;
     opens dev.atomixsoft.solar_eclipse.core.logging to org.apache.commons.logging;
@@ -18,5 +21,7 @@ module dev.atomixsoft.solar_eclipse.core {
     exports dev.atomixsoft.solar_eclipse.core.utils;
     exports dev.atomixsoft.solar_eclipse.core.config;
     exports dev.atomixsoft.solar_eclipse.core.logging;
-    //exports dev.atomixsoft.solar_eclipse.core.network;
+
+    exports dev.atomixsoft.solar_eclipse.core.net.codec;
+    exports dev.atomixsoft.solar_eclipse.core.net.packet;
 }

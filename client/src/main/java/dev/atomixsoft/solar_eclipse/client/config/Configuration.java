@@ -6,7 +6,8 @@ import dev.atomixsoft.solar_eclipse.core.config.*;
 public class Configuration {
     private String NAME_VAR;
     private String USER_VAR, PASS_VAR, SAVE_PASS_VAR;
-    private String IP_VAR, PORT_VAR;
+    private String IP_VAR;
+    private Integer PORT_VAR;
     private String MENU_MUSIC_VAR;
     private String MUSIC_VAR, SOUND_VAR;
     private String DEBUG_VAR;
@@ -38,73 +39,73 @@ public class Configuration {
         this(fileType);
 
         try {
-            this.m_ConfigFile.load(path);
+            m_ConfigFile.load(path);
 
-            this.NAME_VAR = this.m_ConfigFile.getValue("client.sGameName");
-            this.USER_VAR = this.m_ConfigFile.getValue("client.sUsername");
-            this.PASS_VAR = this.m_ConfigFile.getValue("client.sPassword");
-            this.SAVE_PASS_VAR = this.m_ConfigFile.getValue("client.bSavePass");
-            this.IP_VAR = this.m_ConfigFile.getValue("client.sIP");
-            this.PORT_VAR = this.m_ConfigFile.getValue("client.iPort");
-            this.MENU_MUSIC_VAR = this.m_ConfigFile.getValue("client.sMenuMusic");
-            this.MUSIC_VAR = this.m_ConfigFile.getValue("client.bMusic");
-            this.SOUND_VAR = this.m_ConfigFile.getValue("client.bSound");
-            this.DEBUG_VAR = this.m_ConfigFile.getValue("client.bDebug");
+            NAME_VAR = m_ConfigFile.getValue("client.sGameName");
+            USER_VAR = m_ConfigFile.getValue("client.sUsername");
+            PASS_VAR = m_ConfigFile.getValue("client.sPassword");
+            SAVE_PASS_VAR = m_ConfigFile.getValue("client.bSavePass");
+            IP_VAR = m_ConfigFile.getValue("client.sIP");
+            PORT_VAR = Integer.parseInt(m_ConfigFile.getValue("client.iPort"));
+            MENU_MUSIC_VAR = m_ConfigFile.getValue("client.sMenuMusic");
+            MUSIC_VAR = m_ConfigFile.getValue("client.bMusic");
+            SOUND_VAR = m_ConfigFile.getValue("client.bSound");
+            DEBUG_VAR = m_ConfigFile.getValue("client.bDebug");
 
-            this.ACTION_VAR = this.m_ConfigFile.getValue("input.sAction");
-            this.CANCEL_VAR = this.m_ConfigFile.getValue("input.sCancel");
-            this.PICKUP_VAR = this.m_ConfigFile.getValue("input.sPickUp");
-            this.RUN_VAR = this.m_ConfigFile.getValue("input.sRun");
-            this.UP_VAR = this.m_ConfigFile.getValue("input.sUp");
-            this.DOWN_VAR = this.m_ConfigFile.getValue("input.sDown");
-            this.LEFT_VAR = this.m_ConfigFile.getValue("input.sLeft");
-            this.RIGHT_VAR = this.m_ConfigFile.getValue("input.sRight");
+            ACTION_VAR = m_ConfigFile.getValue("input.sAction");
+            CANCEL_VAR = m_ConfigFile.getValue("input.sCancel");
+            PICKUP_VAR = m_ConfigFile.getValue("input.sPickUp");
+            RUN_VAR    = m_ConfigFile.getValue("input.sRun");
+            UP_VAR     = m_ConfigFile.getValue("input.sUp");
+            DOWN_VAR   = m_ConfigFile.getValue("input.sDown");
+            LEFT_VAR   = m_ConfigFile.getValue("input.sLeft");
+            RIGHT_VAR  = m_ConfigFile.getValue("input.sRight");
 
-            this.LOG_LEVEL_VAR = this.m_ConfigFile.getValue("logging.sLevel");
-            this.LOG_PATTERN_VAR = this.m_ConfigFile.getValue("logging.sPattern");
+            LOG_LEVEL_VAR   = m_ConfigFile.getValue("logging.sLevel");
+            LOG_PATTERN_VAR = m_ConfigFile.getValue("logging.sPattern");
         } catch (Exception e) {
             throw new IllegalArgumentException("Could not load the configuration file");
         }
     }
 
     public String getGameName() {
-        return this.NAME_VAR;
+        return NAME_VAR;
     }
 
     public String getUsername() {
-        return this.USER_VAR;
+        return USER_VAR;
     }
 
     public String getPassword() {
-        return this.PASS_VAR;
+        return PASS_VAR;
     }
 
     public String getSavePass() {
-        return this.SAVE_PASS_VAR;
+        return SAVE_PASS_VAR;
     }
 
     public String getIP() {
-        return this.IP_VAR;
+        return IP_VAR;
     }
 
-    public String getPort() {
-        return this.PORT_VAR;
+    public Integer getPort() {
+        return PORT_VAR;
     }
 
     public String getMenuMusic() {
-        return this.MENU_MUSIC_VAR;
+        return MENU_MUSIC_VAR;
     }
 
     public String getMusic() {
-        return this.MUSIC_VAR;
+        return MUSIC_VAR;
     }
 
     public String getSound() {
-        return this.SOUND_VAR;
+        return SOUND_VAR;
     }
 
     public String getDebug() {
-        return this.DEBUG_VAR;
+        return DEBUG_VAR;
     }
 
     public String getActionKey() {
@@ -140,10 +141,10 @@ public class Configuration {
     }
 
     public String getLogLevel() {
-        return this.LOG_LEVEL_VAR;
+        return LOG_LEVEL_VAR;
     }
 
     public String getLogPattern() {
-        return this.LOG_PATTERN_VAR;
+        return LOG_PATTERN_VAR;
     }
 }

@@ -1,6 +1,8 @@
 package dev.atomixsoft.solar_eclipse.server;
 
 
+import dev.atomixsoft.solar_eclipse.core.net.codec.PacketDecoder;
+import dev.atomixsoft.solar_eclipse.core.net.codec.PacketEncoder;
 import dev.atomixsoft.solar_eclipse.server.config.Configuration;
 import dev.atomixsoft.solar_eclipse.server.logging.Logger;
 import io.netty.bootstrap.ServerBootstrap;
@@ -8,6 +10,8 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import io.netty.handler.codec.LengthFieldPrepender;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 
@@ -40,9 +44,14 @@ public class Server {
                         @Override
                         protected void initChannel(SocketChannel ch) throws Exception {
                             ChannelPipeline pipeline = ch.pipeline();
-                            pipeline.addLast(new StringDecoder());
-                            pipeline.addLast(new StringEncoder());
-                            pipeline.addLast(new ConnectionHandler(new Logger(Server.class.getSimpleName(),
+
+                            pipeline.addLast(new LengthFieldBasedFrameDecoder(1024 * 1024, 0, 4, 0, 4));
+
+                            pipeline.addLast(new PacketDecoder());
+                            pipeline.addLast(new LengthFieldPrepender(4));
+                            pipeline.addLast(new PacketEncoder());
+
+                            pipeline.addLast(new ServerChannelHandler(new Logger(Server.class.getSimpleName(),
                                                                    Logger.SupportedLogHandlerTypes.ASYNC_CONSOLE,
                                                                    m_ConfigInfo.getLogLevel(),
                                                                    m_ConfigInfo.getLogPattern())));

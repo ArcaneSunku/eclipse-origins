@@ -12,6 +12,7 @@ public class GameMap {
     public final List<Character> MapCharacters = new ArrayList<>();
     public final List<Item> WorldItems = new ArrayList<>();
 
+    public byte id;
     public byte moral;
     public int x, y;
     public int width, height;

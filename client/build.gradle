@@ -6,7 +6,7 @@ ext {
     jomlVersion = "1.10.7"
     lwjglVersion = "3.3.6"
     imguiVersion = "1.89.0"
-    nettyVersion = "4.2.0.Final"
+    nettyVersion = "4.2.14.Final"
 }
 
 def dataDir = "${rootProject.projectDir}/data"
