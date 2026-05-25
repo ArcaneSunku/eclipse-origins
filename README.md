@@ -187,6 +187,8 @@ For a little background, take a look at these links:
 
 Of course, make sure you also visit us at [[atomixsoft.dev]](https://atomixsoft.dev/) !
 
+If you would like to follow our development tasks, check that out at our [Trello Board](https://trello.com/b/pK2cQcnx/solar-eclipse-eo4)!
+
 > We hope you find **Eclipse Origins 4: Solar Eclipse** a very clean, somewhat nostalgic, highly performant, and infinitely flexible engine.  For any issues or contributions, please refer to our [issue tracker](#) or [contributing guide](#).
 
 _Enjoy!_
