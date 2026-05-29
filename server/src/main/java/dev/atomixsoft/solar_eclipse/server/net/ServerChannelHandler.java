@@ -1,30 +1,35 @@
-package dev.atomixsoft.solar_eclipse.server;
+package dev.atomixsoft.solar_eclipse.server.net;
 
 import dev.atomixsoft.solar_eclipse.core.net.packet.Packet;
 import dev.atomixsoft.solar_eclipse.core.net.packet.impl.EntityMovePacket;
 import dev.atomixsoft.solar_eclipse.core.net.packet.impl.LoginPacket;
+import dev.atomixsoft.solar_eclipse.core.net.packet.impl.ShutdownPacket;
 import dev.atomixsoft.solar_eclipse.server.logging.Logger;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.group.ChannelGroup;
 
 public class ServerChannelHandler extends SimpleChannelInboundHandler<Packet> {
 
     private final Logger m_Logger;
+    private final NetworkServer m_Network;
 
-    public ServerChannelHandler(Logger logger) {
+    public ServerChannelHandler(Logger logger, NetworkServer network) {
         super();
         m_Logger = logger;
+        m_Network = network;
     }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         m_Logger.info("Client connected: " + ctx.channel().remoteAddress());
+        m_Network.getClients().add(ctx.channel());
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         m_Logger.info("Client disconnected: " + ctx.channel().remoteAddress());
+        m_Network.getClients().remove(ctx.channel());
     }
 
     @Override
@@ -44,6 +49,10 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<Packet> {
                     - Update World
                     - Broadcast to nearby players
                  */
+            }
+
+            case ShutdownPacket p -> {
+                m_Logger.info("Shutdown request from client...\n" + "Forced: " + p.forced());
             }
 
             default -> {

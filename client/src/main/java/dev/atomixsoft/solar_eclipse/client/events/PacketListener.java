@@ -16,7 +16,7 @@ public class PacketListener implements EventConsumer<SendPacketEvent> {
     public void accept(SendPacketEvent event) {
         if(event.handled) return;
 
-        if(m_Network != null && m_Network.connected()) {
+        if(m_Network != null && m_Network.isConnected()) {
             m_Network.send(event.getPacket());
             event.handled = true;
         }

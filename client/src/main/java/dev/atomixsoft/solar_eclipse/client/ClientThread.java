@@ -1,6 +1,5 @@
 package dev.atomixsoft.solar_eclipse.client;
 
-import dev.atomixsoft.solar_eclipse.client.config.Configuration;
 import dev.atomixsoft.solar_eclipse.client.events.PacketListener;
 import dev.atomixsoft.solar_eclipse.client.events.ShutdownListener;
 import dev.atomixsoft.solar_eclipse.client.logging.Logger;
@@ -9,19 +8,15 @@ import dev.atomixsoft.solar_eclipse.client.net.NetworkClient;
 import dev.atomixsoft.solar_eclipse.client.scene.MainScene;
 import dev.atomixsoft.solar_eclipse.client.util.ImGuiManager;
 import dev.atomixsoft.solar_eclipse.client.util.input.Controller;
-import dev.atomixsoft.solar_eclipse.core.event.Event;
 import dev.atomixsoft.solar_eclipse.core.event.EventBus;
-import dev.atomixsoft.solar_eclipse.core.event.interfaces.EventConsumer;
 import dev.atomixsoft.solar_eclipse.core.event.types.InputEvent;
 import dev.atomixsoft.solar_eclipse.core.event.types.SendPacketEvent;
 import dev.atomixsoft.solar_eclipse.core.event.types.ShutdownEvent;
-import dev.atomixsoft.solar_eclipse.core.game.Actuator;
 import dev.atomixsoft.solar_eclipse.core.net.packet.Packet;
+import dev.atomixsoft.solar_eclipse.core.net.packet.PacketRegistry;
 import dev.atomixsoft.solar_eclipse.core.net.packet.impl.EntityMovePacket;
 import dev.atomixsoft.solar_eclipse.core.net.packet.impl.LoginPacket;
 import dev.atomixsoft.solar_eclipse.core.net.packet.impl.ShutdownPacket;
-import imgui.ImGui;
-import imgui.ImGuiIO;
 import org.joml.Vector2f;
 import org.lwjgl.glfw.GLFWErrorCallback;
 
@@ -38,8 +33,6 @@ import dev.atomixsoft.solar_eclipse.client.graphics.RenderCmd;
 import dev.atomixsoft.solar_eclipse.client.scene.SceneHandler;
 import dev.atomixsoft.solar_eclipse.client.scene.MenuScene;
 import dev.atomixsoft.solar_eclipse.client.scene.TestScene;
-
-import java.util.Locale;
 
 
 public class ClientThread implements Runnable {
@@ -136,6 +129,7 @@ public class ClientThread implements Runnable {
         m_Scenes.setActiveScene("Menu");
         m_Scenes.getActiveScene().resize(m_Window.getWidth(), m_Window.getHeight());
 
+        PacketRegistry.Initialize();
         m_Network = new NetworkClient();
         try {
             m_Network.connect(Client.ConfigInfo.getIP(), Client.ConfigInfo.getPort(), m_Logger);
@@ -143,7 +137,7 @@ public class ClientThread implements Runnable {
             m_Logger.error(e.getMessage());
         }
 
-        if(m_Network.connected())
+        if(m_Network.isConnected())
             m_EventBus.register(SendPacketEvent.class, new PacketListener(m_Network));
     }
 
@@ -208,9 +202,8 @@ public class ClientThread implements Runnable {
             currentTime = newTime;
             accumulator += frameTime;
 
+            processIncomingPackets();
             while(accumulator >= optimal) {
-                processIncomingPackets();
-
                 input.process();
                 m_Scenes.update(optimal);
 
@@ -250,6 +243,7 @@ public class ClientThread implements Runnable {
             }
 
             case ShutdownPacket p -> {
+                m_Logger.info("Server has shutdown...");
                 m_EventBus.post(new ShutdownEvent("Server", true));
             }
 

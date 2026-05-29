@@ -8,6 +8,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -21,33 +22,72 @@ public class PacketDecoder  extends ByteToMessageDecoder {
         int id = in.readInt();
         switch (id) {
             case 0 -> {
-                if(in.readableBytes() < 12)
+                if(in.readableBytes() < 1) {
+                    in.resetReaderIndex();
                     return;
+                }
 
-                out.add(new ShutdownPacket(in.getBoolean(id)));
+                boolean forced = in.readBoolean();
+                out.add(new ShutdownPacket(forced));
             }
 
             case 1 -> {
-                if(in.readableBytes() < 12)
-                    return;
+                String username = readString(in);
+                String password = readString(in);
 
-                out.add(new LoginPacket(in.readString(512, StandardCharsets.UTF_8), in.readString(512, StandardCharsets.UTF_8)));
+                if(username == null || password == null) {
+                    in.resetReaderIndex();
+                    return;
+                }
+
+                out.add(new LoginPacket(username, password));
             }
 
             case 2 -> {
-                if(in.readableBytes() < 12)
+                if(in.readableBytes() < 12) {
+                    in.resetReaderIndex();
                     return;
+                }
 
-                out.add(new EntityMovePacket(in.readInt(), in.readFloat(), in.readFloat()));
+                int entityId = in.readInt();
+                float x = in.readFloat();
+                float y = in.readFloat();
+
+                out.add(new EntityMovePacket(entityId, x, y));
             }
 
             case 3 -> {
-                if(in.readableBytes() < 12)
-                    return;
+                String sender = readString(in);
+                String message = readString(in);
 
-                out.add(new ChatMessagePacket(in.readString(512, StandardCharsets.UTF_8), in.readString(512, StandardCharsets.UTF_8)));
+                if(sender == null || message == null) {
+                    in.resetReaderIndex();
+                    return;
+                }
+
+                out.add(new ChatMessagePacket(sender, message));
             }
+
+            default -> throw new IllegalStateException("Unknown packet ID: " + id);
         }
+    }
+
+    private String readString(ByteBuf in) {
+        if(in.readableBytes() < 4)
+            return null;
+
+        in.markReaderIndex();
+        int length = in.readInt();
+
+        if(in.readableBytes() < length) {
+            in.resetReaderIndex();
+            return null;
+        }
+
+        byte[] bytes = new byte[length];
+        in.readBytes(bytes);
+
+        return new String(bytes, StandardCharsets.UTF_8);
     }
 
 }

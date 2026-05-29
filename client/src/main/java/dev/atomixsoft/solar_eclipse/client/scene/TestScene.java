@@ -47,6 +47,7 @@ public class TestScene extends SceneAdapter {
 
     @Override
     public void show() {
+        ClientThread.set_size(785, 594);
         camera = new OrthoCamera(476, 380);
         camera.setZoom(16 * 12);
 

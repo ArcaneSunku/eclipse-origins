@@ -13,7 +13,9 @@ public class PacketRegistry {
     private static final Map<Integer, Class<? extends Packet>> ID_TO_PACKET = new HashMap<>();
     private static final Map<Class<? extends Packet>, Integer> PACKET_TO_ID = new HashMap<>();
 
-    static {
+    private PacketRegistry() {}
+
+    public static void Initialize() {
         // Client -> Server
         Register(1, LoginPacket.class);
 
@@ -24,8 +26,6 @@ public class PacketRegistry {
         Register(3, ChatMessagePacket.class);
         Register(0, ShutdownPacket.class);
     }
-
-    private PacketRegistry() {}
 
     public static void Register(int id, Class<? extends Packet> packetClass) {
         if(ID_TO_PACKET.containsKey(id))

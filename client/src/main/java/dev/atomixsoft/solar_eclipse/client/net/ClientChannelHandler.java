@@ -1,6 +1,8 @@
 package dev.atomixsoft.solar_eclipse.client.net;
 
+import dev.atomixsoft.solar_eclipse.client.ClientThread;
 import dev.atomixsoft.solar_eclipse.client.logging.Logger;
+import dev.atomixsoft.solar_eclipse.core.event.types.ShutdownEvent;
 import dev.atomixsoft.solar_eclipse.core.net.packet.Packet;
 
 import io.netty.channel.ChannelHandlerContext;
@@ -25,6 +27,7 @@ public class ClientChannelHandler extends SimpleChannelInboundHandler<Packet> {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+//        ClientThread.eventBus().post(new ShutdownEvent("Server", true));
         m_Logger.info("Disconnected from server!");
     }
 

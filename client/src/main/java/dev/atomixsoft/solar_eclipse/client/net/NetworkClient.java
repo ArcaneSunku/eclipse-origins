@@ -82,7 +82,7 @@ public class NetworkClient {
         return m_Incoming.poll();
     }
 
-    public boolean connected() {
+    public boolean isConnected() {
         return m_Channel != null && m_Channel.isActive();
     }
 

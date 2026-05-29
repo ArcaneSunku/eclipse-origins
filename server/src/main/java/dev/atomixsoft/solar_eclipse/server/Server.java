@@ -4,20 +4,23 @@ package dev.atomixsoft.solar_eclipse.server;
 import dev.atomixsoft.solar_eclipse.core.event.EventBus;
 import dev.atomixsoft.solar_eclipse.core.net.codec.PacketDecoder;
 import dev.atomixsoft.solar_eclipse.core.net.codec.PacketEncoder;
+import dev.atomixsoft.solar_eclipse.core.net.packet.PacketRegistry;
+import dev.atomixsoft.solar_eclipse.core.net.packet.impl.ShutdownPacket;
 import dev.atomixsoft.solar_eclipse.server.config.Configuration;
 import dev.atomixsoft.solar_eclipse.server.console.ConsoleThread;
-import dev.atomixsoft.solar_eclipse.server.console.events.CommandEvent;
-import dev.atomixsoft.solar_eclipse.server.console.events.CommandListener;
 import dev.atomixsoft.solar_eclipse.server.logging.Logger;
+import dev.atomixsoft.solar_eclipse.server.net.NetworkServer;
+import dev.atomixsoft.solar_eclipse.server.net.ServerChannelHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
+import io.netty.channel.group.ChannelGroup;
+import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
-import io.netty.handler.codec.string.StringDecoder;
-import io.netty.handler.codec.string.StringEncoder;
+import io.netty.util.concurrent.GlobalEventExecutor;
 
 import java.util.concurrent.TimeUnit;
 
@@ -27,6 +30,10 @@ public class Server {
 
     public static EventBus event_bus() {
         return m_Instance.m_EventBus;
+    }
+
+    public static NetworkServer network() {
+        return m_Instance.m_Network;
     }
 
     private final int m_Port;
@@ -40,6 +47,8 @@ public class Server {
     private Thread m_Console;
     private EventBus m_EventBus;
     private Channel m_ServerChannel;
+
+    private NetworkServer m_Network;
 
     public Server() {
         m_ConfigInfo = new Configuration(Configuration.SupportedConfigFileTypes.INI, "server/server.ini");
@@ -55,7 +64,9 @@ public class Server {
     }
 
     private void initialize() {
+        PacketRegistry.Initialize();
         m_EventBus = new EventBus();
+        m_Network = new NetworkServer();
 
         m_Console = new Thread(new ConsoleThread(m_EventBus, this::shutdown), "Console_Thread");
         m_Console.setDaemon(true);
@@ -83,7 +94,7 @@ public class Server {
                             pipeline.addLast(new ServerChannelHandler(new Logger(Server.class.getSimpleName(),
                                                                    Logger.SupportedLogHandlerTypes.ASYNC_CONSOLE,
                                                                    m_ConfigInfo.getLogLevel(),
-                                                                   m_ConfigInfo.getLogPattern())));
+                                                                   m_ConfigInfo.getLogPattern()), m_Network));
                         }
                     })
                     .option(ChannelOption.SO_BACKLOG, 128)
@@ -101,6 +112,12 @@ public class Server {
 
     private void shutdown() {
         try {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+
             if(m_ServerChannel != null)
                 m_ServerChannel.close();
 

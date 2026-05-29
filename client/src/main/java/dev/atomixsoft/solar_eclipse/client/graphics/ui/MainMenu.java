@@ -7,6 +7,7 @@ import dev.atomixsoft.solar_eclipse.core.event.types.ShutdownEvent;
 import dev.atomixsoft.solar_eclipse.core.utils.FileUtils;
 import imgui.ImFont;
 import imgui.ImGui;
+import imgui.ImVec2;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiInputTextFlags;
 import imgui.flag.ImGuiStyleVar;
@@ -104,15 +105,17 @@ public class MainMenu {
                 ImGui.pushStyleVar(ImGuiStyleVar.CellPadding, 0, 0);
 
                 ImGui.setNextWindowSize(main_menu.getWidth() / 1.5f, main_menu.getHeight() / 4f);
+                ImGui.setNextWindowPos(main_menu.getWidth() / 3.5f, main_menu.getHeight() / 2f);
 
                 ImGui.begin("Login_Window", ImGuiWindowFlags.NoDecoration);
+
                 ImGui.text("Username: ");
                 ImGui.sameLine();
                 ImGui.pushItemWidth(100);
                 ImGui.inputText("##Username", m_User);
                 ImGui.popItemWidth();
 
-                ImGui.text("Password: ");
+                ImGui.text("Password:  ");
                 ImGui.sameLine();
                 int inputFlags = !m_ShowPass.get() ? ImGuiInputTextFlags.Password : ImGuiInputTextFlags.None;
                 ImGui.pushItemWidth(100);
@@ -132,7 +135,6 @@ public class MainMenu {
             case Register -> {
                 Texture main_menu = AssetLoader.GetTexture("ui_menu_register");
                 ImGui.image(main_menu.getTextureId(), main_menu.getWidth(), main_menu.getHeight());
-                ClientThread.set_size(785, 594);
                 ClientThread.set_scene("Test");
             }
             case Credits -> {
