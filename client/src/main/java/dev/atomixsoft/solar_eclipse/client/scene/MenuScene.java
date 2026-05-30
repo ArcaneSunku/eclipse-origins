@@ -2,6 +2,7 @@ package dev.atomixsoft.solar_eclipse.client.scene;
 
 import dev.atomixsoft.solar_eclipse.client.AssetLoader;
 import dev.atomixsoft.solar_eclipse.client.Client;
+import dev.atomixsoft.solar_eclipse.client.ClientThread;
 import dev.atomixsoft.solar_eclipse.client.audio.AudioMaster;
 import dev.atomixsoft.solar_eclipse.client.audio.AudioSource;
 import dev.atomixsoft.solar_eclipse.client.graphics.Texture;
@@ -53,6 +54,11 @@ public class MenuScene extends SceneAdapter {
     public void update(Controller input, double dt) {
         if(input.justPressed(InputEvent.InputType.ESCAPE))
             m_MainMenu.resetUI();
+
+        if(m_MainMenu.requestedSceneChange()) {
+            ClientThread.set_scene(m_MainMenu.getNextScene());
+            m_MainMenu.resetSceneChangeFlags();
+        }
     }
 
     @Override

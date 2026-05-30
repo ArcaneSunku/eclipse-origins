@@ -32,6 +32,9 @@ public class MainMenu {
 
     private final Map<String, Button> m_Buttons;
 
+    private boolean m_ChangeSceneRequest;
+    private String m_NextScene;
+
     public MainMenu() {
         m_Buttons = new HashMap<>();
         setup();
@@ -48,6 +51,13 @@ public class MainMenu {
         m_Buttons.put("register", new Button("btn_menu_register"));
         m_Buttons.put("credits", new Button("btn_menu_credits"));
         m_Buttons.put("exit", new Button("btn_menu_exit"));
+
+        resetSceneChangeFlags();
+    }
+
+    public void resetSceneChangeFlags() {
+        m_ChangeSceneRequest = false;
+        m_NextScene = null;
     }
 
     public void render() {
@@ -135,7 +145,9 @@ public class MainMenu {
             case Register -> {
                 Texture main_menu = AssetLoader.GetTexture("ui_menu_register");
                 ImGui.image(main_menu.getTextureId(), main_menu.getWidth(), main_menu.getHeight());
-                ClientThread.set_scene("Test");
+
+                m_ChangeSceneRequest = true;
+                m_NextScene = "Test";
             }
             case Credits -> {
                 Texture main_menu = AssetLoader.GetTexture("ui_menu_credits");
@@ -189,6 +201,14 @@ public class MainMenu {
 
     public void setFont(ImFont font) {
         m_Georgia = font;
+    }
+
+    public boolean requestedSceneChange() {
+        return m_ChangeSceneRequest;
+    }
+
+    public String getNextScene() {
+        return m_NextScene;
     }
 
 }

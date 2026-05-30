@@ -21,6 +21,7 @@ import org.joml.Vector2f;
 import org.lwjgl.glfw.GLFWErrorCallback;
 
 import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.opengl.GL11.glViewport;
 
 import dev.atomixsoft.solar_eclipse.client.util.Window;
 
@@ -44,11 +45,11 @@ public class ClientThread implements Runnable {
         return s_Instance.m_EventBus;
     }
     public static Vector2f size() {
-        return new Vector2f(s_Instance.m_Window.getWidth(), s_Instance.m_Window.getHeight());
+        return new Vector2f(s_Instance.m_Window.getFrameBufferWidth(), s_Instance.m_Window.getFrameBufferHeight());
     }
 
     public static void set_size(int width, int height) {
-        s_Instance.m_Window.setSize(width, height);
+        s_Instance.m_Window.requestResize(width, height);
     }
     public static void set_scene(String name) {
         s_Instance.m_Scenes.setActiveScene(name);
@@ -192,11 +193,6 @@ public class ClientThread implements Runnable {
                 continue;
             }
 
-            if(m_Window.hasResized()) {
-                m_Scenes.resize(m_Window.getWidth(), m_Window.getHeight());
-                m_Window.setResized(false);
-            }
-
             newTime = System.nanoTime() / 1e9;
             frameTime = newTime - currentTime;
             currentTime = newTime;
@@ -211,9 +207,18 @@ public class ClientThread implements Runnable {
             }
 
             RenderCmd.Clear();
+
+            m_Window.poll();
+            m_Window.beginFrame();
+
+            if(m_Window.resizeRequested()) {
+                m_Window.applyPendingResize();
+                m_Scenes.resize((int) size().x, (int) size().y);
+            }
+
             m_Scenes.render(m_GUIManager);
-            m_Window.swapBuffers();
-            glfwPollEvents();
+
+            m_Window.endFrame();
 
             if(!m_Window.vSyncEnabled())
                 sleep(currentTime);

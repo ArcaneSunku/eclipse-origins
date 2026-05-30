@@ -24,7 +24,13 @@ public class Window {
 
     private String m_Title;
     private int m_Width, m_Height;
-    private boolean m_Resizable, m_Focused, m_Resized, m_VSync;
+    private int m_FrameBufferWidth, m_FrameBufferHeight;
+    private boolean m_Focused;
+
+    private int m_RequestWidth, m_RequestHeight;
+    private boolean m_ResizeRequested;
+
+    private boolean m_Resizable, m_VSync;
 
 
     public Window(String title, int width, int height) {
@@ -36,6 +42,7 @@ public class Window {
         m_Width = width;
         m_Height = height;
 
+        m_ResizeRequested = resizable;
         m_Focused = false;
         m_Resizable = resizable;
         m_VSync = vSync;
@@ -48,6 +55,7 @@ public class Window {
      */
     private void initialize() {
         glfwDefaultWindowHints();
+
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
         glfwWindowHint(GLFW_RESIZABLE, m_Resizable ? GLFW_TRUE : GLFW_FALSE);
 
@@ -67,17 +75,26 @@ public class Window {
             glfwSetWindowPos(m_Handle, (video_mode.width() - pWidth.get(0)) / 2, (video_mode.height() - pHeight.get(0)) / 2);
         }
 
-        glfwSetWindowFocusCallback(m_Handle, (window, focused) -> m_Focused = focused);
-
         int swapInterval = m_VSync ? 1 : 0;
         glfwMakeContextCurrent(m_Handle);
         glfwSwapInterval(swapInterval);
+        GL.createCapabilities();
 
         glfwSetWindowSizeCallback(m_Handle, this::resize);
+        glfwSetFramebufferSizeCallback(m_Handle, this::framebuffer_resize);
         glfwSetKeyCallback(m_Handle, InputHandler::key_callback);
         glfwSetMouseButtonCallback(m_Handle, InputHandler::mouse_button_callback);
+        glfwSetWindowFocusCallback(m_Handle, (window, focused) -> m_Focused = focused);
 
-        GL.createCapabilities();
+        try(MemoryStack stack = stackPush()) {
+            IntBuffer fWidth = stack.mallocInt(1);
+            IntBuffer fHeight = stack.mallocInt(1);
+
+            glfwGetFramebufferSize(m_Handle, fWidth, fHeight);
+
+            m_FrameBufferWidth = fWidth.get(0);
+            m_FrameBufferHeight = fHeight.get(0);
+        }
     }
 
     /**
@@ -96,12 +113,20 @@ public class Window {
             glfwHideWindow(m_Handle);
     }
 
+    public void beginFrame() {
+        glViewport(0, 0, m_FrameBufferWidth, m_FrameBufferHeight);
+    }
+
     /**
      * <p>Swaps the back and current buffer, so we can continue displaying visuals while updating them.</p>
      */
-    public void swapBuffers() {
+    public void endFrame() {
         if(m_Handle != MemoryUtil.NULL)
             glfwSwapBuffers(m_Handle);
+    }
+
+    public void poll() {
+        glfwPollEvents();
     }
 
     /**
@@ -114,19 +139,47 @@ public class Window {
         }
     }
 
+    public void requestResize(int width, int height) {
+        m_ResizeRequested = true;
+        m_RequestWidth = width;
+        m_RequestHeight = height;
+    }
+
+    public void applyPendingResize() {
+        if(!m_ResizeRequested) return;
+
+        m_ResizeRequested = false;
+        setSize(m_RequestWidth, m_RequestHeight);
+    }
+
     public void setSize(int width, int height) {
         glfwSetWindowSize(m_Handle, width, height);
+
         GLFWVidMode vidMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
         assert(vidMode != null);
         glfwSetWindowPos(m_Handle, (vidMode.width() - width) / 2, (vidMode.height() - height) / 2);
     }
 
     private void resize(long window, int width, int height) {
-        glViewport(0, 0, width, height);
+        if (width == m_Width && height == m_Height)
+            return;
+
+        if (width <= 0 && height <= 0)
+            return;
 
         m_Width = width;
         m_Height = height;
-        m_Resized = true;
+    }
+
+    private void framebuffer_resize(long window, int width, int height) {
+        if (width == m_FrameBufferWidth && height == m_FrameBufferHeight)
+            return;
+
+        if (width <= 0 && height <=0)
+            return;
+
+        m_FrameBufferWidth = width;
+        m_FrameBufferHeight = height;
     }
 
     /**
@@ -135,10 +188,6 @@ public class Window {
     public void close() {
         if(m_Handle != MemoryUtil.NULL)
             glfwSetWindowShouldClose(m_Handle, true);
-    }
-
-    public void setResized(boolean resized) {
-        m_Resized = resized;
     }
 
     public void setVSync(boolean vSync) {
@@ -158,8 +207,8 @@ public class Window {
         return m_Handle;
     }
 
-    public boolean hasResized() {
-        return m_Resized;
+    public boolean resizeRequested() {
+        return m_ResizeRequested;
     }
 
     public boolean isResizable() {
@@ -182,5 +231,13 @@ public class Window {
 
     public int getHeight() {
         return m_Height;
+    }
+
+    public int getFrameBufferWidth() {
+        return m_FrameBufferWidth;
+    }
+
+    public int getFrameBufferHeight() {
+        return m_FrameBufferHeight;
     }
 }

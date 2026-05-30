@@ -29,6 +29,8 @@ import dev.atomixsoft.solar_eclipse.client.graphics.cameras.OrthoCamera;
 
 import static dev.atomixsoft.solar_eclipse.core.event.types.InputEvent.InputType;
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER;
+import static org.lwjgl.opengl.GL30.glBindFramebuffer;
 
 /**
  * <p>Purely for prototyping features in the earlier stages of development.</p>
@@ -48,16 +50,17 @@ public class TestScene extends SceneAdapter {
     @Override
     public void show() {
         ClientThread.set_size(785, 594);
-        camera = new OrthoCamera(476, 380);
-        camera.setZoom(16 * 12);
 
         batch = new SpriteBatch(AssetLoader.GetShader("basic"));
 
-        frameBuffer = new FrameBuffer(476, 380);
+        frameBuffer = new FrameBuffer(544, 416);
+        camera = new OrthoCamera(frameBuffer.getWidth(), frameBuffer.getHeight());
+        camera.setZoom(0.0048f);
+
         gameRender = new GameRenderer();
         gameMenu = new GameMenu();
 
-        GameMap testMap = new GameMap(0, 0, 12, 10);
+        GameMap testMap = new GameMap(0, 0, 17,  13);
 
         Tile grassTile = new Tile();
         grassTile.textureId = 1;
@@ -89,6 +92,7 @@ public class TestScene extends SceneAdapter {
             ClientThread.set_scene("Menu");
             return;
         }
+
         tickTime += (float) dt;
 
 
@@ -137,18 +141,14 @@ public class TestScene extends SceneAdapter {
 
     @Override
     public void render() {
-
         frameBuffer.bind();
-        glViewport(0, 0, frameBuffer.getWidth(), frameBuffer.getHeight());
         RenderCmd.ClearColor(0.05f, 0.05f, 0.05f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        RenderCmd.Clear();
 
         batch.begin(camera);
         gameRender.render(batch, camera);
         batch.end();
         frameBuffer.unbind();
-
-        glViewport(0, 0, (int) ClientThread.size().x, (int) ClientThread.size().y);
     }
 
     @Override
@@ -169,10 +169,11 @@ public class TestScene extends SceneAdapter {
         ImGui.begin("Background", ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBringToFrontOnFocus);
         // Background Image
         ImGui.image(main_bg.getTextureId(), ImGui.getContentRegionAvail());
+        ImGui.end();
 
         // Game Buffer
-        ImGui.setNextWindowPos(12, 12);
-        ImGui.setNextWindowSize(frameBuffer.getWidth(), frameBuffer.getHeight());
+        ImGui.setNextWindowPos(13, 12);
+        ImGui.setNextWindowSize(475, 379);
 
         ImGui.begin("Game_Window", ImGuiWindowFlags.NoDecoration);
         ImGui.image(frameBuffer.getColorBufferId(), ImGui.getContentRegionAvail(), new ImVec2(0, 1), new ImVec2(1, 0));
@@ -180,8 +181,6 @@ public class TestScene extends SceneAdapter {
         ImGui.end();
 
         gameMenu.render(gameRender);
-
-        ImGui.end();
 
         ImGui.popStyleVar(4);
         ImGui.popStyleColor();

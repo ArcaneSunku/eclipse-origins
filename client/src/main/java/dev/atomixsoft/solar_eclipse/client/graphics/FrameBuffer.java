@@ -27,7 +27,7 @@ public class FrameBuffer {
         m_ColorBufferId = glGenTextures();
         glBindTexture(GL_TEXTURE_2D, m_ColorBufferId);
 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_Width, m_Height, 0, GL_RGB, GL_UNSIGNED_BYTE, MemoryUtil.NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, MemoryUtil.NULL);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minMagFilter);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, minMagFilter);
@@ -54,6 +54,7 @@ public class FrameBuffer {
 
     public void bind() {
         glBindFramebuffer(GL_FRAMEBUFFER, m_FramebufferId);
+        glViewport(0, 0, m_Width, m_Height);
     }
 
     public void unbind() {
@@ -64,11 +65,6 @@ public class FrameBuffer {
         glDeleteFramebuffers(m_FramebufferId);
         glDeleteRenderbuffers(m_RenderBufferId);
         glDeleteTextures(m_ColorBufferId);
-    }
-
-    public void resize(int width, int height) {
-        if(m_Width != width) m_Width = width;
-        if(m_Height != height) m_Height = height;
     }
 
     private boolean isComplete() {

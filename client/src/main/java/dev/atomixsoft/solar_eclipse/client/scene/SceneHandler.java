@@ -9,6 +9,9 @@ import dev.atomixsoft.solar_eclipse.client.util.input.Controller;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT;
+import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER;
+import static org.lwjgl.opengl.GL30.glBindFramebuffer;
 
 /**
  * <p>Helps manager the adding and changing of scenes for our application.</p>
@@ -43,17 +46,14 @@ public class SceneHandler {
     }
 
     public void update(double dt) {
-        if(m_ActiveScene != null) {
-            if(m_Window.hasResized()) {
-                m_ActiveScene.resize(m_Window.getWidth(), m_Window.getHeight());
-                m_Window.setResized(false);
-            }
-
+        if(m_ActiveScene != null)
             m_ActiveScene.update(m_Controller, dt);
-        }
     }
 
     public void render(ImGuiManager guiManager) {
+        glDisable(GL_SCISSOR_TEST);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
         if(m_ActiveScene != null) {
             m_ActiveScene.render();
 
@@ -61,6 +61,8 @@ public class SceneHandler {
             m_ActiveScene.imgui();
             guiManager.render();
         }
+
+        glEnable(GL_SCISSOR_TEST);
     }
 
     public void resize(int width, int height) {

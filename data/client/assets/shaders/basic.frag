@@ -21,7 +21,7 @@ vec4 transparentKey(vec4 testColor)
 void main()
 {
     vec4 texColor = vec4(1, 1, 1, 1);
-    vec2 texCoord = v_TexCoord + 0.0002;
+    vec2 texCoord = v_TexCoord;// + 0.0001;
 
     switch(int(v_TexIndex))
     {

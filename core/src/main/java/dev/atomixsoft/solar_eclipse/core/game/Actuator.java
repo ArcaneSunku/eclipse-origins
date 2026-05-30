@@ -137,6 +137,9 @@ public class Actuator {
         character.x = x;
         character.y = y;
 
+        if(character.x >= map.width) character.x = map.width - 1;
+        if(character.y >= map.height) character.y = map.height - 1;
+
         for(Character others : map.MapCharacters) {
             if(!character.player) break;
             if(!others.player) continue;

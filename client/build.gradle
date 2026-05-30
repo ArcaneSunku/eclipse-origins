@@ -3,8 +3,8 @@ plugins {
 }
 
 ext {
-    jomlVersion = "1.10.7"
-    lwjglVersion = "3.3.6"
+    jomlVersion = "1.10.8"
+    lwjglVersion = "3.4.1"
     imguiVersion = "1.89.0"
     nettyVersion = "4.2.14.Final"
 }
@@ -89,5 +89,6 @@ task debug(type: JavaExec) {
 tasks.named('run', JavaExec) {
     group = 'application'
     description = 'Runs the Solar Eclipse Client'
+
     ignoreExitValue = true
 }

@@ -34,16 +34,23 @@ public class GameRenderer {
     }
 
     public void update(OrthoCamera camera) {
-        float width = camera.getAspectRatio() * camera.getZoom();
-        float height = camera.getZoom();
+        Vector3f pos = camera.getPosition();
 
-        float tileSize = GameRenderer.TILE_SIZE;
-        float tileHalf = tileSize * 0.5f;
+        float halfW = camera.getViewWidth();
+        float halfH = camera.getViewHeight();
 
-        Vector3f position = camera.getPosition();
+        float worldW = getMapWidth() * TILE_SIZE;
+        float worldH = getMapHeight() * TILE_SIZE;
 
-        position.x = Math.clamp(width - tileHalf, (getMapWidth() * tileSize) - (width + tileHalf), position.x);
-        position.y = Math.clamp(height - tileHalf, (getMapHeight() * tileSize) - (height + tileHalf), position.y);
+        // IMPORTANT: world is now center-based per tile system
+        float minX = halfW;
+        float minY = halfH;
+
+        float maxX = worldW - halfW;
+        float maxY = worldH - halfH;
+
+        pos.x = Math.clamp(minX, maxX, pos.x);
+        pos.y = Math.clamp(minY, maxY, pos.y);
     }
 
     public void render(SpriteBatch batch, OrthoCamera camera) {
@@ -72,19 +79,11 @@ public class GameRenderer {
                     sprite.setCellPos(currTile.textureX * SPRITE_CELL_SIZE, currTile.textureY * SPRITE_CELL_SIZE);
                     sprite.setCellSize(SPRITE_CELL_SIZE, SPRITE_CELL_SIZE);
 
-                    sprite.setPosition(x * TILE_SIZE, y * TILE_SIZE, 0);
+                    sprite.setPosition(x * TILE_SIZE + TILE_SIZE * 0.5f, y * TILE_SIZE + TILE_SIZE * 0.5f, 0);
                     sprite.setSize(TILE_SIZE, TILE_SIZE);
 
-                    Vector3f camPos = camera.getPosition();
-
-                    float width = camera.getAspectRatio() * camera.getZoom();
-                    float height = camera.getZoom();
-
-                    if((sprite.getPosition().x + sprite.getSize().x) < camPos.x - width) continue;
-                    if((sprite.getPosition().y + sprite.getSize().y) < camPos.y - height) continue;
-
-                    if(sprite.getPosition().x > camPos.x + width  + TILE_SIZE * 0.5f) continue;
-                    if(sprite.getPosition().y > camPos.y + height + TILE_SIZE * 0.5f) continue;
+                    if(!isVisible(sprite, camera))
+                        continue;
 
                     sprite.draw(batch);
                 }
@@ -102,19 +101,11 @@ public class GameRenderer {
             itemSprite.setCellPos(0, 0);
             itemSprite.setCellSize(32, 32);
 
-            itemSprite.setPosition(item.worldX * TILE_SIZE, item.worldY * TILE_SIZE, 0);
+            itemSprite.setPosition(item.worldX * TILE_SIZE + TILE_SIZE * 0.5f, item.worldY * TILE_SIZE + TILE_SIZE * 0.5f, 0);
             itemSprite.setSize(TILE_SIZE, TILE_SIZE);
 
-            Vector3f camPos = camera.getPosition();
-
-            float width = camera.getAspectRatio() * camera.getZoom();
-            float height = camera.getZoom();
-
-            if((itemSprite.getPosition().x + itemSprite.getSize().x) < camPos.x - width) continue;
-            if((itemSprite.getPosition().y + itemSprite.getSize().y) < camPos.y - height) continue;
-
-            if(itemSprite.getPosition().x > camPos.x + width  + TILE_SIZE * 0.5f) continue;
-            if(itemSprite.getPosition().y > camPos.y + height + TILE_SIZE * 0.5f) continue;
+            if(!isVisible(itemSprite, camera))
+                continue;
 
             itemSprite.draw(batch);
             count++;
@@ -141,22 +132,50 @@ public class GameRenderer {
                 case UP    -> sprite.setCellPos(keyFrame * cellWidth, cellHeight * 3);
             }
 
-            sprite.setPosition(c.x * TILE_SIZE, c.y * TILE_SIZE + (cellHeight * 0.5f), 0);
-            sprite.setSize(cellWidth * 1.5f, cellHeight * 1.5f);
+            float renderWidth  = cellWidth * 1.5f;
+            float renderHeight = cellHeight * 1.5f;
 
-            Vector3f camPos = camera.getPosition();
+            sprite.setSize(renderWidth, renderHeight);
 
-            float width = camera.getAspectRatio() * camera.getZoom();
-            float height = camera.getZoom();
+            float tileCenterX = c.x * TILE_SIZE + TILE_SIZE * 0.5f;
+            float tileCenterY = c.y * TILE_SIZE + TILE_SIZE * 0.5f;
 
-            if((sprite.getPosition().x + sprite.getSize().x) < camPos.x - width) continue;
-            if((sprite.getPosition().y + sprite.getSize().y) < camPos.y - height) continue;
+            float feetY = tileCenterY;
 
-            if(sprite.getPosition().x > camPos.x + width  + cellWidth) continue;
-            if(sprite.getPosition().y > camPos.y + height + cellHeight + (cellHeight * 1.5f) / 2.5f) continue;
+            sprite.setPosition(tileCenterX, feetY + renderHeight * 0.5f - TILE_SIZE * 0.5f, 0);
+
+            Vector3f min = new Vector3f(), max = new Vector3f();
+            camera.getBounds(min, max);
+
+            if(!isVisible(sprite, camera))
+                continue;
 
             sprite.draw(batch);
         }
+    }
+
+    private boolean isVisible(Sprite sprite, OrthoCamera camera) {
+        Vector3f min = new Vector3f();
+        Vector3f max = new Vector3f();
+
+        camera.getBounds(min, max);
+
+        float halfW = sprite.getSize().x * 0.5f;
+        float halfH = sprite.getSize().y * 0.5f;
+
+        float sx = sprite.getPosition().x;
+        float sy = sprite.getPosition().y;
+
+        float spriteMinX = sx - halfW;
+        float spriteMaxX = sx + halfW;
+
+        float spriteMinY = sy - halfH;
+        float spriteMaxY = sy + halfH;
+
+        return !(spriteMaxX < min.x ||
+                spriteMinX > max.x ||
+                spriteMaxY < min.y ||
+                spriteMinY > max.y);
     }
 
     public void setMap(GameMap newMap) {

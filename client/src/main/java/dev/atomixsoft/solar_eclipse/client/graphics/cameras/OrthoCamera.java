@@ -11,7 +11,6 @@ public class OrthoCamera extends Camera {
 
     public OrthoCamera(float width, float height) {
         super();
-
         this.resize(width, height);
     }
 
@@ -22,7 +21,6 @@ public class OrthoCamera extends Camera {
     public void update(boolean inverted) {
         Quaternionf rotation = new Quaternionf().rotationXYZ(0f, 0f, Math.toRadians(getRotation().z));
         Vector3f position = getPosition();
-        float zoom = getZoom();
 
         m_View.identity();
         m_View.translate(position.x, position.y, 0.0f);
@@ -33,21 +31,28 @@ public class OrthoCamera extends Camera {
     }
 
     public void resize(float width, float height) {
-        this.m_Width = width;
-        this.m_Height = height;
+        m_Width = width;
+        m_Height = height;
+        m_AspectRatio =  m_Width / m_Height;
 
-        if(width > height)
-            this.m_AspectRatio =  m_Width / m_Height;
-        else
-            this.m_AspectRatio = m_Height / m_Width;
-
+        float zoom = 1.0f / m_Zoom;
         m_Projection.identity();
-        m_Projection.ortho(-m_AspectRatio * m_Zoom, m_AspectRatio * m_Zoom, -m_Zoom, m_Zoom, -1.0f, 1.0f);
+        m_Projection.ortho(-m_AspectRatio * zoom, m_AspectRatio * zoom, -zoom, zoom, -1.0f, 1.0f);
     }
 
     public void setZoom(float zoom) {
         super.setZoom(zoom);
         resize(m_Width, m_Height);
+    }
+
+    public void getBounds(Vector3f outMin, Vector3f outMax) {
+        float hWidth = m_AspectRatio * (1.0f / m_Zoom);
+        float hHeight = (1.0f / m_Zoom);
+
+        Vector3f position = getPosition();
+
+        outMin.set(position.x - hWidth, position.y - hHeight, 0);
+        outMax.set(position.x + hWidth, position.y + hHeight, 0);
     }
 
     public float getAspectRatio() {
@@ -61,4 +66,13 @@ public class OrthoCamera extends Camera {
     public float getHeight() {
         return this.m_Height;
     }
+
+    public float getViewWidth() {
+        return m_AspectRatio * (1.0f / m_Zoom);
+    }
+
+    public float getViewHeight() {
+        return (1.0f / m_Zoom);
+    }
+
 }
