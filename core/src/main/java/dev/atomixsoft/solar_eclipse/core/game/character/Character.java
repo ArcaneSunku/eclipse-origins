@@ -6,11 +6,6 @@ import java.util.Objects;
 
 public class Character {
 
-    public enum Direction {
-        UP, DOWN,
-        LEFT, RIGHT
-    }
-
     public final Inventory inventory = new Inventory();
     public final Stats stats = new Stats();
 

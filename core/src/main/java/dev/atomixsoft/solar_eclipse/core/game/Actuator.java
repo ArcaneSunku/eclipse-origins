@@ -1,6 +1,7 @@
 package dev.atomixsoft.solar_eclipse.core.game;
 
 import dev.atomixsoft.solar_eclipse.core.game.character.Character;
+import dev.atomixsoft.solar_eclipse.core.game.character.Direction;
 import dev.atomixsoft.solar_eclipse.core.game.map.GameMap;
 import dev.atomixsoft.solar_eclipse.core.game.map.Tile;
 
@@ -159,11 +160,11 @@ public class Actuator {
     }
 
     public static void MoveCharacter(GameMap map, Character character, int x, int y) {
-        if (x > 0) character.facing = Character.Direction.RIGHT;
-        else if(x < 0) character.facing = Character.Direction.LEFT;
+        if (x > 0) character.facing = Direction.RIGHT;
+        else if(x < 0) character.facing = Direction.LEFT;
 
-        if (y > 0) character.facing = Character.Direction.UP;
-        else if(y < 0) character.facing = Character.Direction.DOWN;
+        if (y > 0) character.facing = Direction.UP;
+        else if(y < 0) character.facing = Direction.DOWN;
 
         if(character.moving) return;
         character.moving = true;
