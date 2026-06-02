@@ -13,15 +13,11 @@ import dev.atomixsoft.solar_eclipse.core.event.types.InputEvent;
 import dev.atomixsoft.solar_eclipse.core.event.types.SendPacketEvent;
 import dev.atomixsoft.solar_eclipse.core.event.types.ShutdownEvent;
 import dev.atomixsoft.solar_eclipse.core.net.packet.Packet;
-import dev.atomixsoft.solar_eclipse.core.net.packet.PacketRegistry;
-import dev.atomixsoft.solar_eclipse.core.net.packet.impl.EntityMovePacket;
-import dev.atomixsoft.solar_eclipse.core.net.packet.impl.LoginPacket;
-import dev.atomixsoft.solar_eclipse.core.net.packet.impl.ShutdownPacket;
+import dev.atomixsoft.solar_eclipse.core.net.PacketRegistry;
 import org.joml.Vector2f;
 import org.lwjgl.glfw.GLFWErrorCallback;
 
 import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.opengl.GL11.glViewport;
 
 import dev.atomixsoft.solar_eclipse.client.util.Window;
 
@@ -41,12 +37,14 @@ public class ClientThread implements Runnable {
     public static Logger log() {
         return s_Instance.m_Logger;
     }
+    public static NetworkClient network() { return s_Instance.m_Network; }
     public static EventBus eventBus() {
         return s_Instance.m_EventBus;
     }
     public static Vector2f size() {
         return new Vector2f(s_Instance.m_Window.getFrameBufferWidth(), s_Instance.m_Window.getFrameBufferHeight());
     }
+    public static String get_scene_name() { return s_Instance.m_Scenes.getActiveSceneName(); }
 
     public static void set_size(int width, int height) {
         s_Instance.m_Window.requestResize(width, height);
@@ -54,7 +52,6 @@ public class ClientThread implements Runnable {
     public static void set_scene(String name) {
         s_Instance.m_Scenes.setActiveScene(name);
     }
-    public static String get_scene_name() { return s_Instance.m_Scenes.getActiveSceneName(); }
 
     private final Controller m_Controller;
     private final EventBus m_EventBus;
@@ -241,7 +238,7 @@ public class ClientThread implements Runnable {
                 m_Logger.info("Logged in as: " + p.username());
             }
 
-            case EntityMovePacket p -> {
+            case MoveRequestPacket p -> {
                 // Get GameMap via Map_Id
                 // Get Entity from NPC/Character_Id
                 // Use the Actuator to move the Entity

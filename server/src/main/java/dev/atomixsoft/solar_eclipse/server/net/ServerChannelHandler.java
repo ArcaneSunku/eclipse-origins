@@ -1,13 +1,9 @@
 package dev.atomixsoft.solar_eclipse.server.net;
 
 import dev.atomixsoft.solar_eclipse.core.net.packet.Packet;
-import dev.atomixsoft.solar_eclipse.core.net.packet.impl.EntityMovePacket;
-import dev.atomixsoft.solar_eclipse.core.net.packet.impl.LoginPacket;
-import dev.atomixsoft.solar_eclipse.core.net.packet.impl.ShutdownPacket;
 import dev.atomixsoft.solar_eclipse.server.logging.Logger;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.channel.group.ChannelGroup;
 
 public class ServerChannelHandler extends SimpleChannelInboundHandler<Packet> {
 
@@ -41,7 +37,7 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<Packet> {
                 // ctx.writeAndFlush(new LoginResponsePacket(true, "Welcome " + p.username());
             }
 
-            case EntityMovePacket p -> {
+            case MoveRequestPacket p -> {
                 m_Logger.info("Move request from entity " + p.id());
 
                 /* TODO:
