@@ -2,6 +2,7 @@ package dev.atomixsoft.solar_eclipse.server.console.events;
 
 import dev.atomixsoft.solar_eclipse.core.event.interfaces.EventConsumer;
 import dev.atomixsoft.solar_eclipse.core.event.types.ShutdownEvent;
+import dev.atomixsoft.solar_eclipse.core.net.packet.notification.ShutdownNotification;
 import dev.atomixsoft.solar_eclipse.server.Server;
 
 public class CommandListener implements EventConsumer<CommandEvent> {
@@ -13,7 +14,7 @@ public class CommandListener implements EventConsumer<CommandEvent> {
         switch (cmd) {
             case "exit", "quit" -> {
                 System.out.println("Shutting down server...");
-                Server.network().broadcast(new ShutdownPacket(false)).syncUninterruptibly();
+                Server.network().broadcast(new ShutdownNotification("Shutdown Command", 0)).syncUninterruptibly();
 
                 try {
                     Thread.sleep(250);
