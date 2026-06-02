@@ -5,15 +5,17 @@ ext {
     disruptorVersion = "4.0.0"
     beanUtilsVersion = "1.9.4"
     nettyVersion = "4.2.14.Final"
+    ashleyVersion = "1.7.4"
 }
 
-dependencies { 
-  implementation 'org.apache.commons:commons-configuration2:' + accVersion
-  implementation 'commons-logging:commons-logging:' + aclVersion
-  implementation 'commons-beanutils:commons-beanutils:' + beanUtilsVersion
-  implementation 'com.lmax:disruptor:' + disruptorVersion
-  implementation 'org.apache.logging.log4j:log4j-core:' + log4jVersion
-  implementation 'org.apache.logging.log4j:log4j-api:' + log4jVersion
-  implementation 'org.apache.logging.log4j:log4j-jcl:' + log4jVersion
-  implementation 'io.netty:netty-all:' + nettyVersion
+dependencies {
+    implementation 'org.apache.commons:commons-configuration2:' + accVersion
+    implementation 'commons-logging:commons-logging:' + aclVersion
+    implementation 'commons-beanutils:commons-beanutils:' + beanUtilsVersion
+    implementation 'com.lmax:disruptor:' + disruptorVersion
+    implementation 'org.apache.logging.log4j:log4j-core:' + log4jVersion
+    implementation 'org.apache.logging.log4j:log4j-api:' + log4jVersion
+    implementation 'org.apache.logging.log4j:log4j-jcl:' + log4jVersion
+    implementation 'io.netty:netty-all:' + nettyVersion
+    implementation 'com.badlogicgames.ashley:ashley:' + ashleyVersion
 }
