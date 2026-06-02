@@ -14,6 +14,7 @@ import dev.atomixsoft.solar_eclipse.core.event.types.SendPacketEvent;
 import dev.atomixsoft.solar_eclipse.core.event.types.ShutdownEvent;
 import dev.atomixsoft.solar_eclipse.core.net.packet.Packet;
 import dev.atomixsoft.solar_eclipse.core.net.PacketRegistry;
+import dev.atomixsoft.solar_eclipse.core.net.packet.notification.ChatMessageBroadcast;
 import dev.atomixsoft.solar_eclipse.core.net.packet.notification.ShutdownNotification;
 import dev.atomixsoft.solar_eclipse.core.net.packet.response.EntityPositionUpdate;
 import dev.atomixsoft.solar_eclipse.core.net.packet.response.LoginResponse;
@@ -245,6 +246,11 @@ public class ClientThread implements Runnable {
                 // Get GameMap via Map_Id
                 // Get Entity from NPC/Character_Id
                 // Use the Actuator to move the Entity
+            }
+
+            case ChatMessageBroadcast p -> {
+                m_Logger.info("[" + p.username() + "] " + p.message());
+                // TODO: Properly Implement Chat (wayyy later)
             }
 
             case ShutdownNotification p -> {
