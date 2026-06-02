@@ -20,8 +20,10 @@ public class ShutdownListener implements EventConsumer<ShutdownEvent> {
         if(event.handled) return;
 
         if(event.isServer()) {
-            if(!ClientThread.get_scene_name().toLowerCase(Locale.ROOT).equals("menu"))
+            if(!ClientThread.get_scene_name().toLowerCase(Locale.ROOT).equals("menu")) {
+                ClientThread.set_size(515, 352);
                 ClientThread.set_scene("Menu");
+            }
 
             event.handled = true;
             return;

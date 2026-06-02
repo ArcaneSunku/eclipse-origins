@@ -2,7 +2,6 @@ package dev.atomixsoft.solar_eclipse.server.console.events;
 
 import dev.atomixsoft.solar_eclipse.core.event.interfaces.EventConsumer;
 import dev.atomixsoft.solar_eclipse.core.event.types.ShutdownEvent;
-import dev.atomixsoft.solar_eclipse.core.net.packet.impl.ShutdownPacket;
 import dev.atomixsoft.solar_eclipse.server.Server;
 
 public class CommandListener implements EventConsumer<CommandEvent> {

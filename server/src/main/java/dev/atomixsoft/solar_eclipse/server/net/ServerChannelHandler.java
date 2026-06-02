@@ -1,13 +1,11 @@
 package dev.atomixsoft.solar_eclipse.server.net;
 
 import dev.atomixsoft.solar_eclipse.core.net.packet.Packet;
-import dev.atomixsoft.solar_eclipse.core.net.packet.impl.EntityMovePacket;
-import dev.atomixsoft.solar_eclipse.core.net.packet.impl.LoginPacket;
-import dev.atomixsoft.solar_eclipse.core.net.packet.impl.ShutdownPacket;
+import dev.atomixsoft.solar_eclipse.core.net.packet.request.LoginRequest;
+import dev.atomixsoft.solar_eclipse.core.net.packet.request.MoveRequest;
 import dev.atomixsoft.solar_eclipse.server.logging.Logger;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.channel.group.ChannelGroup;
 
 public class ServerChannelHandler extends SimpleChannelInboundHandler<Packet> {
 
@@ -35,24 +33,20 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<Packet> {
     @Override
     public void channelRead0(ChannelHandlerContext ctx, Packet msg) {
         switch (msg) {
-            case LoginPacket p -> {
+            case LoginRequest p -> {
                 m_Logger.info("Login request: " + p.username());
 
                 // ctx.writeAndFlush(new LoginResponsePacket(true, "Welcome " + p.username());
             }
 
-            case EntityMovePacket p -> {
-                m_Logger.info("Move request from entity " + p.id());
+            case MoveRequest p -> {
+                m_Logger.info("Move request from entity " + p.entityId());
 
                 /* TODO:
                     - Validate Movement
                     - Update World
                     - Broadcast to nearby players
                  */
-            }
-
-            case ShutdownPacket p -> {
-                m_Logger.info("Shutdown request from client...\n" + "Forced: " + p.forced());
             }
 
             default -> {

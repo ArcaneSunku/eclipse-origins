@@ -1,6 +1,0 @@
-package dev.atomixsoft.solar_eclipse.core.net.packet.impl;
-
-import dev.atomixsoft.solar_eclipse.core.net.packet.Packet;
-
-public record ChatMessagePacket(String username, String message) implements Packet {
-}

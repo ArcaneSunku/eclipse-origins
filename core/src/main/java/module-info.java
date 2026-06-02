@@ -24,4 +24,5 @@ module dev.atomixsoft.solar_eclipse.core {
 
     exports dev.atomixsoft.solar_eclipse.core.net.codec;
     exports dev.atomixsoft.solar_eclipse.core.net.packet;
+    exports dev.atomixsoft.solar_eclipse.core.net;
 }
