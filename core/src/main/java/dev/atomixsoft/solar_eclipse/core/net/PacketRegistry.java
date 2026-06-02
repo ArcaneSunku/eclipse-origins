@@ -6,13 +6,13 @@ import dev.atomixsoft.solar_eclipse.core.net.codec.notification.ShutdownNotifica
 import dev.atomixsoft.solar_eclipse.core.net.codec.request.ChatMessageRequestCodec;
 import dev.atomixsoft.solar_eclipse.core.net.codec.request.LoginRequestCodec;
 
-import dev.atomixsoft.solar_eclipse.core.net.codec.request.MoveRequestCodec;
+import dev.atomixsoft.solar_eclipse.core.net.codec.request.MoveIntentCodec;
 import dev.atomixsoft.solar_eclipse.core.net.codec.response.EntityPositionUpdateCodec;
 import dev.atomixsoft.solar_eclipse.core.net.codec.response.LoginResponseCodec;
 import dev.atomixsoft.solar_eclipse.core.net.packet.Packet;
 import dev.atomixsoft.solar_eclipse.core.net.packet.request.ChatMessageRequest;
 import dev.atomixsoft.solar_eclipse.core.net.packet.request.LoginRequest;
-import dev.atomixsoft.solar_eclipse.core.net.packet.request.MoveRequest;
+import dev.atomixsoft.solar_eclipse.core.net.packet.request.MoveIntent;
 
 import dev.atomixsoft.solar_eclipse.core.net.packet.response.EntityPositionUpdate;
 import dev.atomixsoft.solar_eclipse.core.net.packet.response.LoginResponse;
@@ -69,7 +69,7 @@ public final class PacketRegistry {
 
     public static void Initialize() {
         Register(100, LoginRequest.class, new LoginRequestCodec());
-        Register(101, MoveRequest.class, new MoveRequestCodec());
+        Register(101, MoveIntent.class, new MoveIntentCodec());
         Register(102, ChatMessageRequest.class, new ChatMessageRequestCodec());
 
         Register(200, LoginResponse.class, new LoginResponseCodec());
