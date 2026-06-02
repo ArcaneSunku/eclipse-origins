@@ -9,6 +9,7 @@ import dev.atomixsoft.solar_eclipse.server.config.Configuration;
 import dev.atomixsoft.solar_eclipse.server.console.ConsoleThread;
 import dev.atomixsoft.solar_eclipse.server.logging.Logger;
 import dev.atomixsoft.solar_eclipse.server.net.NetworkServer;
+import dev.atomixsoft.solar_eclipse.server.net.PacketQueue;
 import dev.atomixsoft.solar_eclipse.server.net.ServerChannelHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
@@ -40,11 +41,12 @@ public class Server {
     private final Configuration m_ConfigInfo;
     private final Logger m_Logger;
 
-    private Thread m_Console;
+    private Thread m_Console, m_GameLoop;
     private EventBus m_EventBus;
     private Channel m_ServerChannel;
 
     private NetworkServer m_Network;
+    private PacketQueue m_PacketQueue;
 
     public Server() {
         m_ConfigInfo = new Configuration(Configuration.SupportedConfigFileTypes.INI, "server/server.ini");
@@ -62,11 +64,17 @@ public class Server {
     private void initialize() {
         PacketRegistry.Initialize();
         m_EventBus = new EventBus();
+
         m_Network = new NetworkServer();
+        m_PacketQueue = new PacketQueue();
 
         m_Console = new Thread(new ConsoleThread(m_EventBus, this::shutdown), "Console_Thread");
+        m_GameLoop = new Thread(new ServerThread(m_PacketQueue), "Game_Loop");
+
         m_Console.setDaemon(true);
+
         m_Console.start();
+        m_GameLoop.start();
     }
 
     public void run() throws Exception {
@@ -90,7 +98,7 @@ public class Server {
                             pipeline.addLast(new ServerChannelHandler(new Logger(Server.class.getSimpleName(),
                                                                    Logger.SupportedLogHandlerTypes.ASYNC_CONSOLE,
                                                                    m_ConfigInfo.getLogLevel(),
-                                                                   m_ConfigInfo.getLogPattern()), m_Network));
+                                                                   m_ConfigInfo.getLogPattern()), m_Network, m_PacketQueue));
                         }
                     })
                     .option(ChannelOption.SO_BACKLOG, 128)
@@ -117,6 +125,7 @@ public class Server {
             if(m_ServerChannel != null)
                 m_ServerChannel.close();
 
+            m_GameLoop.join(1L);
             m_Console.join(1L);
         } catch (Exception e) {
             m_Logger.error(e.getMessage());
