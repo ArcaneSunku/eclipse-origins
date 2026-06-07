@@ -25,6 +25,7 @@ public class PacketDecoder  extends ByteToMessageDecoder {
             Packet packet = codec.decode(in);
             out.add(packet);
         } catch (Exception e) {
+            System.err.println(e.getMessage());
             in.resetReaderIndex();
         }
     }

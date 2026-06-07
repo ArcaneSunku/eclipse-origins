@@ -2,14 +2,14 @@ package dev.atomixsoft.solar_eclipse.core.game.map;
 
 import dev.atomixsoft.solar_eclipse.core.game.Constants;
 import dev.atomixsoft.solar_eclipse.core.game.Item;
-import dev.atomixsoft.solar_eclipse.core.game.character.Character;
+import dev.atomixsoft.solar_eclipse.core.game.character.CharacterData;
 
 import java.util.*;
 
 public class GameMap {
 
     public final Map<Integer, List<Tile>> TileMap = new HashMap<>();
-    public final List<Character> MapCharacters = new ArrayList<>();
+    public final List<CharacterData> MapCharacters = new ArrayList<>();
     public final List<Item> WorldItems = new ArrayList<>();
 
     public byte id;

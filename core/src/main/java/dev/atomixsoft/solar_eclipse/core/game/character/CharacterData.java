@@ -4,7 +4,7 @@ import dev.atomixsoft.solar_eclipse.core.game.Constants;
 
 import java.util.Objects;
 
-public class Character {
+public class CharacterData {
 
     public final Inventory inventory = new Inventory();
     public final Stats stats = new Stats();
@@ -20,7 +20,7 @@ public class Character {
     public byte sex;
     public boolean player, moving;
 
-    public Character() {
+    public CharacterData() {
         this.textureId = 1;
         this.name = "niL";
 
@@ -38,7 +38,7 @@ public class Character {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Character character = (Character) o;
+        CharacterData character = (CharacterData) o;
 
         return textureId == character.textureId &&
                removed == character.removed &&

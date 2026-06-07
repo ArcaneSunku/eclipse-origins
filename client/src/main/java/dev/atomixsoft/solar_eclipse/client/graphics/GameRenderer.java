@@ -2,14 +2,13 @@ package dev.atomixsoft.solar_eclipse.client.graphics;
 
 import dev.atomixsoft.solar_eclipse.client.AssetLoader;
 
-import dev.atomixsoft.solar_eclipse.client.ClientThread;
 import dev.atomixsoft.solar_eclipse.client.graphics.cameras.OrthoCamera;
 import dev.atomixsoft.solar_eclipse.client.graphics.render2D.Sprite;
 import dev.atomixsoft.solar_eclipse.client.graphics.render2D.SpriteBatch;
 import dev.atomixsoft.solar_eclipse.core.game.Actuator;
 import dev.atomixsoft.solar_eclipse.core.game.Constants;
 import dev.atomixsoft.solar_eclipse.core.game.Item;
-import dev.atomixsoft.solar_eclipse.core.game.character.Character;
+import dev.atomixsoft.solar_eclipse.core.game.character.CharacterData;
 import dev.atomixsoft.solar_eclipse.core.game.map.GameMap;
 import dev.atomixsoft.solar_eclipse.core.game.map.Tile;
 import org.joml.Math;
@@ -34,6 +33,9 @@ public class GameRenderer {
     }
 
     public void update(OrthoCamera camera) {
+        if(m_Map == null)
+            return;
+
         Vector3f pos = camera.getPosition();
 
         float halfW = camera.getViewWidth();
@@ -112,11 +114,11 @@ public class GameRenderer {
         }
     }
 
-    private void renderCharacters(SpriteBatch batch, OrthoCamera camera, List<Character> charList) {
+    private void renderCharacters(SpriteBatch batch, OrthoCamera camera, List<CharacterData> charList) {
         charList.sort(Comparator.comparingInt(c -> -c.y));
 
         for(var i = 0; i < charList.size(); ++i) {
-            Character c = charList.get(i);
+            CharacterData c = charList.get(i);
             if(c == null || c.removed) continue;
 
             int keyFrame = c.keyFrame;

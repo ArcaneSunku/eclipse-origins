@@ -1,6 +1,6 @@
 package dev.atomixsoft.solar_eclipse.core.game;
 
-import dev.atomixsoft.solar_eclipse.core.game.character.Character;
+import dev.atomixsoft.solar_eclipse.core.game.character.CharacterData;
 import dev.atomixsoft.solar_eclipse.core.game.character.Inventory;
 
 import java.util.ArrayList;
@@ -9,7 +9,7 @@ import java.util.Objects;
 
 public class Account {
 
-    public final List<Character> characters = new ArrayList<>();
+    public final List<CharacterData> characters = new ArrayList<>();
     public final Inventory bank = new Inventory((int) Constants.MAX_BANK);
 
     public String username, password;

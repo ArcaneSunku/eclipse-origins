@@ -1,25 +1,50 @@
 package dev.atomixsoft.solar_eclipse.server;
 
+import com.badlogic.ashley.core.Entity;
+import dev.atomixsoft.solar_eclipse.core.game.character.CharacterData;
+import dev.atomixsoft.solar_eclipse.core.game.character.Direction;
 import dev.atomixsoft.solar_eclipse.core.net.packet.Packet;
 import dev.atomixsoft.solar_eclipse.core.net.packet.request.ChatMessageRequest;
+import dev.atomixsoft.solar_eclipse.core.net.packet.request.LoginRequest;
 import dev.atomixsoft.solar_eclipse.core.net.packet.request.MoveIntent;
+import dev.atomixsoft.solar_eclipse.core.net.packet.response.EntityPositionUpdate;
+import dev.atomixsoft.solar_eclipse.core.net.packet.response.LoginResponse;
+import dev.atomixsoft.solar_eclipse.core.net.packet.response.MapLoad;
+import dev.atomixsoft.solar_eclipse.server.game.ServerWorld;
+import dev.atomixsoft.solar_eclipse.server.game.ecs.Components;
+import dev.atomixsoft.solar_eclipse.server.game.ecs.components.MovementComponent;
+import dev.atomixsoft.solar_eclipse.server.game.ecs.components.PositionComponent;
+import dev.atomixsoft.solar_eclipse.server.net.NetworkServer;
 import dev.atomixsoft.solar_eclipse.server.net.PacketQueue;
+import dev.atomixsoft.solar_eclipse.server.net.QueuedPacket;
 
 public class ServerThread implements Runnable {
 
     private final PacketQueue m_PacketQueue;
+    private final ServerWorld m_World;
+    private final Thread m_Thread;
 
     private volatile boolean m_Running;
+    private long m_ServerTick;
 
-    public ServerThread(PacketQueue packetQueue) {
+    public ServerThread(PacketQueue packetQueue, NetworkServer network) {
         m_PacketQueue = packetQueue;
+        m_World = new ServerWorld(network);
+        m_Thread = new Thread(this, "Game_Loop");
+
+        m_Running = false;
+        m_ServerTick = 0;
+    }
+
+    public void start() {
         m_Running = true;
+        m_Thread.start();
     }
 
     @Override
     public void run() {
         double accumulator = 0.0;
-        double optimal = 1.0 / 20.0;
+        double optimal = 1.0 / 20.0, maxFrameTime = 0.25;
         double currentTime = System.nanoTime() / 1e9;
         double newTime, frameTime;
 
@@ -27,45 +52,133 @@ public class ServerThread implements Runnable {
             newTime = System.nanoTime() / 1e9;
             frameTime = newTime - currentTime;
             currentTime = newTime;
-            accumulator += frameTime;
 
+            if(frameTime > maxFrameTime)
+                frameTime = maxFrameTime;
+
+            accumulator += frameTime;
             while(accumulator >= optimal) {
                 processPackets();
-                // Update Game World
+                m_World.update((float) optimal);
                 sendSnapshots();
+
+                m_ServerTick++;
                 accumulator -= optimal;
             }
 
-            sleep(currentTime);
+            sleep();
         }
     }
 
+    public void stop() throws InterruptedException {
+        m_Running = false;
+        m_Thread.join(1L);
+    }
+
     private void processPackets() {
-        Packet packet;
+        QueuedPacket queued;
 
-        while((packet = m_PacketQueue.poll()) != null) {
-            if(packet instanceof MoveIntent req) {
-                // TODO Implement MoveIntent Response
-            }
+        while((queued = m_PacketQueue.poll()) != null) {
+            switch(queued.packet()) {
+                case LoginRequest p -> {
+                    if(!m_World.auth().validate(p.username(), p.password())) {
+                        queued.channel().writeAndFlush(new LoginResponse(false, "Invalid login.", -1, -1));
+                        break;
+                    }
 
-            if(packet instanceof ChatMessageRequest req) {
-                // TODO: Implement ChatMessage Broadcast Response
+                    CharacterData data = new CharacterData();
+                    data.name = p.username();
+                    data.x = 2;
+                    data.y = 3;
+                    data.player = true;
+
+                    Entity player = m_World.players().createPlayer(queued.channel(), data);
+                    int entityId = m_World.players().getEntityId(player);
+
+                    queued.channel().writeAndFlush(new LoginResponse(true, "Welcome " + p.username(), entityId, 0));
+
+                    // Load a Test Map in the Server and Send to the Client
+                    MapLoad mapLoad = m_World.maps().createMapLoad(0);
+
+                    if(mapLoad != null)
+                        queued.channel().writeAndFlush(mapLoad);
+
+                    // Broadcast an Entity Update so everything sets up client side
+                    PositionComponent position = Components.POSITION.get(player);
+                    MovementComponent movement = Components.MOVE_INTENT.get(player);
+
+                    byte direction = 1;
+                    boolean moving = false;
+
+                    if(movement != null) {
+                        direction = movement.direction;
+                        moving = movement.moving;
+                    }
+
+                    queued.channel().writeAndFlush(new EntityPositionUpdate(entityId, position.x, position.y, direction, moving, m_ServerTick));
+                }
+
+                case MoveIntent p -> {
+                    Entity entity = m_World.players().getPlayer(queued.channel());
+
+                    if(entity == null)
+                        break;
+
+                    MovementComponent movement;
+                    if(Components.MOVE_INTENT.has(entity)) {
+                        movement = Components.MOVE_INTENT.get(entity);
+                    } else {
+                        movement = m_World.getEngine().createComponent(MovementComponent.class);
+                        entity.add(movement);
+                    }
+
+                    if(movement.moveCooldown > 0.0f || movement.moving)
+                        return;
+
+                    movement.dx = p.dx();
+                    movement.dy = p.dy();
+                    movement.moving = true;
+
+                    if(p.dy() > 0) {
+                        movement.direction = Direction.UP.asByte();
+                    } else if (p.dy() < 0) {
+                        movement.direction = Direction.DOWN.asByte();
+                    } else if(p.dx() < 0) {
+                        movement.direction = Direction.LEFT.asByte();
+                    } else if(p.dx() > 0) {
+                        movement.direction = Direction.RIGHT.asByte();
+                    }
+                }
+
+                case ChatMessageRequest p -> {
+
+                }
+
+                default -> {
+                    System.out.println("Unhandled packet: " + queued.packet().getClass());
+                }
             }
         }
     }
 
     private void sendSnapshots() {
-        // TODO: Handle broadcasting world updates to connected clients
+        for(Entity entity : m_World.players().getPlayers()) {
+            int entityId = m_World.players().getEntityId(entity);
+
+            PositionComponent position = Components.POSITION.get(entity);
+            MovementComponent movement = Components.MOVE_INTENT.get(entity);
+
+            if(position == null || movement == null)
+                continue;
+
+            m_World.network().broadcast(new EntityPositionUpdate(entityId, position.x, position.y,
+                    movement.direction, movement.moving, m_ServerTick));
+        }
     }
 
-    private void sleep(double currentTime) {
-        double desiredTime = 1.0 / 20.0;
-        long sleepTime = (long) ((currentTime - System.nanoTime() + desiredTime) / 1e9);
-
+    private void sleep() {
         try {
-            if (sleepTime > 0)
-                Thread.sleep(sleepTime);
-
+            Thread.sleep(1L);
         } catch (InterruptedException e) {
             System.err.println(e.getMessage());
         }

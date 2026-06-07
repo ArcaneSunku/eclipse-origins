@@ -6,17 +6,18 @@ import dev.atomixsoft.solar_eclipse.client.graphics.GameRenderer;
 import dev.atomixsoft.solar_eclipse.client.graphics.RenderCmd;
 import dev.atomixsoft.solar_eclipse.client.graphics.Texture;
 import dev.atomixsoft.solar_eclipse.client.graphics.ui.GameMenu;
-import dev.atomixsoft.solar_eclipse.client.graphics.ui.Hotbar;
-import dev.atomixsoft.solar_eclipse.core.event.types.ShutdownEvent;
+import dev.atomixsoft.solar_eclipse.core.event.types.SendPacketEvent;
 import dev.atomixsoft.solar_eclipse.core.game.Actuator;
-import dev.atomixsoft.solar_eclipse.core.game.Item;
-import dev.atomixsoft.solar_eclipse.core.game.character.Character;
+import dev.atomixsoft.solar_eclipse.core.game.character.CharacterData;
+import dev.atomixsoft.solar_eclipse.core.game.character.Direction;
 import dev.atomixsoft.solar_eclipse.core.game.map.GameMap;
 import dev.atomixsoft.solar_eclipse.core.game.map.Tile;
+import dev.atomixsoft.solar_eclipse.core.net.packet.Packet;
+import dev.atomixsoft.solar_eclipse.core.net.packet.request.MoveIntent;
+import dev.atomixsoft.solar_eclipse.core.net.packet.response.EntityPositionUpdate;
+import dev.atomixsoft.solar_eclipse.core.net.packet.response.MapLoad;
 import imgui.*;
 import imgui.flag.*;
-import org.joml.Vector2f;
-import org.joml.Vector3f;
 
 import dev.atomixsoft.solar_eclipse.core.game.Constants;
 
@@ -27,15 +28,20 @@ import dev.atomixsoft.solar_eclipse.client.AssetLoader;
 import dev.atomixsoft.solar_eclipse.client.graphics.render2D.SpriteBatch;
 import dev.atomixsoft.solar_eclipse.client.graphics.cameras.OrthoCamera;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static dev.atomixsoft.solar_eclipse.core.event.types.InputEvent.InputType;
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER;
-import static org.lwjgl.opengl.GL30.glBindFramebuffer;
 
 /**
  * <p>Purely for prototyping features in the earlier stages of development.</p>
  */
 public class TestScene extends SceneAdapter {
+
+    private static final float MOVE_REQUEST_COOLDOWN = 0.25f;
+
+    private float moveRequestCooldown;
+    private int moveSequence;
 
     private OrthoCamera camera;
     private SpriteBatch batch;
@@ -45,11 +51,17 @@ public class TestScene extends SceneAdapter {
     private GameMenu gameMenu;
     private boolean focused;
 
-    private Character player;
+    private Map<Integer, CharacterData> entitiesById;
+    private int localEntityId = -1;
+
+    private CharacterData player;
 
     @Override
     public void show() {
         ClientThread.set_size(785, 594);
+        if(entitiesById == null)
+            entitiesById = new HashMap<>();
+        else entitiesById.clear();
 
         batch = new SpriteBatch(AssetLoader.GetShader("basic"));
 
@@ -72,13 +84,10 @@ public class TestScene extends SceneAdapter {
 
         Actuator.FillMapLayer(testMap, grassTile, 0);
 
-        player = new Character();
-        player.name = "Dev";
-        player.player = true;
+        moveRequestCooldown = 0.0f;
+        moveSequence = 0;
 
-        Actuator.AddCharacterToMap(testMap, player, 2, 3);
-
-        gameRender.setMap(testMap);
+        gameRender.setMap(null);
         focused = true;
     }
 
@@ -95,48 +104,100 @@ public class TestScene extends SceneAdapter {
 
         tickTime += (float) dt;
 
+        if(moveRequestCooldown > 0.0f) {
+            moveRequestCooldown -= (float) dt;
 
-        if(!player.moving) {
+            if(moveRequestCooldown < 0.0f)
+                moveRequestCooldown = 0.0f;
+        }
+
+        if(player != null && moveRequestCooldown <= 0.0f) {
+            int dx = 0, dy = 0;
+
             if (input.isPressed(InputType.UP)) {
-                Actuator.MoveCharacter(gameRender.getMap(), player, 0, 1);
+                dy = 1;
             } else if (input.isPressed(InputType.DOWN)) {
-                Actuator.MoveCharacter(gameRender.getMap(), player, 0, -1);
+                dy = -1;
             } else if (input.isPressed(InputType.LEFT)) {
-                Actuator.MoveCharacter(gameRender.getMap(), player, -1, 0);
+                dx = -1;
             } else if (input.isPressed(InputType.RIGHT)) {
-                Actuator.MoveCharacter(gameRender.getMap(), player, 1, 0);
+                dx = 1;
+            }
+
+            if(dx != 0 || dy != 0) {
+                ClientThread.eventBus().post(new SendPacketEvent(new MoveIntent(dx, dy, moveSequence++)));
+                moveRequestCooldown = MOVE_REQUEST_COOLDOWN;
             }
         }
 
-        if(tickTime >= 0.65f) {
-            boolean updated = false;
-            if(!input.MovementInput()) {
-                player.moving = false;
-                tickTime = 0.0f;
-                updated = true;
-            }
-
-            if(!updated) {
-                if (player.moving) player.moving = false;
-                tickTime = 0.0f;
-            }
-        }
-
-        if(player.moving) {
-            frameTime += (float) dt;
-
-            if(frameTime >= 0.35f) {
-                if(player.keyFrame == 0) player.keyFrame = 1;
-                if(player.keyFrame == 1) player.keyFrame += 2;
-                if(player.keyFrame == 3) player.keyFrame = 1;
-
-                frameTime = 0.0f;
-            }
-        } else {
+        if(player != null) {
             player.keyFrame = 0;
         }
 
         gameRender.update(camera);
+    }
+
+    @Override
+    public void handlePacket(Packet packet) {
+        switch (packet) {
+            case EntityPositionUpdate p -> {
+                applyPositionUpdate(p);
+            }
+
+            case MapLoad p -> {
+                applyMapLoad(p);
+            }
+
+            default -> {}
+        }
+    }
+
+    private void applyPositionUpdate(EntityPositionUpdate packet) {
+        if(gameRender.getMap() == null)
+            return;
+
+        CharacterData entity = entitiesById.get(packet.entityId());
+
+        if(entity == null) {
+            entity = new CharacterData();
+            entity.name = "Entity " + packet.entityId();
+
+            ClientThread.log().info("Entity " + packet.entityId() + " is being created...");
+
+            Actuator.AddCharacterToMap(gameRender.getMap(), entity, packet.x(), packet.y());
+
+            entitiesById.put(packet.entityId(), entity);
+
+            if(player == null) {
+                player = entity;
+                localEntityId = packet.entityId();
+            }
+        }
+
+        entity.x = packet.x();
+        entity.y = packet.y();
+        entity.facing = Direction.Get(packet.direction());
+        entity.moving = false;
+    }
+
+    private void applyMapLoad(MapLoad packet) {
+        GameMap map = new GameMap(0, 0, packet.width(), packet.height());
+        map.id = (byte) packet.mapdId();
+
+        Tile baseTile = new Tile();
+        baseTile.textureId = packet.baseTexId();
+        baseTile.textureX = packet.baseTexX();
+        baseTile.textureY = packet.baseTexY();
+        baseTile.type = packet.baseTileType();
+        baseTile.roof = false;
+
+        Actuator.FillMapLayer(map, baseTile, 0);
+
+        entitiesById.clear();
+        player = null;
+        localEntityId = -1;
+
+        gameRender.setMap(map);
     }
 
     @Override

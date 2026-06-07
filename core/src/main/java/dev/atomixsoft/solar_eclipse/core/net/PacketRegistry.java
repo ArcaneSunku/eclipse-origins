@@ -9,6 +9,7 @@ import dev.atomixsoft.solar_eclipse.core.net.codec.request.LoginRequestCodec;
 import dev.atomixsoft.solar_eclipse.core.net.codec.request.MoveIntentCodec;
 import dev.atomixsoft.solar_eclipse.core.net.codec.response.EntityPositionUpdateCodec;
 import dev.atomixsoft.solar_eclipse.core.net.codec.response.LoginResponseCodec;
+import dev.atomixsoft.solar_eclipse.core.net.codec.response.MapLoadCodec;
 import dev.atomixsoft.solar_eclipse.core.net.packet.Packet;
 import dev.atomixsoft.solar_eclipse.core.net.packet.request.ChatMessageRequest;
 import dev.atomixsoft.solar_eclipse.core.net.packet.request.LoginRequest;
@@ -19,6 +20,7 @@ import dev.atomixsoft.solar_eclipse.core.net.packet.response.LoginResponse;
 
 import dev.atomixsoft.solar_eclipse.core.net.packet.notification.ChatMessageBroadcast;
 import dev.atomixsoft.solar_eclipse.core.net.packet.notification.ShutdownNotification;
+import dev.atomixsoft.solar_eclipse.core.net.packet.response.MapLoad;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -74,6 +76,7 @@ public final class PacketRegistry {
 
         Register(200, LoginResponse.class, new LoginResponseCodec());
         Register(201, EntityPositionUpdate.class, new EntityPositionUpdateCodec());
+        Register(202, MapLoad.class, new MapLoadCodec());
 
         Register(300, ChatMessageBroadcast.class, new ChatMessageBroadcastCodec());
         Register(301, ShutdownNotification.class, new ShutdownNotificationCodec());

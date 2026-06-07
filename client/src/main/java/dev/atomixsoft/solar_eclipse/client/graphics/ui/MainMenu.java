@@ -3,7 +3,9 @@ package dev.atomixsoft.solar_eclipse.client.graphics.ui;
 import dev.atomixsoft.solar_eclipse.client.AssetLoader;
 import dev.atomixsoft.solar_eclipse.client.ClientThread;
 import dev.atomixsoft.solar_eclipse.client.graphics.Texture;
+import dev.atomixsoft.solar_eclipse.core.event.types.SendPacketEvent;
 import dev.atomixsoft.solar_eclipse.core.event.types.ShutdownEvent;
+import dev.atomixsoft.solar_eclipse.core.net.packet.request.LoginRequest;
 import dev.atomixsoft.solar_eclipse.core.utils.FileUtils;
 import imgui.ImFont;
 import imgui.ImGui;
@@ -146,8 +148,11 @@ public class MainMenu {
                 Texture main_menu = AssetLoader.GetTexture("ui_menu_register");
                 ImGui.image(main_menu.getTextureId(), main_menu.getWidth(), main_menu.getHeight());
 
-                m_ChangeSceneRequest = true;
-                m_NextScene = "Test";
+//                m_ChangeSceneRequest = true;
+//                m_NextScene = "Test";
+
+                sendLoginRequest();
+                m_State = MainMenuState.Login;
             }
             case Credits -> {
                 Texture main_menu = AssetLoader.GetTexture("ui_menu_credits");
@@ -159,8 +164,13 @@ public class MainMenu {
         if(login_button != null) {
             login_button.render("Login", 64, 287);
 
-            if(login_button.getState() == Button.State.CLICKED)
-                m_State = MainMenuState.Login;
+            if(login_button.getState() == Button.State.CLICKED) {
+                if(m_State == MainMenuState.Login) {
+                    sendLoginRequest();
+                } else {
+                    m_State = MainMenuState.Login;
+                }
+            }
         }
 
         Button register_button = m_Buttons.get("register");
@@ -186,6 +196,16 @@ public class MainMenu {
             if(exit_button.getState() == Button.State.CLICKED)
                 ClientThread.eventBus().post(new ShutdownEvent("dev", false));
         }
+    }
+
+    private void sendLoginRequest() {
+        String username = m_User.get().trim();
+        String password = m_Password.get();
+
+        if(username.isBlank())
+            username = "Dev";
+
+        ClientThread.eventBus().post(new SendPacketEvent(new LoginRequest(username, password)));
     }
 
     public void dispose() {

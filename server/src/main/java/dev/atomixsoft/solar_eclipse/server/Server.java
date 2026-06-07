@@ -41,7 +41,8 @@ public class Server {
     private final Configuration m_ConfigInfo;
     private final Logger m_Logger;
 
-    private Thread m_Console, m_GameLoop;
+    private Thread m_Console;
+    private ServerThread m_GameLoop;
     private EventBus m_EventBus;
     private Channel m_ServerChannel;
 
@@ -69,7 +70,7 @@ public class Server {
         m_PacketQueue = new PacketQueue();
 
         m_Console = new Thread(new ConsoleThread(m_EventBus, this::shutdown), "Console_Thread");
-        m_GameLoop = new Thread(new ServerThread(m_PacketQueue), "Game_Loop");
+        m_GameLoop = new ServerThread(m_PacketQueue, m_Network);
 
         m_Console.setDaemon(true);
 
@@ -125,7 +126,9 @@ public class Server {
             if(m_ServerChannel != null)
                 m_ServerChannel.close();
 
-            m_GameLoop.join(1L);
+            if(m_GameLoop != null)
+                m_GameLoop.stop();
+
             m_Console.join(1L);
         } catch (Exception e) {
             m_Logger.error(e.getMessage());

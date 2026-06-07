@@ -1,8 +1,6 @@
 package dev.atomixsoft.solar_eclipse.server.net;
 
 import dev.atomixsoft.solar_eclipse.core.net.packet.Packet;
-import dev.atomixsoft.solar_eclipse.core.net.packet.request.LoginRequest;
-import dev.atomixsoft.solar_eclipse.core.net.packet.request.MoveIntent;
 import dev.atomixsoft.solar_eclipse.server.logging.Logger;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -34,7 +32,7 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<Packet> {
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, Packet msg) {
-        m_PacketQueue.push(msg);
+        m_PacketQueue.enqueue(ctx.channel(), msg);
     }
 
     @Override

@@ -10,20 +10,20 @@ public class EntityPositionUpdateCodec implements PacketCodec<EntityPositionUpda
     @Override
     public void encode(EntityPositionUpdate packet, ByteBuf out) {
         out.writeInt(packet.entityId());
-        out.writeFloat(packet.x());
-        out.writeFloat(packet.y());
-        out.writeByte(packet.direction().asByte());
+        out.writeInt(packet.x());
+        out.writeInt(packet.y());
+        out.writeByte(packet.direction());
         out.writeBoolean(packet.moving());
-        out.writeDouble(packet.serverTick());
+        out.writeLong(packet.serverTick());
     }
 
     @Override
     public EntityPositionUpdate decode(ByteBuf in) {
         int entityId = in.readInt();
-        float x = in.readFloat(), y = in.readFloat();
-        Direction dir = Direction.Get(in.readByte());
+        int x = in.readInt(), y = in.readInt();
+        byte dir = in.readByte();
         boolean moving = in.readBoolean();
-        double serverTick = in.readDouble();
+        long serverTick = in.readLong();
 
         return new EntityPositionUpdate(entityId, x, y, dir, moving, serverTick);
     }

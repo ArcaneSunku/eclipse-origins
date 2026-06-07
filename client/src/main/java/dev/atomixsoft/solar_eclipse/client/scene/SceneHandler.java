@@ -6,6 +6,7 @@ import java.util.Map;
 import dev.atomixsoft.solar_eclipse.client.util.ImGuiManager;
 import dev.atomixsoft.solar_eclipse.client.util.Window;
 import dev.atomixsoft.solar_eclipse.client.util.input.Controller;
+import dev.atomixsoft.solar_eclipse.core.net.packet.Packet;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT;
@@ -35,8 +36,9 @@ public class SceneHandler {
 
         public abstract void resize(int width, int height);
 
-    }
+        public abstract void handlePacket(Packet packet);
 
+    }
 
     public SceneHandler(Controller controller, Window window) {
         m_SceneMap = new HashMap<>();
@@ -51,18 +53,21 @@ public class SceneHandler {
     }
 
     public void render(ImGuiManager guiManager) {
-        glDisable(GL_SCISSOR_TEST);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
         if(m_ActiveScene != null) {
+            glDisable(GL_SCISSOR_TEST);
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
             m_ActiveScene.render();
 
             guiManager.setup();
             m_ActiveScene.imgui();
             guiManager.render();
         }
+    }
 
-        glEnable(GL_SCISSOR_TEST);
+    public void handlePackets(Packet packet) {
+        if(m_ActiveScene != null)
+            m_ActiveScene.handlePacket(packet);
     }
 
     public void resize(int width, int height) {

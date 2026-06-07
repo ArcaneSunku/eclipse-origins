@@ -8,17 +8,17 @@ import io.netty.buffer.ByteBuf;
 public class MoveIntentCodec implements PacketCodec<MoveIntent> {
     @Override
     public void encode(MoveIntent packet, ByteBuf out) {
-        out.writeInt(packet.entityId());
-        out.writeByte(packet.direction().asByte());
+        out.writeInt(packet.dx());
+        out.writeInt(packet.dy());
         out.writeInt(packet.sequence());
     }
 
     @Override
     public MoveIntent decode(ByteBuf in) {
-        int id = in.readInt();
-        Direction dir = Direction.Get(in.readByte());
+        int dx = in.readInt();
+        int dy = in.readInt();
         int sequence = in.readInt();
 
-        return new MoveIntent(id, dir, sequence);
+        return new MoveIntent(dx, dy, sequence);
     }
 }

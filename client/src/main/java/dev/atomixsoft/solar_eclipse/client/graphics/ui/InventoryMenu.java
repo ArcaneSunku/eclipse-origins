@@ -1,7 +1,7 @@
 package dev.atomixsoft.solar_eclipse.client.graphics.ui;
 
 import dev.atomixsoft.solar_eclipse.client.graphics.Texture;
-import dev.atomixsoft.solar_eclipse.core.game.character.Character;
+import dev.atomixsoft.solar_eclipse.core.game.character.CharacterData;
 import imgui.ImGui;
 import imgui.flag.ImGuiWindowFlags;
 
@@ -16,7 +16,7 @@ public class InventoryMenu {
         m_Y = y;
     }
 
-    public void render(Character character) {
+    public void render(CharacterData character) {
         ImGui.setNextWindowPos(m_X, m_Y);
         ImGui.setNextWindowSize(m_Texture.getWidth(), m_Texture.getHeight());
 

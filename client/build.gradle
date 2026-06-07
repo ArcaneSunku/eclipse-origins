@@ -7,6 +7,7 @@ ext {
     lwjglVersion = "3.4.1"
     imguiVersion = "1.89.0"
     nettyVersion = "4.2.14.Final"
+    ashleyVersion = "1.7.4"
 }
 
 def dataDir = "${rootProject.projectDir}/data"
@@ -40,6 +41,9 @@ dependencies {
     implementation "io.github.spair:imgui-java-lwjgl3:$imguiVersion"
     implementation "io.github.spair:imgui-java-$lwjglNatives:$imguiVersion"
 
+    implementation 'io.netty:netty-all:' + nettyVersion
+    implementation 'com.badlogicgames.ashley:ashley:' + ashleyVersion
+
     runtimeOnly "org.lwjgl:lwjgl:$lwjglVersion:$lwjglNatives"
     runtimeOnly "org.lwjgl:lwjgl-glfw:$lwjglVersion:$lwjglNatives"
     runtimeOnly "org.lwjgl:lwjgl-opengl:$lwjglVersion:$lwjglNatives"
@@ -48,7 +52,6 @@ dependencies {
 
     runtimeOnly "io.github.spair:imgui-java-lwjgl3:$imguiVersion"
     runtimeOnly "io.github.spair:imgui-java-$imguiNatives:$imguiVersion"
-    implementation 'io.netty:netty-all:' + nettyVersion
 
 }
 

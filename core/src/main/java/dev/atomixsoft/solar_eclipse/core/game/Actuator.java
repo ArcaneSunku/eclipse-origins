@@ -1,6 +1,6 @@
 package dev.atomixsoft.solar_eclipse.core.game;
 
-import dev.atomixsoft.solar_eclipse.core.game.character.Character;
+import dev.atomixsoft.solar_eclipse.core.game.character.CharacterData;
 import dev.atomixsoft.solar_eclipse.core.game.character.Direction;
 import dev.atomixsoft.solar_eclipse.core.game.map.GameMap;
 import dev.atomixsoft.solar_eclipse.core.game.map.Tile;
@@ -29,10 +29,10 @@ public class Actuator {
         return null;
     }
 
-    public static Character CreatePlayerCharacter(Account acc, String name, int texId, byte sex) {
+    public static CharacterData CreatePlayerCharacter(Account acc, String name, int texId, byte sex) {
         if(acc == null || acc.characters.size() >= 3) return null;
 
-        Character newChar = new Character();
+        CharacterData newChar = new CharacterData();
 
         newChar.textureId = texId;
         newChar.name = name;
@@ -42,15 +42,15 @@ public class Actuator {
         return newChar;
     }
 
-    public static Character LoadPlayerCharacter(Account acc, int index) {
+    public static CharacterData LoadPlayerCharacter(Account acc, int index) {
         if(acc == null) return null;
         return acc.characters.get(index);
     }
 
-    public static Character LoadPlayerCharacter(Account acc, String name) {
+    public static CharacterData LoadPlayerCharacter(Account acc, String name) {
         if(acc == null) return null;
 
-        for(Character ch : acc.characters) {
+        for(CharacterData ch : acc.characters) {
             if(ch == null) continue;
 
             if(ch.name.equals(name))
@@ -132,7 +132,7 @@ public class Actuator {
 
     // Character portion of the map part
 
-    public static void AddCharacterToMap(GameMap map, Character character, int x, int y) {
+    public static void AddCharacterToMap(GameMap map, CharacterData character, int x, int y) {
         if(map == null || character == null) return;
 
         character.x = x;
@@ -141,7 +141,7 @@ public class Actuator {
         if(character.x >= map.width) character.x = map.width - 1;
         if(character.y >= map.height) character.y = map.height - 1;
 
-        for(Character others : map.MapCharacters) {
+        for(CharacterData others : map.MapCharacters) {
             if(!character.player) break;
             if(!others.player) continue;
 
@@ -154,12 +154,12 @@ public class Actuator {
         map.MapCharacters.add(character);
     }
 
-    public static void AddCharactersToMap(GameMap map, List<Character> characters, int x, int y) {
-        for(Character c : characters)
+    public static void AddCharactersToMap(GameMap map, List<CharacterData> characters, int x, int y) {
+        for(CharacterData c : characters)
             AddCharacterToMap(map, c, x, y);
     }
 
-    public static void MoveCharacter(GameMap map, Character character, int x, int y) {
+    public static void MoveCharacter(GameMap map, CharacterData character, int x, int y) {
         if (x > 0) character.facing = Direction.RIGHT;
         else if(x < 0) character.facing = Direction.LEFT;
 

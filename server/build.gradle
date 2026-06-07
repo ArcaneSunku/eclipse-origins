@@ -4,6 +4,7 @@ plugins {
 
 ext {
     nettyVersion = "4.2.0.Final"
+    ashleyVersion = "1.7.4"
 }
 
 def dataDir = "${rootProject.projectDir}/data"
@@ -15,6 +16,7 @@ application {
 dependencies {
     implementation project(':core')
     implementation 'io.netty:netty-all:' + nettyVersion
+    implementation 'com.badlogicgames.ashley:ashley:' + ashleyVersion
 }
 
 tasks.register('debug', JavaExec).configure {

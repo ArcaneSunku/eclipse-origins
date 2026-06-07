@@ -3,7 +3,7 @@ package dev.atomixsoft.solar_eclipse.client.graphics.ui;
 import dev.atomixsoft.solar_eclipse.client.AssetLoader;
 import dev.atomixsoft.solar_eclipse.client.graphics.GameRenderer;
 import dev.atomixsoft.solar_eclipse.client.graphics.Texture;
-import dev.atomixsoft.solar_eclipse.core.game.character.Character;
+import dev.atomixsoft.solar_eclipse.core.game.character.CharacterData;
 import dev.atomixsoft.solar_eclipse.core.game.map.GameMap;
 import imgui.ImGui;
 import imgui.flag.ImGuiCol;
@@ -27,7 +27,7 @@ public class GameMenu {
     private InventoryMenu m_Inventory;
 
     private GameMenuState m_State;
-    private Character m_Player;
+    private CharacterData m_Player;
 
     public GameMenu() {
         m_MenuTextures = new LinkedHashMap<>();
@@ -63,7 +63,10 @@ public class GameMenu {
     public void render(GameRenderer renderer) {
         if(m_Player == null) {
             GameMap map = renderer.getMap();
-            for(Character ch : map.MapCharacters) {
+            if(map == null)
+                return;
+
+            for(CharacterData ch : map.MapCharacters) {
                 if(ch.player) {
                     m_Player = ch;
                     break;
