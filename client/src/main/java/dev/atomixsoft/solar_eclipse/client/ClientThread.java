@@ -257,8 +257,7 @@ public class ClientThread implements Runnable {
             }
 
             case ChatMessageBroadcast p -> {
-                m_Logger.info("[" + p.username() + "] " + p.message());
-                // TODO: Properly Implement Chat (wayyy later)
+                m_Scenes.handlePackets(p);
             }
 
             case ShutdownNotification p -> {

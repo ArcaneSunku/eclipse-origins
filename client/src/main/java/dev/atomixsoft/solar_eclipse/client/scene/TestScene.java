@@ -5,6 +5,7 @@ import dev.atomixsoft.solar_eclipse.client.graphics.FrameBuffer;
 import dev.atomixsoft.solar_eclipse.client.graphics.GameRenderer;
 import dev.atomixsoft.solar_eclipse.client.graphics.RenderCmd;
 import dev.atomixsoft.solar_eclipse.client.graphics.Texture;
+import dev.atomixsoft.solar_eclipse.client.graphics.ui.ChatBox;
 import dev.atomixsoft.solar_eclipse.client.graphics.ui.GameMenu;
 import dev.atomixsoft.solar_eclipse.core.event.types.SendPacketEvent;
 import dev.atomixsoft.solar_eclipse.core.game.Actuator;
@@ -13,6 +14,8 @@ import dev.atomixsoft.solar_eclipse.core.game.character.Direction;
 import dev.atomixsoft.solar_eclipse.core.game.map.GameMap;
 import dev.atomixsoft.solar_eclipse.core.game.map.Tile;
 import dev.atomixsoft.solar_eclipse.core.net.packet.Packet;
+import dev.atomixsoft.solar_eclipse.core.net.packet.notification.ChatMessageBroadcast;
+import dev.atomixsoft.solar_eclipse.core.net.packet.request.ChatMessageRequest;
 import dev.atomixsoft.solar_eclipse.core.net.packet.request.MoveIntent;
 import dev.atomixsoft.solar_eclipse.core.net.packet.response.EntityPositionUpdate;
 import dev.atomixsoft.solar_eclipse.core.net.packet.response.MapLoad;
@@ -27,8 +30,11 @@ import dev.atomixsoft.solar_eclipse.client.AssetLoader;
 
 import dev.atomixsoft.solar_eclipse.client.graphics.render2D.SpriteBatch;
 import dev.atomixsoft.solar_eclipse.client.graphics.cameras.OrthoCamera;
+import imgui.type.ImString;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static dev.atomixsoft.solar_eclipse.core.event.types.InputEvent.InputType;
@@ -49,6 +55,7 @@ public class TestScene extends SceneAdapter {
 
     private GameRenderer gameRender;
     private GameMenu gameMenu;
+    private ChatBox chatBox;
     private boolean focused;
 
     private Map<Integer, CharacterData> entitiesById;
@@ -72,23 +79,13 @@ public class TestScene extends SceneAdapter {
         gameRender = new GameRenderer();
         gameMenu = new GameMenu();
 
-        GameMap testMap = new GameMap(0, 0, 17,  13);
-
-        Tile grassTile = new Tile();
-        grassTile.textureId = 1;
-        grassTile.textureX = 0;
-        grassTile.textureY = 1;
-
-        grassTile.type = Constants.TILE_TYPE_WALKABLE;
-        grassTile.roof = false;
-
-        Actuator.FillMapLayer(testMap, grassTile, 0);
-
         moveRequestCooldown = 0.0f;
         moveSequence = 0;
 
         gameRender.setMap(null);
         focused = true;
+
+        chatBox = new ChatBox();
     }
 
     private float frameTime = 0;
@@ -146,6 +143,10 @@ public class TestScene extends SceneAdapter {
 
             case MapLoad p -> {
                 applyMapLoad(p);
+            }
+
+            case ChatMessageBroadcast p -> {
+                chatBox.update(p);
             }
 
             default -> {}
@@ -239,9 +240,11 @@ public class TestScene extends SceneAdapter {
         ImGui.begin("Game_Window", ImGuiWindowFlags.NoDecoration);
         ImGui.image(frameBuffer.getColorBufferId(), ImGui.getContentRegionAvail(), new ImVec2(0, 1), new ImVec2(1, 0));
         focused = ImGui.isWindowFocused();
+        gameMenu.render(gameRender);
         ImGui.end();
 
-        gameMenu.render(gameRender);
+        // Game Chat
+        chatBox.render(player);
 
         ImGui.popStyleVar(4);
         ImGui.popStyleColor();

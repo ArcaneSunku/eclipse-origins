@@ -151,7 +151,7 @@ public class ServerThread implements Runnable {
                 }
 
                 case ChatMessageRequest p -> {
-
+                    m_World.chat().broadcast(p.username(), p.message());
                 }
 
                 default -> {
