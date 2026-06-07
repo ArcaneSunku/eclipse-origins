@@ -42,7 +42,7 @@ public class Window {
         m_Width = width;
         m_Height = height;
 
-        m_ResizeRequested = resizable;
+        m_ResizeRequested = false;
         m_Focused = false;
         m_Resizable = resizable;
         m_VSync = vSync;
@@ -85,6 +85,8 @@ public class Window {
         glfwSetKeyCallback(m_Handle, InputHandler::key_callback);
         glfwSetMouseButtonCallback(m_Handle, InputHandler::mouse_button_callback);
         glfwSetWindowFocusCallback(m_Handle, (window, focused) -> m_Focused = focused);
+
+        glfwSetWindowSizeLimits(m_Handle, m_Width, m_Height, m_Width, m_Height);
 
         try(MemoryStack stack = stackPush()) {
             IntBuffer fWidth = stack.mallocInt(1);
@@ -148,11 +150,11 @@ public class Window {
     public void applyPendingResize() {
         if(!m_ResizeRequested) return;
 
-        m_ResizeRequested = false;
         setSize(m_RequestWidth, m_RequestHeight);
     }
 
     public void setSize(int width, int height) {
+        glfwSetWindowSizeLimits(m_Handle, width, height, width, height);
         glfwSetWindowSize(m_Handle, width, height);
 
         GLFWVidMode vidMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
@@ -161,20 +163,24 @@ public class Window {
     }
 
     private void resize(long window, int width, int height) {
-        if (width == m_Width && height == m_Height)
-            return;
-
         if (width <= 0 && height <= 0)
             return;
+
+        if(!m_Resizable) {
+            if(!m_ResizeRequested)
+                return;
+
+            if(width == m_RequestWidth ||  height == m_RequestHeight)
+                return;
+
+            m_ResizeRequested = false;
+        }
 
         m_Width = width;
         m_Height = height;
     }
 
     private void framebuffer_resize(long window, int width, int height) {
-        if (width == m_FrameBufferWidth && height == m_FrameBufferHeight)
-            return;
-
         if (width <= 0 && height <=0)
             return;
 

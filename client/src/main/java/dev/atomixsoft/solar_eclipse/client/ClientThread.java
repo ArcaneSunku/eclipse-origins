@@ -175,7 +175,7 @@ public class ClientThread implements Runnable {
     public void run() {
         this.m_Logger.debug("Client thread running...");
 
-        m_Window = new Window(m_Title, 515, 352);
+        m_Window = new Window(m_Title, 515, 352, true, true);
         m_Window.show();
 
         RenderCmd.Init();
