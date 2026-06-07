@@ -30,6 +30,8 @@ public class ImGuiManager {
 
         m_imguiImplGL3.init(glslVersion);
         m_imguiImplGLFW.init(window, true);
+
+        ImGuiFonts.Initialize();
     }
 
     public void setup() {

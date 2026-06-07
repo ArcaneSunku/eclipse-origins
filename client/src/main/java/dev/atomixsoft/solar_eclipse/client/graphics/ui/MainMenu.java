@@ -3,13 +3,12 @@ package dev.atomixsoft.solar_eclipse.client.graphics.ui;
 import dev.atomixsoft.solar_eclipse.client.AssetLoader;
 import dev.atomixsoft.solar_eclipse.client.ClientThread;
 import dev.atomixsoft.solar_eclipse.client.graphics.Texture;
+import dev.atomixsoft.solar_eclipse.client.util.ImGuiFonts;
 import dev.atomixsoft.solar_eclipse.core.event.types.SendPacketEvent;
 import dev.atomixsoft.solar_eclipse.core.event.types.ShutdownEvent;
 import dev.atomixsoft.solar_eclipse.core.net.packet.request.LoginRequest;
 import dev.atomixsoft.solar_eclipse.core.utils.FileUtils;
-import imgui.ImFont;
 import imgui.ImGui;
-import imgui.ImVec2;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiInputTextFlags;
 import imgui.flag.ImGuiStyleVar;
@@ -23,11 +22,10 @@ import java.util.Map;
 public class MainMenu {
 
     public enum MainMenuState {
-        MOTD, Login, Register, Credits
+        News, Login, Register, Credits
     }
 
     private MainMenuState m_State;
-    private ImFont m_Georgia;
 
     private ImString m_User, m_Password;
     private ImBoolean m_ShowPass;
@@ -43,7 +41,7 @@ public class MainMenu {
     }
 
     public void setup() {
-        m_State = MainMenuState.MOTD;
+        m_State = MainMenuState.News;
 
         m_User = new ImString();
         m_Password = new ImString();
@@ -65,7 +63,7 @@ public class MainMenu {
     public void render() {
         ImGui.setCursorPos(38, 12);
         switch(m_State) {
-            case MOTD -> {
+            case News -> {
                 Texture main_menu = AssetLoader.GetTexture("ui_menu_main");
                 ImGui.image(main_menu.getTextureId(), main_menu.getWidth(), main_menu.getHeight());
 
@@ -76,30 +74,27 @@ public class MainMenu {
                 ImGui.pushStyleVar(ImGuiStyleVar.FramePadding, 0, 0);
                 ImGui.pushStyleVar(ImGuiStyleVar.CellPadding, 0, 0);
 
-                ImGui.setNextWindowPos(38 + main_menu.getWidth() / 8.5f, 75);
-                ImGui.setNextWindowSize(main_menu.getWidth(), 200);
+                ImGui.setNextWindowPos(49, 70);
+                ImGui.setNextWindowSize(main_menu.getWidth(), main_menu.getHeight());
+
                 String news = FileUtils.StringFromFile("client/news.txt");
                 ImGui.begin("News", ImGuiWindowFlags.NoDecoration);
-                float windowWidth = ImGui.getWindowSize().x;
-                float textWidth = ImGui.calcTextSize(news).x;
+                ImGui.pushFont(ImGuiFonts.GetFont("georgiab"));
 
-                // calculate the indentation that centers the text on one line, relative
-                // to window left, regardless of the `ImGuiStyleVar_WindowPadding` value
-                float text_indentation = (windowWidth - textWidth) * 0.5f;
+                float baseX = 20.0f;
+                float wrapWidth = ImGui.getWindowSizeX() - baseX * 3.5f;
 
-                // if text is too long to be drawn on one line, `text_indentation` can
-                // become too small or even negative, so we check a minimum indentation
-                float min_indentation = 55.0f;
-                if (text_indentation <= min_indentation) {
-                    text_indentation = min_indentation;
+                ImGui.setCursorPosX(baseX);
+                for(String paragraph : news.split("\\R")) {
+                    if(paragraph.isBlank()) {
+                        ImGui.spacing();
+                        continue;
+                    }
+
+                    drawCenteredWrappedText(paragraph, baseX, wrapWidth);
                 }
 
-                ImGui.pushTextWrapPos(windowWidth - text_indentation);
-                ImGui.pushFont(m_Georgia);
-                ImGui.text(news);
                 ImGui.popFont();
-                ImGui.popTextWrapPos();
-
                 ImGui.end();
 
                 ImGui.popStyleColor(2);
@@ -208,19 +203,44 @@ public class MainMenu {
         ClientThread.eventBus().post(new SendPacketEvent(new LoginRequest(username, password)));
     }
 
+    private void drawCenteredWrappedText(String text, float baseX, float wrapWidth) {
+        String[] words = text.split("\\s+");
+        StringBuilder line = new StringBuilder();
+
+        for(String word : words) {
+            String testLine = line.isEmpty() ? word : line + " " + word;
+            float testWidth = ImGui.calcTextSize(testLine).x;
+
+            if(testWidth > wrapWidth && !line.isEmpty()) {
+                drawCenteredLine(line.toString(), baseX, wrapWidth);
+                line.setLength(0);
+                line.append(word);
+            } else {
+                line.setLength(0);
+                line.append(testLine);
+            }
+        }
+
+        if(!line.isEmpty())
+            drawCenteredLine(line.toString(), baseX, wrapWidth);
+    }
+
+    private void drawCenteredLine(String line, float baseX, float wrapWidth) {
+        float textWidth = ImGui.calcTextSize(line).x;
+        float startX = baseX + Math.max((wrapWidth - textWidth) * 0.5f, 0.0f);
+
+        ImGui.setCursorPosX(startX);
+        ImGui.text(line);
+    }
+
     public void dispose() {
         resetUI();
         m_Buttons.clear();
-        m_Georgia = null;
     }
 
     public void resetUI() {
-        if(m_State != MainMenuState.MOTD)
-            m_State = MainMenuState.MOTD;
-    }
-
-    public void setFont(ImFont font) {
-        m_Georgia = font;
+        if(m_State != MainMenuState.News)
+            m_State = MainMenuState.News;
     }
 
     public boolean requestedSceneChange() {

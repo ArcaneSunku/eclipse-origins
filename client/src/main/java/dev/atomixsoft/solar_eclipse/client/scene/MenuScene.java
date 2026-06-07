@@ -21,18 +21,11 @@ import imgui.flag.ImGuiWindowFlags;
 public class MenuScene extends SceneAdapter {
 
     private MainMenu m_MainMenu;
-    private final ImFont m_Font;
     private AudioSource m_MainMenuSource;
-
-    public MenuScene() {
-        ImGuiIO io  = ImGui.getIO();
-        m_Font = io.getFonts().addFontFromFileTTF("client/assets/fonts/georgia.ttf", 16);
-    }
 
     @Override
     public void show() {
         m_MainMenu = new MainMenu();
-        m_MainMenu.setFont(m_Font);
 
         m_MainMenuSource = new AudioSource();
 
