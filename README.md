@@ -2,7 +2,7 @@
 
 > Welcome to _**Eclipse Origins 4**_, a love letter to Visual Basic 2D ORPG Engines. 
 
-&emsp; This build, nicknamed _Solar Eclipse_, is version `4.3.3.0-alpha`.
+&emsp; This build, nicknamed _Solar Eclipse_, is version `4.3.3.1-alpha`.
 
 
 ## Table of Contents
@@ -41,7 +41,7 @@ Currently only tested on Windows(10/11) & Linux (PikaOS).
 
 Version strings follow the **MAJOR**(#?).**MODEL**(#??).**CONTROLLER**(#??).**VIEW**(#??)-**MILESTONE** format.  
 
-So, Solar Eclipse (`v4`) is currently using Model `v3`, Controller `v3`, View `v0`, and is in its `alpha` milestone.
+So, Solar Eclipse (`v4`) is currently using Model `v3`, Controller `v3`, View `v1`, and is in its `alpha` milestone.
 
 The project's packages and modules exist within the `dev.atomixsoft.solar_eclipse` namespace.  The only module is `core` - `server`, `editor`, and `client` sub-projects are comprised of a series of packages.
 
@@ -69,6 +69,7 @@ The `core` sub-project includes essential libraries and classes shared across th
 - [apache-commons-logging 1.3.2](https://commons.apache.org/proper/commons-logging/)
 - [junit-jupiter 5.10.0](https://junit.org/junit5/)
 - [netty-all 4.2.0 Final](https://netty.io/)
+- [ashley 1.7.4](https://github.com/libgdx/ashley)
 
 ### Server
 The `server` sub-project handles the back-end operations of the game.
