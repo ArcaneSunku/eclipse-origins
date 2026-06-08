@@ -7,6 +7,7 @@ public class Components {
 
     public static final ComponentMapper<IdentityComponent> IDENTITY = ComponentMapper.getFor(IdentityComponent.class);
     public static final ComponentMapper<PlayerComponent> PLAYER = ComponentMapper.getFor(PlayerComponent.class);
+    public static final ComponentMapper<NameComponent> NAME = ComponentMapper.getFor(NameComponent.class);
 
     public static final ComponentMapper<DirectionComponent> DIRECTION = ComponentMapper.getFor(DirectionComponent.class);
     public static final ComponentMapper<PositionComponent> POSITION = ComponentMapper.getFor(PositionComponent.class);

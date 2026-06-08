@@ -1,6 +1,7 @@
 package dev.atomixsoft.solar_eclipse.client.scene;
 
 import dev.atomixsoft.solar_eclipse.client.ClientThread;
+import dev.atomixsoft.solar_eclipse.client.game.ClientWorld;
 import dev.atomixsoft.solar_eclipse.client.graphics.FrameBuffer;
 import dev.atomixsoft.solar_eclipse.client.graphics.GameRenderer;
 import dev.atomixsoft.solar_eclipse.client.graphics.RenderCmd;
@@ -15,7 +16,10 @@ import dev.atomixsoft.solar_eclipse.core.game.map.GameMap;
 import dev.atomixsoft.solar_eclipse.core.game.map.Tile;
 import dev.atomixsoft.solar_eclipse.core.net.packet.Packet;
 import dev.atomixsoft.solar_eclipse.core.net.packet.notification.ChatMessageBroadcast;
+import dev.atomixsoft.solar_eclipse.core.net.packet.notification.EntityDespawn;
+import dev.atomixsoft.solar_eclipse.core.net.packet.notification.EntitySpawn;
 import dev.atomixsoft.solar_eclipse.core.net.packet.request.ChatMessageRequest;
+import dev.atomixsoft.solar_eclipse.core.net.packet.request.LogoutRequest;
 import dev.atomixsoft.solar_eclipse.core.net.packet.request.MoveIntent;
 import dev.atomixsoft.solar_eclipse.core.net.packet.response.EntityPositionUpdate;
 import dev.atomixsoft.solar_eclipse.core.net.packet.response.MapLoad;
@@ -58,17 +62,11 @@ public class TestScene extends SceneAdapter {
     private ChatBox chatBox;
     private boolean focused;
 
-    private Map<Integer, CharacterData> entitiesById;
-    private int localEntityId = -1;
-
-    private CharacterData player;
+    private ClientWorld clientWorld;
 
     @Override
     public void show() {
         ClientThread.set_size(785, 594);
-        if(entitiesById == null)
-            entitiesById = new HashMap<>();
-        else entitiesById.clear();
 
         batch = new SpriteBatch(AssetLoader.GetShader("basic"));
 
@@ -78,14 +76,14 @@ public class TestScene extends SceneAdapter {
 
         gameRender = new GameRenderer();
         gameMenu = new GameMenu();
+        chatBox = new ChatBox();
+
+        clientWorld = new ClientWorld(gameRender);
+        clientWorld.reset();
 
         moveRequestCooldown = 0.0f;
         moveSequence = 0;
-
-        gameRender.setMap(null);
         focused = true;
-
-        chatBox = new ChatBox();
     }
 
     private float frameTime = 0;
@@ -94,6 +92,8 @@ public class TestScene extends SceneAdapter {
     @Override
     public void update(Controller input, double dt) {
         if(input.isPressed(InputType.ESCAPE)) {
+            ClientThread.eventBus().post(new SendPacketEvent(new LogoutRequest()));
+
             ClientThread.set_size(515, 352);
             ClientThread.set_scene("Menu");
             return;
@@ -108,6 +108,7 @@ public class TestScene extends SceneAdapter {
                 moveRequestCooldown = 0.0f;
         }
 
+        CharacterData player = clientWorld.getPlayer();
         if(player != null && moveRequestCooldown <= 0.0f) {
             int dx = 0, dy = 0;
 
@@ -138,67 +139,27 @@ public class TestScene extends SceneAdapter {
     public void handlePacket(Packet packet) {
         switch (packet) {
             case EntityPositionUpdate p -> {
-                applyPositionUpdate(p);
+                clientWorld.applyPositionUpdate(p);
             }
 
             case MapLoad p -> {
-                applyMapLoad(p);
+                clientWorld.applyMapLoad(p);
             }
 
             case ChatMessageBroadcast p -> {
                 chatBox.update(p);
             }
 
+            case EntityDespawn p -> {
+                clientWorld.applyEntityDespawn(p);
+            }
+
+            case EntitySpawn p -> {
+                clientWorld.applyEntitySpawn(p);
+            }
+
             default -> {}
         }
-    }
-
-    private void applyPositionUpdate(EntityPositionUpdate packet) {
-        if(gameRender.getMap() == null)
-            return;
-
-        CharacterData entity = entitiesById.get(packet.entityId());
-
-        if(entity == null) {
-            entity = new CharacterData();
-            entity.name = "Entity " + packet.entityId();
-
-            ClientThread.log().info("Entity " + packet.entityId() + " is being created...");
-
-            Actuator.AddCharacterToMap(gameRender.getMap(), entity, packet.x(), packet.y());
-
-            entitiesById.put(packet.entityId(), entity);
-
-            if(player == null) {
-                player = entity;
-                localEntityId = packet.entityId();
-            }
-        }
-
-        entity.x = packet.x();
-        entity.y = packet.y();
-        entity.facing = Direction.Get(packet.direction());
-        entity.moving = false;
-    }
-
-    private void applyMapLoad(MapLoad packet) {
-        GameMap map = new GameMap(0, 0, packet.width(), packet.height());
-        map.id = (byte) packet.mapdId();
-
-        Tile baseTile = new Tile();
-        baseTile.textureId = packet.baseTexId();
-        baseTile.textureX = packet.baseTexX();
-        baseTile.textureY = packet.baseTexY();
-        baseTile.type = packet.baseTileType();
-        baseTile.roof = false;
-
-        Actuator.FillMapLayer(map, baseTile, 0);
-
-        entitiesById.clear();
-        player = null;
-        localEntityId = -1;
-
-        gameRender.setMap(map);
     }
 
     @Override
@@ -244,7 +205,7 @@ public class TestScene extends SceneAdapter {
         ImGui.end();
 
         // Game Chat
-        chatBox.render(player);
+        chatBox.render();
 
         ImGui.popStyleVar(4);
         ImGui.popStyleColor();

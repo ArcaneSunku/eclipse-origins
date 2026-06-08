@@ -8,15 +8,13 @@ import io.netty.buffer.ByteBuf;
 public class ChatMessageRequestCodec implements PacketCodec<ChatMessageRequest> {
     @Override
     public void encode(ChatMessageRequest packet, ByteBuf out) {
-        CodecUtils.writeString(out, packet.username());
         CodecUtils.writeString(out, packet.message());
     }
 
     @Override
     public ChatMessageRequest decode(ByteBuf in) {
-        String user = CodecUtils.readString(in);
         String msg = CodecUtils.readString(in);
 
-        return new ChatMessageRequest(user, msg);
+        return new ChatMessageRequest(msg);
     }
 }

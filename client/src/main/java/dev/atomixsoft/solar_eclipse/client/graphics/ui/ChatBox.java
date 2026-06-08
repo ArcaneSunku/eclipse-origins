@@ -34,7 +34,7 @@ public class ChatBox {
             m_ChatLines.removeFirst();
     }
 
-    public void render(CharacterData player) {
+    public void render() {
         ImGui.setNextWindowPos(16, 444);
         ImGui.setNextWindowSize(468, 134);
         ImGui.pushFont(ImGuiFonts.GetFont("georgiab"));
@@ -67,7 +67,7 @@ public class ChatBox {
             String message = m_ChatInput.get().trim();
 
             if(!message.isEmpty()) {
-                ClientThread.eventBus().post(new SendPacketEvent(new ChatMessageRequest(player.name, message)));
+                ClientThread.eventBus().post(new SendPacketEvent(new ChatMessageRequest(message)));
                 m_ChatInput.set("");
             }
         }

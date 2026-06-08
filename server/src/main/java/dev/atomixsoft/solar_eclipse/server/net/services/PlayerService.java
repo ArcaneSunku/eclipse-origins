@@ -6,10 +6,7 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.utils.IntMap;
 import dev.atomixsoft.solar_eclipse.core.game.character.CharacterData;
 import dev.atomixsoft.solar_eclipse.server.game.ecs.Components;
-import dev.atomixsoft.solar_eclipse.server.game.ecs.components.IdentityComponent;
-import dev.atomixsoft.solar_eclipse.server.game.ecs.components.MovementComponent;
-import dev.atomixsoft.solar_eclipse.server.game.ecs.components.PlayerComponent;
-import dev.atomixsoft.solar_eclipse.server.game.ecs.components.PositionComponent;
+import dev.atomixsoft.solar_eclipse.server.game.ecs.components.*;
 import io.netty.channel.Channel;
 
 import java.util.HashMap;
@@ -37,6 +34,9 @@ public class PlayerService {
         IdentityComponent identity = m_Engine.createComponent(IdentityComponent.class);
         identity.entityId = m_Ids.generateId();
 
+        NameComponent name = m_Engine.createComponent(NameComponent.class);
+        name.name = data.name;
+
         PositionComponent position = m_Engine.createComponent(PositionComponent.class);
         position.x = data.x;
         position.y = data.y;
@@ -45,6 +45,7 @@ public class PlayerService {
         PlayerComponent player = m_Engine.createComponent(PlayerComponent.class);
 
         entity.add(identity);
+        entity.add(name);
         entity.add(position);
         entity.add(movement);
         entity.add(player);
@@ -56,16 +57,18 @@ public class PlayerService {
         return entity;
     }
 
-    public void removePlayer(Channel channel) {
+    public int removePlayer(Channel channel) {
         Entity entity = m_PlayersByChannel.remove(channel);
         if(entity == null)
-            return;
+            return -1;
 
-        IdentityComponent identity = Components.IDENTITY.get(entity);
-        if(identity != null)
-            m_EntitiesById.remove(identity.entityId);
+        int entityId = getEntityId(entity);
+
+        if(entityId != -1)
+            m_EntitiesById.remove(entityId);
 
         m_Engine.removeEntity(entity);
+        return entityId;
     }
 
     public Iterable<Entity> getPlayers() {

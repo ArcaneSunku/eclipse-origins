@@ -1,6 +1,7 @@
 package dev.atomixsoft.solar_eclipse.server.net;
 
 import dev.atomixsoft.solar_eclipse.core.net.packet.Packet;
+import dev.atomixsoft.solar_eclipse.core.net.packet.request.LogoutRequest;
 import dev.atomixsoft.solar_eclipse.server.logging.Logger;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -28,6 +29,7 @@ public class ServerChannelHandler extends SimpleChannelInboundHandler<Packet> {
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         m_Logger.info("Client disconnected: " + ctx.channel().remoteAddress());
         m_Network.getClients().remove(ctx.channel());
+        m_PacketQueue.enqueue(ctx.channel(), new LogoutRequest());
     }
 
     @Override

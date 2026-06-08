@@ -15,6 +15,8 @@ import dev.atomixsoft.solar_eclipse.core.event.types.ShutdownEvent;
 import dev.atomixsoft.solar_eclipse.core.net.packet.Packet;
 import dev.atomixsoft.solar_eclipse.core.net.PacketRegistry;
 import dev.atomixsoft.solar_eclipse.core.net.packet.notification.ChatMessageBroadcast;
+import dev.atomixsoft.solar_eclipse.core.net.packet.notification.EntityDespawn;
+import dev.atomixsoft.solar_eclipse.core.net.packet.notification.EntitySpawn;
 import dev.atomixsoft.solar_eclipse.core.net.packet.notification.ShutdownNotification;
 import dev.atomixsoft.solar_eclipse.core.net.packet.response.EntityPositionUpdate;
 import dev.atomixsoft.solar_eclipse.core.net.packet.response.LoginResponse;
@@ -263,6 +265,14 @@ public class ClientThread implements Runnable {
             case ShutdownNotification p -> {
                 m_Logger.info("Server has shutdown...");
                 m_EventBus.post(new ShutdownEvent("Server", true));
+            }
+
+            case EntityDespawn p -> {
+                m_Scenes.handlePackets(p);
+            }
+
+            case EntitySpawn p -> {
+                m_Scenes.handlePackets(p);
             }
 
             default -> {

@@ -4,8 +4,11 @@ import com.badlogic.ashley.core.Entity;
 import dev.atomixsoft.solar_eclipse.core.game.character.CharacterData;
 import dev.atomixsoft.solar_eclipse.core.game.character.Direction;
 import dev.atomixsoft.solar_eclipse.core.net.packet.Packet;
+import dev.atomixsoft.solar_eclipse.core.net.packet.notification.EntityDespawn;
+import dev.atomixsoft.solar_eclipse.core.net.packet.notification.EntitySpawn;
 import dev.atomixsoft.solar_eclipse.core.net.packet.request.ChatMessageRequest;
 import dev.atomixsoft.solar_eclipse.core.net.packet.request.LoginRequest;
+import dev.atomixsoft.solar_eclipse.core.net.packet.request.LogoutRequest;
 import dev.atomixsoft.solar_eclipse.core.net.packet.request.MoveIntent;
 import dev.atomixsoft.solar_eclipse.core.net.packet.response.EntityPositionUpdate;
 import dev.atomixsoft.solar_eclipse.core.net.packet.response.LoginResponse;
@@ -13,6 +16,7 @@ import dev.atomixsoft.solar_eclipse.core.net.packet.response.MapLoad;
 import dev.atomixsoft.solar_eclipse.server.game.ServerWorld;
 import dev.atomixsoft.solar_eclipse.server.game.ecs.Components;
 import dev.atomixsoft.solar_eclipse.server.game.ecs.components.MovementComponent;
+import dev.atomixsoft.solar_eclipse.server.game.ecs.components.NameComponent;
 import dev.atomixsoft.solar_eclipse.server.game.ecs.components.PositionComponent;
 import dev.atomixsoft.solar_eclipse.server.net.NetworkServer;
 import dev.atomixsoft.solar_eclipse.server.net.PacketQueue;
@@ -103,19 +107,18 @@ public class ServerThread implements Runnable {
                     if(mapLoad != null)
                         queued.channel().writeAndFlush(mapLoad);
 
-                    // Broadcast an Entity Update so everything sets up client side
-                    PositionComponent position = Components.POSITION.get(player);
-                    MovementComponent movement = Components.MOVE_INTENT.get(player);
+                    sendExistingEntitiesTo(queued);
 
-                    byte direction = 1;
-                    boolean moving = false;
+                    EntitySpawn newPlayerSpawn = createEntitySpawn(player);
+                    if(newPlayerSpawn != null)
+                        m_World.network().broadcast(newPlayerSpawn);
+                }
 
-                    if(movement != null) {
-                        direction = movement.direction;
-                        moving = movement.moving;
-                    }
+                case LogoutRequest p -> {
+                    int entityId = m_World.players().removePlayer(queued.channel());
 
-                    queued.channel().writeAndFlush(new EntityPositionUpdate(entityId, position.x, position.y, direction, moving, m_ServerTick));
+                    if(entityId != -1)
+                        m_World.network().broadcast(new EntityDespawn(entityId));
                 }
 
                 case MoveIntent p -> {
@@ -133,7 +136,7 @@ public class ServerThread implements Runnable {
                     }
 
                     if(movement.moveCooldown > 0.0f || movement.moving)
-                        return;
+                        break;
 
                     movement.dx = p.dx();
                     movement.dy = p.dy();
@@ -151,13 +154,42 @@ public class ServerThread implements Runnable {
                 }
 
                 case ChatMessageRequest p -> {
-                    m_World.chat().broadcast(p.username(), p.message());
+                    Entity player = m_World.players().getPlayer(queued.channel());
+                    if(player == null) break;
+
+                    String sender = "Player";
+                    if(Components.NAME.has(player))
+                        sender = Components.NAME.get(player).name;
+
+                    m_World.chat().broadcast(sender, p.message());
                 }
 
                 default -> {
                     System.out.println("Unhandled packet: " + queued.packet().getClass());
                 }
             }
+        }
+    }
+
+    private EntitySpawn createEntitySpawn(Entity entity) {
+        int entityId = m_World.players().getEntityId(entity);
+
+        PositionComponent position = Components.POSITION.get(entity);
+        MovementComponent movement = Components.MOVE_INTENT.get(entity);
+        NameComponent name = Components.NAME.get(entity);
+
+        if(position == null || movement == null || name == null)
+            return null;
+
+        return new EntitySpawn(entityId, name.name, position.x, position.y, movement.direction);
+    }
+
+    private void sendExistingEntitiesTo(QueuedPacket queued) {
+        for(Entity entity : m_World.players().getPlayers()) {
+            EntitySpawn spawn = createEntitySpawn(entity);
+
+            if(spawn != null)
+                queued.channel().writeAndFlush(spawn);
         }
     }
 

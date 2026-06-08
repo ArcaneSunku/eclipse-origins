@@ -2,17 +2,23 @@ package dev.atomixsoft.solar_eclipse.core.net;
 
 import dev.atomixsoft.solar_eclipse.core.net.codec.PacketCodec;
 import dev.atomixsoft.solar_eclipse.core.net.codec.notification.ChatMessageBroadcastCodec;
+import dev.atomixsoft.solar_eclipse.core.net.codec.notification.EntityDespawnCodec;
+import dev.atomixsoft.solar_eclipse.core.net.codec.notification.EntitySpawnCodec;
 import dev.atomixsoft.solar_eclipse.core.net.codec.notification.ShutdownNotificationCodec;
 import dev.atomixsoft.solar_eclipse.core.net.codec.request.ChatMessageRequestCodec;
 import dev.atomixsoft.solar_eclipse.core.net.codec.request.LoginRequestCodec;
 
+import dev.atomixsoft.solar_eclipse.core.net.codec.request.LogoutRequestCodec;
 import dev.atomixsoft.solar_eclipse.core.net.codec.request.MoveIntentCodec;
 import dev.atomixsoft.solar_eclipse.core.net.codec.response.EntityPositionUpdateCodec;
 import dev.atomixsoft.solar_eclipse.core.net.codec.response.LoginResponseCodec;
 import dev.atomixsoft.solar_eclipse.core.net.codec.response.MapLoadCodec;
 import dev.atomixsoft.solar_eclipse.core.net.packet.Packet;
+import dev.atomixsoft.solar_eclipse.core.net.packet.notification.EntityDespawn;
+import dev.atomixsoft.solar_eclipse.core.net.packet.notification.EntitySpawn;
 import dev.atomixsoft.solar_eclipse.core.net.packet.request.ChatMessageRequest;
 import dev.atomixsoft.solar_eclipse.core.net.packet.request.LoginRequest;
+import dev.atomixsoft.solar_eclipse.core.net.packet.request.LogoutRequest;
 import dev.atomixsoft.solar_eclipse.core.net.packet.request.MoveIntent;
 
 import dev.atomixsoft.solar_eclipse.core.net.packet.response.EntityPositionUpdate;
@@ -31,20 +37,6 @@ public final class PacketRegistry {
     private static final Map<Class<? extends Packet>, PacketCodec<? extends Packet>> CLASS_TO_CODEC = new HashMap<>();
 
     private PacketRegistry() {}
-
-    public static <T extends Packet> void Register(int id, Class<T> type, PacketCodec<T> codec) {
-
-        if (ID_TO_CODEC.containsKey(id)) {
-            throw new IllegalStateException("Duplicate packet id: " + id);
-        }
-
-        if (CLASS_TO_CODEC.containsKey(type)) {
-            throw new IllegalStateException("Duplicate packet type: " + type.getName());
-        }
-
-        ID_TO_CODEC.put(id, codec);
-        CLASS_TO_CODEC.put(type, codec);
-    }
 
     @SuppressWarnings("unchecked")
     public static <T extends Packet> PacketCodec<T> GetCodec(int id) {
@@ -73,6 +65,7 @@ public final class PacketRegistry {
         Register(100, LoginRequest.class, new LoginRequestCodec());
         Register(101, MoveIntent.class, new MoveIntentCodec());
         Register(102, ChatMessageRequest.class, new ChatMessageRequestCodec());
+        Register(103, LogoutRequest.class, new LogoutRequestCodec());
 
         Register(200, LoginResponse.class, new LoginResponseCodec());
         Register(201, EntityPositionUpdate.class, new EntityPositionUpdateCodec());
@@ -80,5 +73,22 @@ public final class PacketRegistry {
 
         Register(300, ChatMessageBroadcast.class, new ChatMessageBroadcastCodec());
         Register(301, ShutdownNotification.class, new ShutdownNotificationCodec());
+        Register(302, EntityDespawn.class, new EntityDespawnCodec());
+        Register(303, EntitySpawn.class, new EntitySpawnCodec());
     }
+
+    private static <T extends Packet> void Register(int id, Class<T> type, PacketCodec<T> codec) {
+
+        if (ID_TO_CODEC.containsKey(id)) {
+            throw new IllegalStateException("Duplicate packet id: " + id);
+        }
+
+        if (CLASS_TO_CODEC.containsKey(type)) {
+            throw new IllegalStateException("Duplicate packet type: " + type.getName());
+        }
+
+        ID_TO_CODEC.put(id, codec);
+        CLASS_TO_CODEC.put(type, codec);
+    }
+
 }
