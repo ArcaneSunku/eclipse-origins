@@ -16,7 +16,9 @@ import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
 import imgui.type.ImString;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class MainMenu {
@@ -78,20 +80,51 @@ public class MainMenu {
                 ImGui.setNextWindowSize(main_menu.getWidth(), main_menu.getHeight());
 
                 String news = FileUtils.StringFromFile("client/news.txt");
-                ImGui.begin("News", ImGuiWindowFlags.NoDecoration);
+
+                ImGui.begin("News", ImGuiWindowFlags.NoDecoration |
+                        ImGuiWindowFlags.NoBackground |
+                        ImGuiWindowFlags.NoMove |
+                        ImGuiWindowFlags.NoResize |
+                        ImGuiWindowFlags.NoScrollbar |
+                        ImGuiWindowFlags.NoSavedSettings |
+                        ImGuiWindowFlags.NoInputs);
                 ImGui.pushFont(ImGuiFonts.GetFont("georgiab"));
 
-                float baseX = 20.0f;
-                float wrapWidth = ImGui.getWindowSizeX() - baseX * 3.5f;
+                float textureW = main_menu.getWidth();
+                float textureH = main_menu.getHeight();
 
-                ImGui.setCursorPosX(baseX);
+                float panelY = 38.0f;
+                float panelH = textureH - panelY;
+
+                float paddingX = 42.0f;
+                float baseX = paddingX - 10.0f;
+                float wrapWidth = textureW - paddingX * 2.0f;
+
+                List<String> lines = new ArrayList<>();
+
                 for(String paragraph : news.split("\\R")) {
                     if(paragraph.isBlank()) {
-                        ImGui.spacing();
+                        lines.add("");
                         continue;
                     }
 
-                    drawCenteredWrappedText(paragraph, baseX, wrapWidth);
+                    lines.addAll(wrapText(paragraph, wrapWidth));
+                }
+
+                float lineHeight = ImGui.getTextLineHeight();
+                float totalHeight = lines.size() * lineHeight;
+
+                float startY = panelY + Math.max((panelH - totalHeight) * 0.025f, 0.0f);
+
+                ImGui.setCursorPosY(startY);
+
+                for(String line : lines) {
+                    if(line.isBlank()) {
+                        ImGui.dummy(0, lineHeight);
+                        continue;
+                    }
+
+                    drawCenteredLine(line, baseX, wrapWidth);
                 }
 
                 ImGui.popFont();
@@ -203,16 +236,16 @@ public class MainMenu {
         ClientThread.eventBus().post(new SendPacketEvent(new LoginRequest(username, password)));
     }
 
-    private void drawCenteredWrappedText(String text, float baseX, float wrapWidth) {
+    private List<String> wrapText(String text, float wrapWidth) {
+        List<String> lines = new ArrayList<>();
         String[] words = text.split("\\s+");
         StringBuilder line = new StringBuilder();
 
         for(String word : words) {
             String testLine = line.isEmpty() ? word : line + " " + word;
-            float testWidth = ImGui.calcTextSize(testLine).x;
 
-            if(testWidth > wrapWidth && !line.isEmpty()) {
-                drawCenteredLine(line.toString(), baseX, wrapWidth);
+            if (ImGui.calcTextSize(testLine).x > wrapWidth && !line.isEmpty()) {
+                lines.add(line.toString());
                 line.setLength(0);
                 line.append(word);
             } else {
@@ -222,7 +255,9 @@ public class MainMenu {
         }
 
         if(!line.isEmpty())
-            drawCenteredLine(line.toString(), baseX, wrapWidth);
+            lines.add(line.toString());
+
+        return lines;
     }
 
     private void drawCenteredLine(String line, float baseX, float wrapWidth) {
