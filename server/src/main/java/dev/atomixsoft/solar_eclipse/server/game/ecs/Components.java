@@ -13,4 +13,6 @@ public class Components {
     public static final ComponentMapper<PositionComponent> POSITION = ComponentMapper.getFor(PositionComponent.class);
     public static final ComponentMapper<MovementComponent> MOVE_INTENT = ComponentMapper.getFor(MovementComponent.class);
 
+    public static final ComponentMapper<PersistenceComponent> PERSISTENCE = ComponentMapper.getFor(PersistenceComponent.class);
+
 }

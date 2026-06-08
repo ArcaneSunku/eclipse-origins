@@ -2,6 +2,8 @@ package dev.atomixsoft.solar_eclipse.server.game;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.PooledEngine;
+import dev.atomixsoft.solar_eclipse.server.database.repositories.AccountRepository;
+import dev.atomixsoft.solar_eclipse.server.database.repositories.CharacterRepository;
 import dev.atomixsoft.solar_eclipse.server.game.ecs.systems.MovementSystem;
 import dev.atomixsoft.solar_eclipse.server.net.NetworkServer;
 import dev.atomixsoft.solar_eclipse.server.net.services.AuthenticationService;
@@ -12,6 +14,7 @@ import dev.atomixsoft.solar_eclipse.server.net.services.PlayerService;
 public class ServerWorld {
 
     private final NetworkServer m_Network;
+    private final CharacterRepository m_Characters;
     private final Engine m_Engine;
 
     private final AuthenticationService m_AuthService;
@@ -19,11 +22,12 @@ public class ServerWorld {
     private final ChatService m_ChatService;
     private final MapService m_MapService;
 
-    public ServerWorld(NetworkServer network) {
+    public ServerWorld(NetworkServer network, AccountRepository accounts, CharacterRepository characters) {
         m_Network = network;
+        m_Characters = characters;
         m_Engine = new PooledEngine(75, 256, 5, 256);
 
-        m_AuthService = new AuthenticationService();
+        m_AuthService = new AuthenticationService(accounts, m_Characters);
         m_PlayerService = new PlayerService(m_Engine);
         m_ChatService = new ChatService(m_Network);
         m_MapService = new MapService();
@@ -57,6 +61,10 @@ public class ServerWorld {
 
     public NetworkServer network() {
         return m_Network;
+    }
+
+    public CharacterRepository getCharacters() {
+        return m_Characters;
     }
 
     public Engine getEngine() {

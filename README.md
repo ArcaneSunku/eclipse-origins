@@ -2,7 +2,7 @@
 
 > Welcome to _**Eclipse Origins 4**_, a love letter to Visual Basic 2D ORPG Engines. 
 
-&emsp; This build, nicknamed _Solar Eclipse_, is version `4.4.0.0-alpha`.
+&emsp; This build, nicknamed _Solar Eclipse_, is version `4.4.1.0-alpha`.
 
 
 ## Table of Contents
@@ -41,7 +41,7 @@ Currently only tested on Windows(10/11) & Linux (PikaOS).
 
 Version strings follow the **MAJOR**(#?).**MODEL**(#??).**CONTROLLER**(#??).**VIEW**(#??)-**MILESTONE** format.  
 
-So, Solar Eclipse (`v4`) is currently using Model `v4`, Controller `v0`, View `v0`, and is in its `alpha` milestone.
+So, Solar Eclipse (`v4`) is currently using Model `v4`, Controller `v1`, View `v0`, and is in its `alpha` milestone.
 
 The project's packages and modules exist within the `dev.atomixsoft.solar_eclipse` namespace.  The only module is `core` - `server`, `editor`, and `client` sub-projects are comprised of a series of packages.
 

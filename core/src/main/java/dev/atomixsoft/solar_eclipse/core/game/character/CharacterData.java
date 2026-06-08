@@ -9,6 +9,10 @@ public class CharacterData {
     public final Inventory inventory = new Inventory();
     public final Stats stats = new Stats();
 
+    public int accountId;
+    public int characterId;
+    public int mapId;
+
     public int textureId;
     public String name;
     public boolean removed;

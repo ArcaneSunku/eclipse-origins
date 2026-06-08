@@ -13,14 +13,18 @@ import dev.atomixsoft.solar_eclipse.core.net.packet.request.MoveIntent;
 import dev.atomixsoft.solar_eclipse.core.net.packet.response.EntityPositionUpdate;
 import dev.atomixsoft.solar_eclipse.core.net.packet.response.LoginResponse;
 import dev.atomixsoft.solar_eclipse.core.net.packet.response.MapLoad;
+import dev.atomixsoft.solar_eclipse.server.database.repositories.AccountRepository;
+import dev.atomixsoft.solar_eclipse.server.database.repositories.CharacterRepository;
 import dev.atomixsoft.solar_eclipse.server.game.ServerWorld;
 import dev.atomixsoft.solar_eclipse.server.game.ecs.Components;
 import dev.atomixsoft.solar_eclipse.server.game.ecs.components.MovementComponent;
 import dev.atomixsoft.solar_eclipse.server.game.ecs.components.NameComponent;
+import dev.atomixsoft.solar_eclipse.server.game.ecs.components.PersistenceComponent;
 import dev.atomixsoft.solar_eclipse.server.game.ecs.components.PositionComponent;
 import dev.atomixsoft.solar_eclipse.server.net.NetworkServer;
 import dev.atomixsoft.solar_eclipse.server.net.PacketQueue;
 import dev.atomixsoft.solar_eclipse.server.net.QueuedPacket;
+import dev.atomixsoft.solar_eclipse.server.net.services.records.LoginResultRec;
 
 public class ServerThread implements Runnable {
 
@@ -31,9 +35,10 @@ public class ServerThread implements Runnable {
     private volatile boolean m_Running;
     private long m_ServerTick;
 
-    public ServerThread(PacketQueue packetQueue, NetworkServer network) {
+    public ServerThread(PacketQueue packetQueue, NetworkServer network,
+                        AccountRepository accounts, CharacterRepository characters) {
         m_PacketQueue = packetQueue;
-        m_World = new ServerWorld(network);
+        m_World = new ServerWorld(network, accounts, characters);
         m_Thread = new Thread(this, "Game_Loop");
 
         m_Running = false;
@@ -85,36 +90,43 @@ public class ServerThread implements Runnable {
         while((queued = m_PacketQueue.poll()) != null) {
             switch(queued.packet()) {
                 case LoginRequest p -> {
-                    if(!m_World.auth().validate(p.username(), p.password())) {
-                        queued.channel().writeAndFlush(new LoginResponse(false, "Invalid login.", p.username(), -1, -1));
+                    LoginResultRec login = m_World.auth().login(p.username(), p.password());
+                    if(!login.success()) {
+                        queued.channel().writeAndFlush(new LoginResponse(false, login.message(), p.username(), -1, -1));
                         break;
                     }
 
-                    CharacterData data = new CharacterData();
-                    data.name = p.username();
-                    data.x = 2;
-                    data.y = 3;
-                    data.player = true;
+                    if(m_World.players().getPlayer(queued.channel()) != null) {
+                        Entity existing = m_World.players().getPlayer(queued.channel());
+                        int entityId = m_World.players().getEntityId(existing);
 
-                    Entity player = m_World.players().createPlayer(queued.channel(), data);
+                        queued.channel().writeAndFlush(new LoginResponse(true, "Already logged in.", p.username(), entityId, login.mapId()));
+                        break;
+                    }
+
+                    Entity player = m_World.players().createPlayer(queued.channel(), login.data());
                     int entityId = m_World.players().getEntityId(player);
 
-                    queued.channel().writeAndFlush(new LoginResponse(true, "Welcome " + p.username(), p.username(), entityId, 0));
+                    queued.channel().writeAndFlush(new LoginResponse(true, login.message(), p.username(), entityId, login.mapId()));
 
                     // Load a Test Map in the Server and Send to the Client
-                    MapLoad mapLoad = m_World.maps().createMapLoad(0);
+                    MapLoad mapLoad = m_World.maps().createMapLoad(login.mapId());
 
                     if(mapLoad != null)
                         queued.channel().writeAndFlush(mapLoad);
 
                     sendExistingEntitiesTo(queued);
 
-                    EntitySpawn newPlayerSpawn = createEntitySpawn(player);
-                    if(newPlayerSpawn != null)
-                        m_World.network().broadcast(newPlayerSpawn);
+                    EntitySpawn spawn = createEntitySpawn(player);
+                    if(spawn != null)
+                        m_World.network().broadcast(spawn);
                 }
 
                 case LogoutRequest p -> {
+                    Entity entity = m_World.players().getPlayer(queued.channel());
+                    if(entity != null)
+                        savePlayer(entity);
+
                     int entityId = m_World.players().removePlayer(queued.channel());
 
                     if(entityId != -1)
@@ -191,6 +203,20 @@ public class ServerThread implements Runnable {
             if(spawn != null)
                 queued.channel().writeAndFlush(spawn);
         }
+    }
+
+    private void savePlayer(Entity entity) {
+        if(entity == null)
+            return;
+
+        PersistenceComponent persistence = Components.PERSISTENCE.get(entity);
+        PositionComponent position = Components.POSITION.get(entity);
+
+        if(persistence == null || position == null)
+            return;
+
+        m_World.getCharacters().saveState(persistence.characterId,
+                position.mapId, position.x, position.y, 0);
     }
 
     private void sendSnapshots() {

@@ -40,12 +40,18 @@ public class PlayerService {
         PositionComponent position = m_Engine.createComponent(PositionComponent.class);
         position.x = data.x;
         position.y = data.y;
+        position.mapId = data.mapId;
 
         MovementComponent movement = m_Engine.createComponent(MovementComponent.class);
         PlayerComponent player = m_Engine.createComponent(PlayerComponent.class);
 
+        PersistenceComponent persistence = m_Engine.createComponent(PersistenceComponent.class);
+        persistence.accountId = data.accountId;
+        persistence.characterId = data.characterId;
+
         entity.add(identity);
         entity.add(name);
+        entity.add(persistence);
         entity.add(position);
         entity.add(movement);
         entity.add(player);

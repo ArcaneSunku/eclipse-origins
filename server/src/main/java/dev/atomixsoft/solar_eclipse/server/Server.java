@@ -7,6 +7,9 @@ import dev.atomixsoft.solar_eclipse.core.net.codec.PacketEncoder;
 import dev.atomixsoft.solar_eclipse.core.net.PacketRegistry;
 import dev.atomixsoft.solar_eclipse.server.config.Configuration;
 import dev.atomixsoft.solar_eclipse.server.console.ConsoleThread;
+import dev.atomixsoft.solar_eclipse.server.database.Database;
+import dev.atomixsoft.solar_eclipse.server.database.repositories.AccountRepository;
+import dev.atomixsoft.solar_eclipse.server.database.repositories.CharacterRepository;
 import dev.atomixsoft.solar_eclipse.server.logging.Logger;
 import dev.atomixsoft.solar_eclipse.server.net.NetworkServer;
 import dev.atomixsoft.solar_eclipse.server.net.PacketQueue;
@@ -19,6 +22,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
 
+import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 
 public class Server {
@@ -49,6 +53,11 @@ public class Server {
     private NetworkServer m_Network;
     private PacketQueue m_PacketQueue;
 
+    private Database m_AccountsDB;
+
+    private AccountRepository m_Accounts;
+    private CharacterRepository m_Characters;
+
     public Server() {
         m_ConfigInfo = new Configuration(Configuration.SupportedConfigFileTypes.INI, "server/server.ini");
         m_Logger = new Logger(Server.class.getSimpleName(), Logger.SupportedLogHandlerTypes.ASYNC_CONSOLE,
@@ -66,11 +75,17 @@ public class Server {
         PacketRegistry.Initialize();
         m_EventBus = new EventBus();
 
+        m_AccountsDB = new Database(Path.of("server/accounts/accounts.db"));
+        m_AccountsDB.initialize();
+
+        m_Accounts = new AccountRepository(m_AccountsDB);
+        m_Characters = new CharacterRepository(m_AccountsDB);
+
         m_Network = new NetworkServer();
         m_PacketQueue = new PacketQueue();
 
         m_Console = new Thread(new ConsoleThread(m_EventBus, this::shutdown), "Console_Thread");
-        m_GameLoop = new ServerThread(m_PacketQueue, m_Network);
+        m_GameLoop = new ServerThread(m_PacketQueue, m_Network, m_Accounts, m_Characters);
 
         m_Console.setDaemon(true);
 
@@ -144,6 +159,7 @@ public class Server {
         try {
             new Server().run();
         } catch (Exception e) {
+            e.printStackTrace();
             throw new RuntimeException("Server failed to start: " + e.getMessage());
         }
     }
