@@ -7,6 +7,7 @@ import org.lwjgl.opengl.GL;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
+import dev.atomixsoft.solar_eclipse.client.graphics.RenderCapabilities;
 import dev.atomixsoft.solar_eclipse.client.util.input.InputHandler;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
@@ -20,6 +21,8 @@ import static org.lwjgl.system.MemoryStack.stackPush;
  * If you make your own Window class or want things set up different, I'd be cautious.</p>
  */
 public class Window {
+    private static final boolean IS_MAC = System.getProperty("os.name").toLowerCase().contains("mac");
+
     private long m_Handle;
 
     private String m_Title;
@@ -59,6 +62,13 @@ public class Window {
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
         glfwWindowHint(GLFW_RESIZABLE, m_Resizable ? GLFW_TRUE : GLFW_FALSE);
 
+        if(IS_MAC) {
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
+            glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        }
+
         m_Handle = glfwCreateWindow(m_Width, m_Height, m_Title, MemoryUtil.NULL, MemoryUtil.NULL);
         if(m_Handle == MemoryUtil.NULL)
             throw new RuntimeException("Failed to create a Window!");
@@ -79,6 +89,7 @@ public class Window {
         glfwMakeContextCurrent(m_Handle);
         glfwSwapInterval(swapInterval);
         GL.createCapabilities();
+        RenderCapabilities.Initialize();
 
         glfwSetWindowSizeCallback(m_Handle, this::resize);
         glfwSetFramebufferSizeCallback(m_Handle, this::framebuffer_resize);

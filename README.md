@@ -14,6 +14,7 @@
   - [Editor](#editor)
   - [Client](#client)
 - [Building](#building)
+  - [Gradle Wrapper Setup](#gradle-wrapper-setup)
   - [Clean and Build All](#clean-and-build-all)
   - [Clean and Build Core](#clean-and-build-core)
   - [Clean and Build Server](#clean-and-build-server)
@@ -29,12 +30,12 @@
 
 ## Requirements
 - **Written in Java 21**
-- * OpenJDK "Temurin" version 21-0.3+9 (Eclipse Adoptium JRE)
+- * OpenJDK "Temurin" version 21-0.3+9 (Eclipse Adoptium JDK)
 - **Built with:** Gradle 8.12.x (Groovy configuration)
 
 
 
-Currently only tested on Windows(10/11) & Linux (PikaOS).
+Currently tested on Windows(10/11 amd64), Linux (PikaOS amd64), and macOS (Tahoe M1).
 
 
 ## Project Overview
@@ -95,6 +96,26 @@ The `client` sub-project is the game front-end.
 
 
 ## Building
+
+### Gradle Wrapper Setup
+The `gradlew` script is the Gradle Wrapper. It is not Windows-specific. The `w` means "wrapper"; it pins the Gradle version used by the project so contributors do not have to rely on whatever `gradle` version is installed globally.
+
+If this checkout does not include `gradlew`, create the wrapper once from the repository root with Java 21 selected:
+```sh
+export JAVA_HOME=$(/usr/libexec/java_home -v 21)
+export PATH="$JAVA_HOME/bin:$PATH"
+gradle wrapper --gradle-version 8.12.1 --distribution-type all
+```
+
+After that, use `./gradlew` for project commands:
+```sh
+./gradlew --version
+```
+
+On macOS, `./gradlew --version` must report JVM 21. Gradle 8.12.x cannot run on Java 25. If Java 25 is your default shell Java, prefix commands with Java 21:
+```sh
+env JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home ./gradlew :client:run
+```
 
 ### Clean and Build All
 To clean & build all sub-projects, execute the following:

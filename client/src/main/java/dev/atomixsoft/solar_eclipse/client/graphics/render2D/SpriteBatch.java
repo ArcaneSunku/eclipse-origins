@@ -18,20 +18,23 @@ import static org.lwjgl.opengl.GL20.glEnableVertexAttribArray;
 import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
 import static org.lwjgl.opengl.GL30.glDeleteVertexArrays;
-import static org.lwjgl.opengl.GL45.glCreateBuffers;
-import static org.lwjgl.opengl.GL45.glCreateVertexArrays;
+import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 
 import dev.atomixsoft.solar_eclipse.client.graphics.Shader;
 import dev.atomixsoft.solar_eclipse.client.graphics.Texture;
 import dev.atomixsoft.solar_eclipse.client.graphics.RenderCmd;
+import dev.atomixsoft.solar_eclipse.client.graphics.RenderCapabilities;
 import dev.atomixsoft.solar_eclipse.client.graphics.cameras.OrthoCamera;
 
 
 public class SpriteBatch {
-    private static final int MAX_TEXTURE_SLOTS = 32;
+    private static final int FLOATS_PER_VERTEX = 11;
+    private static final int VERTICES_PER_SPRITE = 4;
+    private static final int INDICES_PER_SPRITE = 6;
 
     private final Shader m_BatchShader;
     private final int m_Size;
+    private final int m_MaxTextureSlots;
 
     private final HashMap<Integer, Texture> m_TextureSlots;
     private final int m_VAO;
@@ -57,12 +60,13 @@ public class SpriteBatch {
 
         m_Size = size;
         m_BatchShader = shader;
+        m_MaxTextureSlots = RenderCapabilities.GetMaxBatchTextureSlots();
 
         m_TextureSlots = new HashMap<>();
-        m_Vertices = MemoryUtil.memAllocFloat(m_Size * 4);
+        m_Vertices = MemoryUtil.memAllocFloat(m_Size * VERTICES_PER_SPRITE * FLOATS_PER_VERTEX);
 
-        int[] samplers = new int[MAX_TEXTURE_SLOTS];
-        for (var i = 0; i < MAX_TEXTURE_SLOTS; i++)
+        int[] samplers = new int[m_MaxTextureSlots];
+        for (var i = 0; i < m_MaxTextureSlots; i++)
             samplers[i] = i;
 
         m_BatchShader.bind();
@@ -70,8 +74,8 @@ public class SpriteBatch {
         m_BatchShader.unbind();
 
         int offset = 0;
-        int[] indices = new int[size * 6];
-        for(int i = 0; i < indices.length; i += 6) {
+        int[] indices = new int[size * INDICES_PER_SPRITE];
+        for(int i = 0; i < indices.length; i += INDICES_PER_SPRITE) {
             indices[i]     = offset;
             indices[i + 1] = offset + 1;
             indices[i + 2] = offset + 2;
@@ -91,7 +95,7 @@ public class SpriteBatch {
         m_Indices = MemoryUtil.memAllocInt(indices.length);
         m_Indices.put(0, indices);
 
-        m_VAO = glCreateVertexArrays();
+        m_VAO = glGenVertexArrays();
         m_VBOList = new ArrayList<>();
         initBatch();
 
@@ -101,10 +105,10 @@ public class SpriteBatch {
     private void initBatch() {
         glBindVertexArray(m_VAO);
 
-        int vbo = glCreateBuffers();
+        int vbo = glGenBuffers();
         m_VBOList.add(vbo);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, (m_Size * 4L) * Float.BYTES, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, (m_Size * VERTICES_PER_SPRITE * FLOATS_PER_VERTEX) * (long) Float.BYTES, GL_DYNAMIC_DRAW);
 
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 3, GL_FLOAT, false, 11 * Float.BYTES, 0);
@@ -121,10 +125,10 @@ public class SpriteBatch {
         glEnableVertexAttribArray(4);
         glVertexAttribPointer(4, 1, GL_FLOAT, false, 11 * Float.BYTES, 10 * Float.BYTES);
 
-        int ebo = glCreateBuffers();
+        int ebo = glGenBuffers();
         m_VBOList.add(ebo);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, (m_Size * 6L) * Integer.BYTES, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, (m_Size * INDICES_PER_SPRITE) * (long) Integer.BYTES, GL_DYNAMIC_DRAW);
         glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, m_Indices);
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -165,7 +169,7 @@ public class SpriteBatch {
     }
 
     public void render(Texture texture, Vector2f cellPos, Vector2f cellSize, Vector3f position, Vector2f size, Vector3f color, float tileFactor) {
-        if(m_IndexCount >= m_Size * 6)
+        if(m_IndexCount >= m_Size * INDICES_PER_SPRITE)
             nextBatch();
 
         Vector2f halfSize = new Vector2f(size.x * 0.5f, size.y * 0.5f);
@@ -183,7 +187,7 @@ public class SpriteBatch {
 
         if (textureSlot == 0.0f)
         {
-            if(m_TextureSlotIndex >= MAX_TEXTURE_SLOTS)
+            if(m_TextureSlotIndex >= m_MaxTextureSlots)
                 nextBatch();
 
             textureSlot = (float) m_TextureSlotIndex;
@@ -196,9 +200,9 @@ public class SpriteBatch {
         m_Vertices.put(position.x + halfSize.x).put(position.y - halfSize.y).put(position.z).put(color.x).put(color.y).put(color.z).put(1.0f).put(uv2.x).put(uv2.y).put(textureSlot).put(tileFactor); // Bottom Right
         m_Vertices.put(position.x + halfSize.x).put(position.y + halfSize.y).put(position.z).put(color.x).put(color.y).put(color.z).put(1.0f).put(uv2.x).put(uv1.y).put(textureSlot).put(tileFactor); // Top Right
 
-        m_IndexCount+= 6;
+        m_IndexCount += INDICES_PER_SPRITE;
 
-        if(m_Vertices.remaining() <= m_Size * 6)
+        if(m_IndexCount >= m_Size * INDICES_PER_SPRITE)
             flush();
     }
 

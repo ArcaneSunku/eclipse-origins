@@ -12,7 +12,6 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static org.lwjgl.opengl.GL30.glGenerateMipmap;
-import static org.lwjgl.opengl.GL45.glCreateTextures;
 import static org.lwjgl.stb.STBImage.*;
 
 
@@ -149,7 +148,7 @@ public class Texture {
     private void generateTexture(int width, int height, ByteBuffer buf) {
         m_Width = width;
         m_Height = height;
-        m_TextureId = glCreateTextures(GL_TEXTURE_2D);
+        m_TextureId = glGenTextures();
 
         glBindTexture(GL_TEXTURE_2D, m_TextureId);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);

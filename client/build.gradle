@@ -13,18 +13,24 @@ ext {
 def dataDir = "${rootProject.projectDir}/data"
 
 def osName = System.getProperty("os.name").toLowerCase()
+def osArch = System.getProperty("os.arch").toLowerCase()
 def lwjglNatives = ""
 def imguiNatives = ""
 
 if (osName.contains("linux")) {
-    lwjglNatives = "natives-linux"
+    lwjglNatives = osArch.contains("aarch64") || osArch.contains("arm64")
+            ? "natives-linux-arm64"
+            : "natives-linux"
+    imguiNatives = "natives-linux"
 } else if (osName.contains("mac")) {
-    lwjglNatives = "natives-macos"
+    lwjglNatives = osArch.contains("aarch64") || osArch.contains("arm64")
+            ? "natives-macos-arm64"
+            : "natives-macos"
+    imguiNatives = "natives-macos"
 } else {
     lwjglNatives = "natives-windows"
+    imguiNatives = "natives-windows"
 }
-
-imguiNatives = lwjglNatives
 
 
 dependencies {
@@ -39,7 +45,7 @@ dependencies {
 
     implementation "io.github.spair:imgui-java-binding:$imguiVersion"
     implementation "io.github.spair:imgui-java-lwjgl3:$imguiVersion"
-    implementation "io.github.spair:imgui-java-$lwjglNatives:$imguiVersion"
+    implementation "io.github.spair:imgui-java-$imguiNatives:$imguiVersion"
 
     implementation 'io.netty:netty-all:' + nettyVersion
     implementation 'com.badlogicgames.ashley:ashley:' + ashleyVersion
@@ -57,6 +63,10 @@ dependencies {
 
 application {
     mainClass = 'dev.atomixsoft.solar_eclipse.client.Client'
+
+    if (osName.contains("mac")) {
+        applicationDefaultJvmArgs = ["-XstartOnFirstThread"]
+    }
 }
 
 task debug(type: JavaExec) {
@@ -78,8 +88,8 @@ task debug(type: JavaExec) {
 
     mainClass = application.mainClass.get()
     
-    jvmArgs = [
-        "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5007"
+    jvmArgs = (osName.contains("mac") ? ["-XstartOnFirstThread"] : []) + [
+            "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5007"
     ]
     ignoreExitValue = true
 

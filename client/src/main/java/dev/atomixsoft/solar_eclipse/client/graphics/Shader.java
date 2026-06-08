@@ -135,6 +135,8 @@ public class Shader {
         if(shaderId == 0)
             throw new RuntimeException("Failed to create shader: " + shaderType);
 
+        shaderSource = specializeShaderSource(shaderSource, shaderType);
+
         glShaderSource(shaderId, shaderSource);
         glCompileShader(shaderId);
         if(glGetShaderi(shaderId, GL_COMPILE_STATUS) == GL_FALSE) {
@@ -147,6 +149,8 @@ public class Shader {
     }
 
     private void link(List<Integer> shaderModules) {
+        bindSpriteBatchAttributeLocations();
+
         glLinkProgram(m_ProgramId);
         if(glGetProgrami(m_ProgramId, GL_LINK_STATUS) == GL_FALSE) {
             System.err.println(glGetProgramInfoLog(m_ProgramId, 1024));
@@ -155,6 +159,48 @@ public class Shader {
 
         shaderModules.forEach(s -> glDetachShader(m_ProgramId, s));
         shaderModules.forEach(GL30::glDeleteShader);
+    }
+
+    private void bindSpriteBatchAttributeLocations() {
+        glBindAttribLocation(m_ProgramId, 0, "a_Position");
+        glBindAttribLocation(m_ProgramId, 1, "a_Color");
+        glBindAttribLocation(m_ProgramId, 2, "a_TexCoord");
+        glBindAttribLocation(m_ProgramId, 3, "a_TexIndex");
+        glBindAttribLocation(m_ProgramId, 4, "a_TileFactor");
+    }
+
+    private String specializeShaderSource(String shaderSource, int shaderType) {
+        if(shaderType != GL_FRAGMENT_SHADER)
+            return shaderSource;
+
+        if(!shaderSource.contains("{{MAX_TEXTURE_SLOTS}}"))
+            return shaderSource;
+
+        int textureSlots = RenderCapabilities.GetMaxBatchTextureSlots();
+        return shaderSource
+                .replace("{{MAX_TEXTURE_SLOTS}}", Integer.toString(textureSlots))
+                .replace("{{SAMPLER_SWITCH_CASES}}", buildSamplerSwitchCases(textureSlots));
+    }
+
+    private String buildSamplerSwitchCases(int textureSlots) {
+        StringBuilder cases = new StringBuilder();
+
+        for(int i = 0; i < textureSlots; i++) {
+            cases.append("        case ");
+            if(i < 10)
+                cases.append(" ");
+
+            cases.append(i)
+                    .append(": texColor *= texture(u_Textures[");
+
+            if(i < 10)
+                cases.append(" ");
+
+            cases.append(i)
+                    .append("], texCoord * v_TileFactor) * v_Color; break;\n");
+        }
+
+        return cases.toString();
     }
 
     public int getProgramId() {
