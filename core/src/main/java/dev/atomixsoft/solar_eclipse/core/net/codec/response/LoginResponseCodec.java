@@ -11,6 +11,7 @@ public class LoginResponseCodec implements PacketCodec<LoginResponse> {
     public void encode(LoginResponse packet, ByteBuf out) {
         out.writeBoolean(packet.success());
         CodecUtils.writeString(out, packet.message());
+        CodecUtils.writeString(out, packet.username());
         out.writeInt(packet.playerEntityId());
         out.writeInt(packet.mapId());
     }
@@ -19,10 +20,11 @@ public class LoginResponseCodec implements PacketCodec<LoginResponse> {
     public LoginResponse decode(ByteBuf in) {
         boolean success = in.readBoolean();
         String msg = CodecUtils.readString(in);
+        String user = CodecUtils.readString(in);
         int playerId = in.readInt();
         int mapId = in.readInt();
 
-        return new LoginResponse(success, msg, playerId, mapId);
+        return new LoginResponse(success, msg, user, playerId, mapId);
     }
 
 }

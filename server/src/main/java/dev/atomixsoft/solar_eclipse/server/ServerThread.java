@@ -86,7 +86,7 @@ public class ServerThread implements Runnable {
             switch(queued.packet()) {
                 case LoginRequest p -> {
                     if(!m_World.auth().validate(p.username(), p.password())) {
-                        queued.channel().writeAndFlush(new LoginResponse(false, "Invalid login.", -1, -1));
+                        queued.channel().writeAndFlush(new LoginResponse(false, "Invalid login.", p.username(), -1, -1));
                         break;
                     }
 
@@ -99,7 +99,7 @@ public class ServerThread implements Runnable {
                     Entity player = m_World.players().createPlayer(queued.channel(), data);
                     int entityId = m_World.players().getEntityId(player);
 
-                    queued.channel().writeAndFlush(new LoginResponse(true, "Welcome " + p.username(), entityId, 0));
+                    queued.channel().writeAndFlush(new LoginResponse(true, "Welcome " + p.username(), p.username(), entityId, 0));
 
                     // Load a Test Map in the Server and Send to the Client
                     MapLoad mapLoad = m_World.maps().createMapLoad(0);

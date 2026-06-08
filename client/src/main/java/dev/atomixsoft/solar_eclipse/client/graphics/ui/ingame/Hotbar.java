@@ -1,8 +1,7 @@
-package dev.atomixsoft.solar_eclipse.client.graphics.ui;
+package dev.atomixsoft.solar_eclipse.client.graphics.ui.ingame;
 
 import dev.atomixsoft.solar_eclipse.client.graphics.Texture;
 import imgui.ImGui;
-import imgui.ImVec2;
 import imgui.flag.ImGuiWindowFlags;
 
 public class Hotbar {

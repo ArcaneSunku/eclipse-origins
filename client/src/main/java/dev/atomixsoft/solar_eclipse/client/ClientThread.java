@@ -4,6 +4,7 @@ import dev.atomixsoft.solar_eclipse.client.events.PacketListener;
 import dev.atomixsoft.solar_eclipse.client.events.ShutdownListener;
 import dev.atomixsoft.solar_eclipse.client.logging.Logger;
 
+import dev.atomixsoft.solar_eclipse.client.net.ClientSession;
 import dev.atomixsoft.solar_eclipse.client.net.NetworkClient;
 import dev.atomixsoft.solar_eclipse.client.scene.MainScene;
 import dev.atomixsoft.solar_eclipse.client.util.ImGuiManager;
@@ -245,6 +246,8 @@ public class ClientThread implements Runnable {
                 m_Logger.info("Login status: " + p.success() + " - " + p.message());
 
                 if(p.success()) {
+                    ClientSession.Login(p.username(), p.playerEntityId(), p.mapId());
+
                     set_size(785, 594);
                     set_scene("Test");
                 }

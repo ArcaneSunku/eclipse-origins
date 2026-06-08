@@ -1,10 +1,9 @@
-package dev.atomixsoft.solar_eclipse.client.graphics.ui;
+package dev.atomixsoft.solar_eclipse.client.graphics.ui.ingame;
 
 import dev.atomixsoft.solar_eclipse.client.AssetLoader;
-import dev.atomixsoft.solar_eclipse.client.graphics.GameRenderer;
 import dev.atomixsoft.solar_eclipse.client.graphics.Texture;
+import dev.atomixsoft.solar_eclipse.client.graphics.ui.Button;
 import dev.atomixsoft.solar_eclipse.core.game.character.CharacterData;
-import dev.atomixsoft.solar_eclipse.core.game.map.GameMap;
 import imgui.ImGui;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiStyleVar;
@@ -60,19 +59,10 @@ public class GameMenu {
         if(m_Inventory == null) m_Inventory = new InventoryMenu(m_MenuTextures.get("inventory"), 541, 283);
     }
 
-    public void render(GameRenderer renderer) {
-        if(m_Player == null) {
-            GameMap map = renderer.getMap();
-            if(map == null)
-                return;
-
-            for(CharacterData ch : map.MapCharacters) {
-                if(ch.player) {
-                    m_Player = ch;
-                    break;
-                }
-            }
-        }
+    public void render(CharacterData player) {
+        m_Player = player;
+        if(m_Player == null)
+            return;
 
         renderMenu();
         renderButtons();

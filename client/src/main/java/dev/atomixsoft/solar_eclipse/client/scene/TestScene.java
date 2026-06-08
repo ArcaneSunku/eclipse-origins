@@ -6,19 +6,16 @@ import dev.atomixsoft.solar_eclipse.client.graphics.FrameBuffer;
 import dev.atomixsoft.solar_eclipse.client.graphics.GameRenderer;
 import dev.atomixsoft.solar_eclipse.client.graphics.RenderCmd;
 import dev.atomixsoft.solar_eclipse.client.graphics.Texture;
-import dev.atomixsoft.solar_eclipse.client.graphics.ui.ChatBox;
-import dev.atomixsoft.solar_eclipse.client.graphics.ui.GameMenu;
+import dev.atomixsoft.solar_eclipse.client.graphics.ui.ingame.ChatBox;
+import dev.atomixsoft.solar_eclipse.client.graphics.ui.ingame.GameMenu;
+import dev.atomixsoft.solar_eclipse.client.graphics.ui.ingame.PlayerHud;
+import dev.atomixsoft.solar_eclipse.client.net.ClientSession;
 import dev.atomixsoft.solar_eclipse.core.event.types.SendPacketEvent;
-import dev.atomixsoft.solar_eclipse.core.game.Actuator;
 import dev.atomixsoft.solar_eclipse.core.game.character.CharacterData;
-import dev.atomixsoft.solar_eclipse.core.game.character.Direction;
-import dev.atomixsoft.solar_eclipse.core.game.map.GameMap;
-import dev.atomixsoft.solar_eclipse.core.game.map.Tile;
 import dev.atomixsoft.solar_eclipse.core.net.packet.Packet;
 import dev.atomixsoft.solar_eclipse.core.net.packet.notification.ChatMessageBroadcast;
 import dev.atomixsoft.solar_eclipse.core.net.packet.notification.EntityDespawn;
 import dev.atomixsoft.solar_eclipse.core.net.packet.notification.EntitySpawn;
-import dev.atomixsoft.solar_eclipse.core.net.packet.request.ChatMessageRequest;
 import dev.atomixsoft.solar_eclipse.core.net.packet.request.LogoutRequest;
 import dev.atomixsoft.solar_eclipse.core.net.packet.request.MoveIntent;
 import dev.atomixsoft.solar_eclipse.core.net.packet.response.EntityPositionUpdate;
@@ -26,20 +23,12 @@ import dev.atomixsoft.solar_eclipse.core.net.packet.response.MapLoad;
 import imgui.*;
 import imgui.flag.*;
 
-import dev.atomixsoft.solar_eclipse.core.game.Constants;
-
 import dev.atomixsoft.solar_eclipse.client.util.input.Controller;
 
 import dev.atomixsoft.solar_eclipse.client.AssetLoader;
 
 import dev.atomixsoft.solar_eclipse.client.graphics.render2D.SpriteBatch;
 import dev.atomixsoft.solar_eclipse.client.graphics.cameras.OrthoCamera;
-import imgui.type.ImString;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import static dev.atomixsoft.solar_eclipse.core.event.types.InputEvent.InputType;
 
@@ -59,6 +48,7 @@ public class TestScene extends SceneAdapter {
 
     private GameRenderer gameRender;
     private GameMenu gameMenu;
+    private PlayerHud playerHud;
     private ChatBox chatBox;
     private boolean focused;
 
@@ -76,6 +66,7 @@ public class TestScene extends SceneAdapter {
 
         gameRender = new GameRenderer();
         gameMenu = new GameMenu();
+        playerHud = new PlayerHud();
         chatBox = new ChatBox();
 
         clientWorld = new ClientWorld(gameRender);
@@ -93,6 +84,7 @@ public class TestScene extends SceneAdapter {
     public void update(Controller input, double dt) {
         if(input.isPressed(InputType.ESCAPE)) {
             ClientThread.eventBus().post(new SendPacketEvent(new LogoutRequest()));
+            ClientSession.Clear();
 
             ClientThread.set_size(515, 352);
             ClientThread.set_scene("Menu");
@@ -130,6 +122,11 @@ public class TestScene extends SceneAdapter {
 
         if(player != null) {
             player.keyFrame = 0;
+        }
+
+        if(player != null) {
+            camera.getPosition().x = player.x * GameRenderer.TILE_SIZE + GameRenderer.TILE_SIZE * 0.5f;
+            camera.getPosition().y = player.y * GameRenderer.TILE_SIZE + GameRenderer.TILE_SIZE * 0.5f;
         }
 
         gameRender.update(camera);
@@ -176,8 +173,6 @@ public class TestScene extends SceneAdapter {
 
     @Override
     public void imgui() {
-        ImGuiIO io = ImGui.getIO();
-
         ImGui.pushStyleColor(ImGuiCol.Border, 1, 1, 1, 0);
         ImGui.pushStyleVar(ImGuiStyleVar.WindowBorderSize, 0);
         ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 0, 0);
@@ -194,6 +189,8 @@ public class TestScene extends SceneAdapter {
         ImGui.image(main_bg.getTextureId(), ImGui.getContentRegionAvail());
         ImGui.end();
 
+        playerHud.render(clientWorld.getPlayerStats());
+
         // Game Buffer
         ImGui.setNextWindowPos(13, 12);
         ImGui.setNextWindowSize(475, 379);
@@ -201,7 +198,7 @@ public class TestScene extends SceneAdapter {
         ImGui.begin("Game_Window", ImGuiWindowFlags.NoDecoration);
         ImGui.image(frameBuffer.getColorBufferId(), ImGui.getContentRegionAvail(), new ImVec2(0, 1), new ImVec2(1, 0));
         focused = ImGui.isWindowFocused();
-        gameMenu.render(gameRender);
+        gameMenu.render(clientWorld.getPlayer());
         ImGui.end();
 
         // Game Chat

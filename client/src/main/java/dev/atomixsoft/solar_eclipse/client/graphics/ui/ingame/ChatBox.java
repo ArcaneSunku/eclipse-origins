@@ -1,9 +1,8 @@
-package dev.atomixsoft.solar_eclipse.client.graphics.ui;
+package dev.atomixsoft.solar_eclipse.client.graphics.ui.ingame;
 
 import dev.atomixsoft.solar_eclipse.client.ClientThread;
 import dev.atomixsoft.solar_eclipse.client.util.ImGuiFonts;
 import dev.atomixsoft.solar_eclipse.core.event.types.SendPacketEvent;
-import dev.atomixsoft.solar_eclipse.core.game.character.CharacterData;
 import dev.atomixsoft.solar_eclipse.core.net.packet.notification.ChatMessageBroadcast;
 import dev.atomixsoft.solar_eclipse.core.net.packet.request.ChatMessageRequest;
 

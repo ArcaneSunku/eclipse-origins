@@ -1,6 +1,7 @@
 package dev.atomixsoft.solar_eclipse.client.game;
 
 import dev.atomixsoft.solar_eclipse.client.graphics.GameRenderer;
+import dev.atomixsoft.solar_eclipse.client.net.ClientSession;
 import dev.atomixsoft.solar_eclipse.core.game.Actuator;
 import dev.atomixsoft.solar_eclipse.core.game.character.CharacterData;
 import dev.atomixsoft.solar_eclipse.core.game.character.Direction;
@@ -17,6 +18,7 @@ import java.util.Map;
 public class ClientWorld {
 
     private final GameRenderer m_Renderer;
+    private final ClientPlayerStats m_PlayerStats;
     private final Map<Integer, CharacterData> m_EntitiesById;
 
     private CharacterData m_Player;
@@ -24,6 +26,7 @@ public class ClientWorld {
 
     public ClientWorld(GameRenderer renderer) {
         m_Renderer = renderer;
+        m_PlayerStats = new ClientPlayerStats();
         m_EntitiesById = new HashMap<>();
 
         m_Player = null;
@@ -34,9 +37,24 @@ public class ClientWorld {
         m_EntitiesById.clear();
 
         m_Player = null;
+        resetPlayerStats();
         m_LocalEntityId = -1;
 
         m_Renderer.setMap(null);
+    }
+
+    public void resetPlayerStats() {
+        m_PlayerStats.health = 100;
+        m_PlayerStats.maxHealth = 100;
+
+        m_PlayerStats.spirit = 35;
+        m_PlayerStats.maxSpirit = 50;
+
+        m_PlayerStats.experience = 20;
+        m_PlayerStats.maxExperience = 100;
+
+        m_PlayerStats.gold = 1337;
+        m_PlayerStats.ping = 0;
     }
 
     public void applyPositionUpdate(EntityPositionUpdate packet) {
@@ -108,10 +126,14 @@ public class ClientWorld {
         entity.facing = Direction.Get(packet.direction());
         entity.moving = false;
 
-        if(m_Player == null) {
+        if(packet.entityId() == ClientSession.GetLocalEntityId()) {
             m_Player = entity;
             m_LocalEntityId = packet.entityId();
         }
+    }
+
+    public ClientPlayerStats getPlayerStats() {
+        return m_PlayerStats;
     }
 
     public CharacterData getPlayer() {
