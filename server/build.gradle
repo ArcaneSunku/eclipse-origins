@@ -5,6 +5,7 @@ plugins {
 ext {
     nettyVersion = "4.2.0.Final"
     ashleyVersion = "1.7.4"
+    sqLiteJDBCVersion = "3.53.2.0"
 }
 
 def dataDir = "${rootProject.projectDir}/data"
@@ -17,6 +18,7 @@ dependencies {
     implementation project(':core')
     implementation 'io.netty:netty-all:' + nettyVersion
     implementation 'com.badlogicgames.ashley:ashley:' + ashleyVersion
+    implementation 'org.xerial:sqlite-jdbc:' + sqLiteJDBCVersion
 }
 
 tasks.register('debug', JavaExec).configure {

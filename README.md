@@ -76,6 +76,7 @@ The `server` sub-project handles the back-end operations of the game.
 
 | **Dependencies**:
 - `:core`
+- [sqlite-jdbc 3.53.2.0](https://github.com/xerial/sqlite-jdbc)
 
 ### Editor
 The `editor` sub-project provides tools for developers to create and manage game content.
