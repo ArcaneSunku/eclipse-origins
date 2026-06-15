@@ -1,30 +1,26 @@
 package dev.atomixsoft.solar_eclipse.server;
 
 import com.badlogic.ashley.core.Entity;
-import dev.atomixsoft.solar_eclipse.core.game.character.CharacterData;
 import dev.atomixsoft.solar_eclipse.core.game.character.Direction;
-import dev.atomixsoft.solar_eclipse.core.net.packet.Packet;
 import dev.atomixsoft.solar_eclipse.core.net.packet.notification.EntityDespawn;
 import dev.atomixsoft.solar_eclipse.core.net.packet.notification.EntitySpawn;
-import dev.atomixsoft.solar_eclipse.core.net.packet.request.ChatMessageRequest;
-import dev.atomixsoft.solar_eclipse.core.net.packet.request.LoginRequest;
-import dev.atomixsoft.solar_eclipse.core.net.packet.request.LogoutRequest;
-import dev.atomixsoft.solar_eclipse.core.net.packet.request.MoveIntent;
-import dev.atomixsoft.solar_eclipse.core.net.packet.response.EntityPositionUpdate;
-import dev.atomixsoft.solar_eclipse.core.net.packet.response.LoginResponse;
-import dev.atomixsoft.solar_eclipse.core.net.packet.response.MapLoad;
+import dev.atomixsoft.solar_eclipse.core.net.packet.request.*;
+import dev.atomixsoft.solar_eclipse.core.net.packet.response.*;
+import dev.atomixsoft.solar_eclipse.server.database.records.CharacterRecord;
+import dev.atomixsoft.solar_eclipse.server.database.records.CharacterSummary;
 import dev.atomixsoft.solar_eclipse.server.database.repositories.AccountRepository;
 import dev.atomixsoft.solar_eclipse.server.database.repositories.CharacterRepository;
 import dev.atomixsoft.solar_eclipse.server.game.ServerWorld;
 import dev.atomixsoft.solar_eclipse.server.game.ecs.Components;
-import dev.atomixsoft.solar_eclipse.server.game.ecs.components.MovementComponent;
-import dev.atomixsoft.solar_eclipse.server.game.ecs.components.NameComponent;
-import dev.atomixsoft.solar_eclipse.server.game.ecs.components.PersistenceComponent;
-import dev.atomixsoft.solar_eclipse.server.game.ecs.components.PositionComponent;
+import dev.atomixsoft.solar_eclipse.server.game.ecs.components.*;
 import dev.atomixsoft.solar_eclipse.server.net.NetworkServer;
 import dev.atomixsoft.solar_eclipse.server.net.PacketQueue;
 import dev.atomixsoft.solar_eclipse.server.net.QueuedPacket;
 import dev.atomixsoft.solar_eclipse.server.net.services.records.LoginResultRec;
+import io.netty.channel.Channel;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ServerThread implements Runnable {
 
@@ -90,36 +86,11 @@ public class ServerThread implements Runnable {
         while((queued = m_PacketQueue.poll()) != null) {
             switch(queued.packet()) {
                 case LoginRequest p -> {
-                    LoginResultRec login = m_World.auth().login(p.username(), p.password());
-                    if(!login.success()) {
-                        queued.channel().writeAndFlush(new LoginResponse(false, login.message(), p.username(), -1, -1));
-                        break;
-                    }
+                    handleAuthResult(queued, m_World.auth().login(p.username(), p.password()));
+                }
 
-                    if(m_World.players().getPlayer(queued.channel()) != null) {
-                        Entity existing = m_World.players().getPlayer(queued.channel());
-                        int entityId = m_World.players().getEntityId(existing);
-
-                        queued.channel().writeAndFlush(new LoginResponse(true, "Already logged in.", p.username(), entityId, login.mapId()));
-                        break;
-                    }
-
-                    Entity player = m_World.players().createPlayer(queued.channel(), login.data());
-                    int entityId = m_World.players().getEntityId(player);
-
-                    queued.channel().writeAndFlush(new LoginResponse(true, login.message(), p.username(), entityId, login.mapId()));
-
-                    // Load a Test Map in the Server and Send to the Client
-                    MapLoad mapLoad = m_World.maps().createMapLoad(login.mapId());
-
-                    if(mapLoad != null)
-                        queued.channel().writeAndFlush(mapLoad);
-
-                    sendExistingEntitiesTo(queued);
-
-                    EntitySpawn spawn = createEntitySpawn(player);
-                    if(spawn != null)
-                        m_World.network().broadcast(spawn);
+                case RegisterRequest p -> {
+                    handleAuthResult(queued, m_World.auth().register(p.username(), p.password()));
                 }
 
                 case LogoutRequest p -> {
@@ -131,6 +102,20 @@ public class ServerThread implements Runnable {
 
                     if(entityId != -1)
                         m_World.network().broadcast(new EntityDespawn(entityId));
+
+                    m_World.sessions().removeSession(queued.channel());
+                }
+
+                case CharacterListRequest p -> {
+                    sendCharacterList(queued.channel());
+                }
+
+                case CharacterSelectReq p -> {
+                    handleCharacterSelect(queued, p);
+                }
+
+                case CreateCharacterRequest p -> {
+                    handleCharacterCreate(queued, p);
                 }
 
                 case MoveIntent p -> {
@@ -143,7 +128,7 @@ public class ServerThread implements Runnable {
                     if(Components.MOVE_INTENT.has(entity)) {
                         movement = Components.MOVE_INTENT.get(entity);
                     } else {
-                        movement = m_World.getEngine().createComponent(MovementComponent.class);
+                        movement = m_World.engine().createComponent(MovementComponent.class);
                         entity.add(movement);
                     }
 
@@ -183,17 +168,101 @@ public class ServerThread implements Runnable {
         }
     }
 
+    private void handleAuthResult(QueuedPacket queued, LoginResultRec login) {
+        if(!login.success()) {
+            queued.channel().writeAndFlush(new LoginResponse(false, login.message(), "", -1, -1));
+            return;
+        }
+
+        m_World.sessions().createSession(queued.channel(), login.accountId());
+        queued.channel().writeAndFlush(new LoginResponse(true, login.message(), login.username(), -1, -1));
+
+        sendCharacterList(queued.channel());
+    }
+
+    private void sendStatsTo(Channel channel, Entity entity) {
+        if(!Components.STATS.has(entity))
+            return;
+
+        StatsComponent stats = Components.STATS.get(entity);
+        channel.writeAndFlush(new PlayerStatsSnapshot(stats.level, stats.health, stats.maxHealth,
+                stats.spirit, stats.maxSpirit, stats.experience, stats.maxExperience, stats.gold));
+    }
+
+    private void sendCharacterList(Channel channel) {
+        Integer accountId = m_World.sessions().getAccountId(channel);
+        if(accountId == null)
+            return;
+
+        List<CharacterSummary> summaries = m_World.characters().getCharacterSummaries(accountId);
+        List<CharacterSummaryPacket> packets = new ArrayList<>();
+
+        for(CharacterSummary summary : summaries)
+            packets.add(new CharacterSummaryPacket(summary.slot(), summary.name(), summary.level(), summary.spriteId()));
+
+        channel.writeAndFlush(new CharacterListResponse(packets));
+    }
+
+    private void handleCharacterSelect(QueuedPacket queued, CharacterSelectReq request) {
+        Integer accountId = m_World.sessions().getAccountId(queued.channel());
+        if(accountId == null)
+            return;
+
+        if(m_World.players().getPlayer(queued.channel()) != null)
+            return;
+
+        CharacterRecord character = m_World.characters().findByAccountAndSlot(accountId, request.slot());
+        if(character == null)
+            return;
+
+        Entity player = m_World.players().createPlayer(queued.channel(), m_World.characters().toCharacterData(character));
+
+        int entityId = m_World.players().getEntityId(player);
+        queued.channel().writeAndFlush(new LoginResponse(true, "Entering world...", character.name(), entityId, character.mapId()));
+
+        MapLoad mapLoad = m_World.maps().createMapLoad(character.mapId());
+        if(mapLoad != null)
+            queued.channel().writeAndFlush(mapLoad);
+
+        sendStatsTo(queued.channel(), player);
+        sendExistingEntitiesTo(queued);
+
+        EntitySpawn spawn = createEntitySpawn(player);
+        if(spawn != null)
+            m_World.network().broadcast(spawn);
+    }
+
+    private void handleCharacterCreate(QueuedPacket queued, CreateCharacterRequest request) {
+        Integer accountId = m_World.sessions().getAccountId(queued.channel());
+        if(accountId == null)
+            return;
+
+        if(request.slot() < 0 || request.slot() >= 4)
+            return;
+
+        CharacterRecord existing = m_World.characters().findByAccountAndSlot(accountId, request.slot());
+
+        if(existing != null) {
+            sendCharacterList(queued.channel());
+            return;
+        }
+
+        m_World.characters().createCharacter(accountId, request.slot(), request.name(), request.classId(), request.sex(),  request.spriteId());
+        sendCharacterList(queued.channel());
+    }
+
     private EntitySpawn createEntitySpawn(Entity entity) {
         int entityId = m_World.players().getEntityId(entity);
 
         PositionComponent position = Components.POSITION.get(entity);
         MovementComponent movement = Components.MOVE_INTENT.get(entity);
         NameComponent name = Components.NAME.get(entity);
+        SpriteComponent sprite = Components.SPRITE.get(entity);
 
-        if(position == null || movement == null || name == null)
+        if(position == null || movement == null || name == null || sprite == null)
             return null;
 
-        return new EntitySpawn(entityId, name.name, position.x, position.y, movement.direction);
+        return new EntitySpawn(entityId, name.name, sprite.textureId, position.x, position.y, movement.direction);
     }
 
     private void sendExistingEntitiesTo(QueuedPacket queued) {
@@ -211,12 +280,17 @@ public class ServerThread implements Runnable {
 
         PersistenceComponent persistence = Components.PERSISTENCE.get(entity);
         PositionComponent position = Components.POSITION.get(entity);
+        StatsComponent stats  = Components.STATS.get(entity);
 
-        if(persistence == null || position == null)
+        if(persistence == null || position == null || stats == null)
             return;
 
-        m_World.getCharacters().saveState(persistence.characterId,
-                position.mapId, position.x, position.y, 0);
+        m_World.characters().saveState(persistence.characterId,
+                position.mapId, position.x, position.y,
+                stats.level,
+                stats.health, stats.maxHealth,
+                stats.spirit, stats.maxSpirit,
+                stats.experience, stats.maxExperience, stats.gold);
     }
 
     private void sendSnapshots() {

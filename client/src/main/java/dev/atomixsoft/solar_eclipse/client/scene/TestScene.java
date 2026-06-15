@@ -20,6 +20,7 @@ import dev.atomixsoft.solar_eclipse.core.net.packet.request.LogoutRequest;
 import dev.atomixsoft.solar_eclipse.core.net.packet.request.MoveIntent;
 import dev.atomixsoft.solar_eclipse.core.net.packet.response.EntityPositionUpdate;
 import dev.atomixsoft.solar_eclipse.core.net.packet.response.MapLoad;
+import dev.atomixsoft.solar_eclipse.core.net.packet.response.PlayerStatsSnapshot;
 import imgui.*;
 import imgui.flag.*;
 
@@ -141,6 +142,10 @@ public class TestScene extends SceneAdapter {
 
             case MapLoad p -> {
                 clientWorld.applyMapLoad(p);
+            }
+
+            case PlayerStatsSnapshot p -> {
+                clientWorld.applyStatsSnapshot(p);
             }
 
             case ChatMessageBroadcast p -> {

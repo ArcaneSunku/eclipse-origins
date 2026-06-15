@@ -6,10 +6,7 @@ import dev.atomixsoft.solar_eclipse.server.database.repositories.AccountReposito
 import dev.atomixsoft.solar_eclipse.server.database.repositories.CharacterRepository;
 import dev.atomixsoft.solar_eclipse.server.game.ecs.systems.MovementSystem;
 import dev.atomixsoft.solar_eclipse.server.net.NetworkServer;
-import dev.atomixsoft.solar_eclipse.server.net.services.AuthenticationService;
-import dev.atomixsoft.solar_eclipse.server.net.services.ChatService;
-import dev.atomixsoft.solar_eclipse.server.net.services.MapService;
-import dev.atomixsoft.solar_eclipse.server.net.services.PlayerService;
+import dev.atomixsoft.solar_eclipse.server.net.services.*;
 
 public class ServerWorld {
 
@@ -18,6 +15,7 @@ public class ServerWorld {
     private final Engine m_Engine;
 
     private final AuthenticationService m_AuthService;
+    private final SessionService m_SessionService;
     private final PlayerService m_PlayerService;
     private final ChatService m_ChatService;
     private final MapService m_MapService;
@@ -27,7 +25,8 @@ public class ServerWorld {
         m_Characters = characters;
         m_Engine = new PooledEngine(75, 256, 5, 256);
 
-        m_AuthService = new AuthenticationService(accounts, m_Characters);
+        m_AuthService = new AuthenticationService(accounts);
+        m_SessionService = new SessionService();
         m_PlayerService = new PlayerService(m_Engine);
         m_ChatService = new ChatService(m_Network);
         m_MapService = new MapService();
@@ -47,6 +46,10 @@ public class ServerWorld {
         return m_AuthService;
     }
 
+    public SessionService sessions() {
+        return m_SessionService;
+    }
+
     public PlayerService players() {
         return m_PlayerService;
     }
@@ -63,11 +66,11 @@ public class ServerWorld {
         return m_Network;
     }
 
-    public CharacterRepository getCharacters() {
+    public CharacterRepository characters() {
         return m_Characters;
     }
 
-    public Engine getEngine() {
+    public Engine engine() {
         return m_Engine;
     }
 

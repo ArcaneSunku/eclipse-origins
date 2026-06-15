@@ -5,28 +5,18 @@ import dev.atomixsoft.solar_eclipse.core.net.codec.notification.ChatMessageBroad
 import dev.atomixsoft.solar_eclipse.core.net.codec.notification.EntityDespawnCodec;
 import dev.atomixsoft.solar_eclipse.core.net.codec.notification.EntitySpawnCodec;
 import dev.atomixsoft.solar_eclipse.core.net.codec.notification.ShutdownNotificationCodec;
-import dev.atomixsoft.solar_eclipse.core.net.codec.request.ChatMessageRequestCodec;
-import dev.atomixsoft.solar_eclipse.core.net.codec.request.LoginRequestCodec;
+import dev.atomixsoft.solar_eclipse.core.net.codec.request.*;
 
-import dev.atomixsoft.solar_eclipse.core.net.codec.request.LogoutRequestCodec;
-import dev.atomixsoft.solar_eclipse.core.net.codec.request.MoveIntentCodec;
-import dev.atomixsoft.solar_eclipse.core.net.codec.response.EntityPositionUpdateCodec;
-import dev.atomixsoft.solar_eclipse.core.net.codec.response.LoginResponseCodec;
-import dev.atomixsoft.solar_eclipse.core.net.codec.response.MapLoadCodec;
+import dev.atomixsoft.solar_eclipse.core.net.codec.response.*;
 import dev.atomixsoft.solar_eclipse.core.net.packet.Packet;
 import dev.atomixsoft.solar_eclipse.core.net.packet.notification.EntityDespawn;
 import dev.atomixsoft.solar_eclipse.core.net.packet.notification.EntitySpawn;
-import dev.atomixsoft.solar_eclipse.core.net.packet.request.ChatMessageRequest;
-import dev.atomixsoft.solar_eclipse.core.net.packet.request.LoginRequest;
-import dev.atomixsoft.solar_eclipse.core.net.packet.request.LogoutRequest;
-import dev.atomixsoft.solar_eclipse.core.net.packet.request.MoveIntent;
+import dev.atomixsoft.solar_eclipse.core.net.packet.request.*;
 
-import dev.atomixsoft.solar_eclipse.core.net.packet.response.EntityPositionUpdate;
-import dev.atomixsoft.solar_eclipse.core.net.packet.response.LoginResponse;
+import dev.atomixsoft.solar_eclipse.core.net.packet.response.*;
 
 import dev.atomixsoft.solar_eclipse.core.net.packet.notification.ChatMessageBroadcast;
 import dev.atomixsoft.solar_eclipse.core.net.packet.notification.ShutdownNotification;
-import dev.atomixsoft.solar_eclipse.core.net.packet.response.MapLoad;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -66,10 +56,16 @@ public final class PacketRegistry {
         Register(101, MoveIntent.class, new MoveIntentCodec());
         Register(102, ChatMessageRequest.class, new ChatMessageRequestCodec());
         Register(103, LogoutRequest.class, new LogoutRequestCodec());
+        Register(104, RegisterRequest.class, new RegisterRequestCodec());
+        Register(105, CharacterListRequest.class, new CharacterListRequestCodec());
+        Register(106, CharacterSelectReq.class, new CharacterSelectRequestCodec());
+        Register(107, CreateCharacterRequest.class, new CreateCharacterRequestCodec());
 
         Register(200, LoginResponse.class, new LoginResponseCodec());
         Register(201, EntityPositionUpdate.class, new EntityPositionUpdateCodec());
         Register(202, MapLoad.class, new MapLoadCodec());
+        Register(203, PlayerStatsSnapshot.class, new PlayerStatsSnapshotCodec());
+        Register(204, CharacterListResponse.class, new CharacterListResponseCodec());
 
         Register(300, ChatMessageBroadcast.class, new ChatMessageBroadcastCodec());
         Register(301, ShutdownNotification.class, new ShutdownNotificationCodec());

@@ -1,39 +1,38 @@
 package dev.atomixsoft.solar_eclipse.server.net.services;
 
 import dev.atomixsoft.solar_eclipse.server.database.records.AccountRecord;
-import dev.atomixsoft.solar_eclipse.server.database.records.CharacterRecord;
 import dev.atomixsoft.solar_eclipse.server.database.repositories.AccountRepository;
-import dev.atomixsoft.solar_eclipse.server.database.repositories.CharacterRepository;
 import dev.atomixsoft.solar_eclipse.server.net.services.records.LoginResultRec;
+import dev.atomixsoft.solar_eclipse.server.security.PasswordHasher;
 
 public class AuthenticationService {
 
     private final AccountRepository m_Accounts;
-    private final CharacterRepository m_Characters;
 
-    public AuthenticationService(AccountRepository accounts, CharacterRepository characters) {
+    public AuthenticationService(AccountRepository accounts) {
         m_Accounts = accounts;
-        m_Characters = characters;
     }
 
     public LoginResultRec login(String username, String password) {
-        if(username == null || username.isEmpty())
-            return new LoginResultRec(false, "Username cannot be empty.", -1, -1, -1, null);
+        AccountRecord account = m_Accounts.findByUsername(username);
 
-        if(password == null)
-            password = "";
+        if(account == null)
+            return new LoginResultRec(false, "Account does not exist.", -1, "");
 
-        AccountRecord account = m_Accounts.findOrCreate(username, password);
-        if(!account.password().equals(password))
-            return new LoginResultRec(false, "Password does not match.", -1, -1, -1, null);
+        if(!PasswordHasher.verify(password, account.passwordHash()))
+            return new LoginResultRec(false, "Invalid password.", account.id(), "");
 
-        CharacterRecord character = m_Characters.findOrCreateDefault(account.id(), account.username());
-        return new LoginResultRec(true, "Welcome " + account.username(), account.id(), character.id(), character.mapId(), m_Characters.toCharacterData(character));
+        return new LoginResultRec(true, "Welcome " + account.username(), account.id(), account.username());
     }
 
-    public boolean validate(String username, String password) {
-        // TODO: Database Validation
-        return true;
+    public LoginResultRec register(String username, String password) {
+        if(m_Accounts.findByUsername(username.trim()) != null)
+            return new LoginResultRec(false, "Account already exists.", -1, "");
+
+        String hash = PasswordHasher.hash(password);
+        AccountRecord account = m_Accounts.create(username.trim(), hash);
+
+        return new LoginResultRec(true, "Registered " + account.username(), account.id(), account.username());
     }
 
 }

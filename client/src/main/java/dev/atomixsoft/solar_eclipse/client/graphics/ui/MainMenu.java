@@ -3,10 +3,14 @@ package dev.atomixsoft.solar_eclipse.client.graphics.ui;
 import dev.atomixsoft.solar_eclipse.client.AssetLoader;
 import dev.atomixsoft.solar_eclipse.client.ClientThread;
 import dev.atomixsoft.solar_eclipse.client.graphics.Texture;
+import dev.atomixsoft.solar_eclipse.client.graphics.ui.mainMenu.CharacterCreateMenu;
+import dev.atomixsoft.solar_eclipse.client.graphics.ui.mainMenu.CharacterSelectMenu;
 import dev.atomixsoft.solar_eclipse.client.util.ImGuiFonts;
 import dev.atomixsoft.solar_eclipse.core.event.types.SendPacketEvent;
 import dev.atomixsoft.solar_eclipse.core.event.types.ShutdownEvent;
 import dev.atomixsoft.solar_eclipse.core.net.packet.request.LoginRequest;
+import dev.atomixsoft.solar_eclipse.core.net.packet.request.RegisterRequest;
+import dev.atomixsoft.solar_eclipse.core.net.packet.response.CharacterListResponse;
 import dev.atomixsoft.solar_eclipse.core.utils.FileUtils;
 import imgui.ImGui;
 import imgui.flag.ImGuiCol;
@@ -24,10 +28,15 @@ import java.util.Map;
 public class MainMenu {
 
     public enum MainMenuState {
-        News, Login, Register, Credits
+        News,
+        Login, Register,
+        CharacterSelect,
+        CharacterCreate,
+        Credits
     }
 
-    private MainMenuState m_State;
+    private CharacterSelectMenu m_SelectScreen;
+    private CharacterCreateMenu m_CreateScreen;
 
     private ImString m_User, m_Password;
     private ImBoolean m_ShowPass;
@@ -37,6 +46,8 @@ public class MainMenu {
     private boolean m_ChangeSceneRequest;
     private String m_NextScene;
 
+    private MainMenuState m_State;
+
     public MainMenu() {
         m_Buttons = new HashMap<>();
         setup();
@@ -44,6 +55,9 @@ public class MainMenu {
 
     public void setup() {
         m_State = MainMenuState.News;
+
+        m_SelectScreen = new CharacterSelectMenu();
+        m_CreateScreen = new CharacterCreateMenu();
 
         m_User = new ImString();
         m_Password = new ImString();
@@ -168,19 +182,61 @@ public class MainMenu {
 
                 ImGui.popStyleColor(2);
                 ImGui.popStyleVar(4);
-
-//                ClientThread.set_size(785, 594);
-//                ClientThread.set_scene("Test");
             }
             case Register -> {
                 Texture main_menu = AssetLoader.GetTexture("ui_menu_register");
-                ImGui.image(main_menu.getTextureId(), main_menu.getWidth(), main_menu.getHeight());
+                ImGui.image(main_menu.getTextureId(), main_menu.getWidth(), main_menu.getHeight());ImGui.pushStyleColor(ImGuiCol.Border, 1, 1, 1, 0);
+                ImGui.pushStyleColor(ImGuiCol.WindowBg, 1, 1, 1, 0);
+                ImGui.pushStyleVar(ImGuiStyleVar.WindowBorderSize, 0);
+                ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 0, 0);
+                ImGui.pushStyleVar(ImGuiStyleVar.FramePadding, 0, 0);
+                ImGui.pushStyleVar(ImGuiStyleVar.CellPadding, 0, 0);
 
-//                m_ChangeSceneRequest = true;
-//                m_NextScene = "Test";
+                ImGui.setNextWindowSize(main_menu.getWidth() / 1.5f, main_menu.getHeight() / 4f);
+                ImGui.setNextWindowPos(main_menu.getWidth() / 3.5f, main_menu.getHeight() / 2f);
 
-                sendLoginRequest();
-                m_State = MainMenuState.Login;
+                ImGui.begin("Register_Window", ImGuiWindowFlags.NoDecoration);
+
+                ImGui.text("Username: ");
+                ImGui.sameLine();
+                ImGui.pushItemWidth(100);
+                ImGui.inputText("##Username", m_User);
+                ImGui.popItemWidth();
+
+                ImGui.text("Password:  ");
+                ImGui.sameLine();
+                int inputFlags = !m_ShowPass.get() ? ImGuiInputTextFlags.Password : ImGuiInputTextFlags.None;
+                ImGui.pushItemWidth(100);
+                ImGui.inputText("##Password", m_Password, inputFlags);
+                ImGui.popItemWidth();
+                ImGui.sameLine();
+                ImGui.checkbox("Show Pass", m_ShowPass);
+
+                ImGui.end();
+
+                ImGui.popStyleColor(2);
+                ImGui.popStyleVar(4);
+            }
+            case CharacterSelect -> {
+                m_SelectScreen.render();
+
+                if(m_SelectScreen.isCreateRequested()) {
+                    int slot = m_SelectScreen.nextOpenSlot();
+
+                    if(slot >= 0) {
+                        m_CreateScreen.open(slot);
+                        m_State = MainMenuState.CharacterCreate;
+                    }
+                }
+
+                if(m_SelectScreen.isBackRequested())
+                    m_State = MainMenuState.Login;
+            }
+            case CharacterCreate -> {
+                m_CreateScreen.render();
+
+                if(m_CreateScreen.isBackRequested())
+                    m_State = MainMenuState.CharacterSelect;
             }
             case Credits -> {
                 Texture main_menu = AssetLoader.GetTexture("ui_menu_credits");
@@ -196,6 +252,7 @@ public class MainMenu {
                 if(m_State == MainMenuState.Login) {
                     sendLoginRequest();
                 } else {
+                    resetUserAndPass();
                     m_State = MainMenuState.Login;
                 }
             }
@@ -205,8 +262,15 @@ public class MainMenu {
         if(register_button != null) {
             register_button.render("Register", 64 + (11 + register_button.getWidth()), 287);
 
-            if(register_button.getState() == Button.State.CLICKED)
-                m_State = MainMenuState.Register;
+            if(register_button.getState() == Button.State.CLICKED) {
+                if(m_State ==  MainMenuState.Register) {
+                    sendRegisterRequest();
+                }
+                else {
+                    resetUserAndPass();
+                    m_State = MainMenuState.Register;
+                }
+            }
         }
 
         Button credits_button = m_Buttons.get("credits");
@@ -226,6 +290,19 @@ public class MainMenu {
         }
     }
 
+    public void applyCharacterList(CharacterListResponse packet) {
+        m_SelectScreen.update(packet);
+        m_State = MainMenuState.CharacterSelect;
+    }
+
+    private void resetUserAndPass() {
+        if(m_User.isNotEmpty())
+            m_User.clear();
+
+        if(m_Password.isNotEmpty())
+            m_Password.clear();
+    }
+
     private void sendLoginRequest() {
         String username = m_User.get().trim();
         String password = m_Password.get();
@@ -234,6 +311,16 @@ public class MainMenu {
             username = "Dev";
 
         ClientThread.eventBus().post(new SendPacketEvent(new LoginRequest(username, password)));
+    }
+
+    private void sendRegisterRequest() {
+        String username = m_User.get().trim();
+        String password = m_Password.get();
+
+        if(username.isBlank())
+            username = "Dev";
+
+        ClientThread.eventBus().post(new SendPacketEvent(new RegisterRequest(username, password)));
     }
 
     private List<String> wrapText(String text, float wrapWidth) {

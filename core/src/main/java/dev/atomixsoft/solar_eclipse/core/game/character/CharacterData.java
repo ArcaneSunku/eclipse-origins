@@ -9,6 +9,12 @@ public class CharacterData {
     public final Inventory inventory = new Inventory();
     public final Stats stats = new Stats();
 
+    public int level;
+    public int health, maxHealth;
+    public int spirit, maxSpirit;
+    public int experience, maxExperience;
+    public int gold;
+
     public int accountId;
     public int characterId;
     public int mapId;
@@ -25,6 +31,12 @@ public class CharacterData {
     public boolean player, moving;
 
     public CharacterData() {
+        this.level = 1;
+        this.health = this.maxHealth = 100;
+        this.spirit = this.maxSpirit = 100;
+        this.experience = this.maxExperience = 0;
+        this.gold = 100;
+
         this.textureId = 1;
         this.name = "niL";
 

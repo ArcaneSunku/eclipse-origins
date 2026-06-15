@@ -11,6 +11,7 @@ import dev.atomixsoft.solar_eclipse.core.net.packet.notification.EntityDespawn;
 import dev.atomixsoft.solar_eclipse.core.net.packet.notification.EntitySpawn;
 import dev.atomixsoft.solar_eclipse.core.net.packet.response.EntityPositionUpdate;
 import dev.atomixsoft.solar_eclipse.core.net.packet.response.MapLoad;
+import dev.atomixsoft.solar_eclipse.core.net.packet.response.PlayerStatsSnapshot;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -71,6 +72,19 @@ public class ClientWorld {
         entity.moving = false;
     }
 
+    public void applyStatsSnapshot(PlayerStatsSnapshot packet) {
+        m_PlayerStats.health = packet.health();
+        m_PlayerStats.maxHealth = packet.maxHealth();
+
+        m_PlayerStats.spirit = packet.spirit();
+        m_PlayerStats.maxSpirit = packet.maxSpirit();
+
+        m_PlayerStats.experience = packet.experience();
+        m_PlayerStats.maxExperience = packet.maxExperience();
+
+        m_PlayerStats.gold = packet.gold();
+    }
+
     public void applyMapLoad(MapLoad packet) {
         GameMap map = new GameMap(0, 0, packet.width(), packet.height());
         map.id = (byte) packet.mapdId();
@@ -120,6 +134,7 @@ public class ClientWorld {
         }
 
         entity.name = packet.name();
+        entity.textureId = packet.textureId();
         entity.player = true;
         entity.x = packet.tileX();
         entity.y = packet.tileY();

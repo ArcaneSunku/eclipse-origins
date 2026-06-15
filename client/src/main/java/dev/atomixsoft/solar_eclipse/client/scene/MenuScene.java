@@ -10,6 +10,8 @@ import dev.atomixsoft.solar_eclipse.client.graphics.ui.MainMenu;
 import dev.atomixsoft.solar_eclipse.client.util.input.Controller;
 import dev.atomixsoft.solar_eclipse.core.event.types.InputEvent;
 
+import dev.atomixsoft.solar_eclipse.core.net.packet.Packet;
+import dev.atomixsoft.solar_eclipse.core.net.packet.response.CharacterListResponse;
 import imgui.*;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiStyleVar;
@@ -51,6 +53,17 @@ public class MenuScene extends SceneAdapter {
         if(m_MainMenu.requestedSceneChange()) {
             ClientThread.set_scene(m_MainMenu.getNextScene());
             m_MainMenu.resetSceneChangeFlags();
+        }
+    }
+
+    @Override
+    public void handlePacket(Packet packet) {
+        switch(packet) {
+            case CharacterListResponse p -> {
+                m_MainMenu.applyCharacterList(p);
+            }
+
+            default -> {}
         }
     }
 

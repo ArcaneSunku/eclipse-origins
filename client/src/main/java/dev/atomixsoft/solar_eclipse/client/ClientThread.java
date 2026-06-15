@@ -19,9 +19,7 @@ import dev.atomixsoft.solar_eclipse.core.net.packet.notification.ChatMessageBroa
 import dev.atomixsoft.solar_eclipse.core.net.packet.notification.EntityDespawn;
 import dev.atomixsoft.solar_eclipse.core.net.packet.notification.EntitySpawn;
 import dev.atomixsoft.solar_eclipse.core.net.packet.notification.ShutdownNotification;
-import dev.atomixsoft.solar_eclipse.core.net.packet.response.EntityPositionUpdate;
-import dev.atomixsoft.solar_eclipse.core.net.packet.response.LoginResponse;
-import dev.atomixsoft.solar_eclipse.core.net.packet.response.MapLoad;
+import dev.atomixsoft.solar_eclipse.core.net.packet.response.*;
 import org.joml.Vector2f;
 import org.lwjgl.glfw.GLFWErrorCallback;
 
@@ -244,13 +242,18 @@ public class ClientThread implements Runnable {
 
             case LoginResponse p -> {
                 m_Logger.info("Login status: " + p.success() + " - " + p.message());
+                if(!p.success())
+                    break;
 
-                if(p.success()) {
-                    ClientSession.Login(p.username(), p.playerEntityId(), p.mapId());
-
+                ClientSession.Login(p.username(), p.playerEntityId(), p.mapId());
+                if(p.playerEntityId() != -1) {
                     set_size(785, 594);
                     set_scene("Test");
                 }
+            }
+
+            case CharacterListResponse p -> {
+                m_Scenes.handlePackets(p);
             }
 
             case EntityPositionUpdate p -> {
@@ -258,6 +261,10 @@ public class ClientThread implements Runnable {
             }
 
             case MapLoad p -> {
+                m_Scenes.handlePackets(p);
+            }
+
+            case PlayerStatsSnapshot p -> {
                 m_Scenes.handlePackets(p);
             }
 

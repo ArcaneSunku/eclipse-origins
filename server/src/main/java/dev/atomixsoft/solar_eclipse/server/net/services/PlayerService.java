@@ -29,13 +29,22 @@ public class PlayerService {
     }
 
     public Entity createPlayer(Channel channel, CharacterData data) {
+        if(data == null)
+            return null;
+
         Entity entity = m_Engine.createEntity();
+
+        AccountComponent account = m_Engine.createComponent(AccountComponent.class);
+        account.accountId = data.accountId;
 
         IdentityComponent identity = m_Engine.createComponent(IdentityComponent.class);
         identity.entityId = m_Ids.generateId();
 
         NameComponent name = m_Engine.createComponent(NameComponent.class);
         name.name = data.name;
+
+        SpriteComponent sprite = m_Engine.createComponent(SpriteComponent.class);
+        sprite.textureId = data.textureId;
 
         PositionComponent position = m_Engine.createComponent(PositionComponent.class);
         position.x = data.x;
@@ -49,9 +58,24 @@ public class PlayerService {
         persistence.accountId = data.accountId;
         persistence.characterId = data.characterId;
 
+        StatsComponent stats = m_Engine.createComponent(StatsComponent.class);
+        stats.level = data.level;
+        stats.health = data.health;
+        stats.maxHealth = data.maxHealth;
+        stats.spirit = data.spirit;
+        stats.maxSpirit = data.maxSpirit;
+        stats.experience = data.experience;
+        stats.maxExperience = data.maxExperience;
+        stats.gold = data.gold;
+
+        entity.add(account);
         entity.add(identity);
         entity.add(name);
+        entity.add(sprite);
+
         entity.add(persistence);
+        entity.add(stats);
+
         entity.add(position);
         entity.add(movement);
         entity.add(player);

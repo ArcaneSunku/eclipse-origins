@@ -10,6 +10,7 @@ public class EntitySpawnCodec implements PacketCodec<EntitySpawn> {
     public void encode(EntitySpawn packet, ByteBuf out) {
         out.writeInt(packet.entityId());
         CodecUtils.writeString(out, packet.name());
+        out.writeInt(packet.textureId());
         out.writeInt(packet.tileX());
         out.writeInt(packet.tileY());
         out.writeByte(packet.direction());
@@ -19,10 +20,11 @@ public class EntitySpawnCodec implements PacketCodec<EntitySpawn> {
     public EntitySpawn decode(ByteBuf in) {
         int entityId = in.readInt();
         String name = CodecUtils.readString(in);
+        int textureId = in.readInt();
         int tileX = in.readInt();
         int tileY = in.readInt();
         byte direction = in.readByte();
 
-        return new EntitySpawn(entityId, name, tileX, tileY, direction);
+        return new EntitySpawn(entityId, name, textureId, tileX, tileY, direction);
     }
 }

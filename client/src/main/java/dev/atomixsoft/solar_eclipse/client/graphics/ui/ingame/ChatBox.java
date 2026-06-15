@@ -45,10 +45,13 @@ public class ChatBox {
                 ImGuiWindowFlags.NoScrollbar);
 
         ImGui.beginChild("Chat_Lines", 460, 120, false);
+
         for(String line : m_ChatLines) {
-            ImGui.textWrapped(line);
-            ImGui.setScrollHereY(1.0f);
+            ImGui.pushTextWrapPos(ImGui.getCursorPosX() + 445.0f);
+            ImGui.textUnformatted(line);
+            ImGui.popTextWrapPos();
         }
+
         ImGui.endChild();
 
         ImGui.setCursorPos(42, 122);

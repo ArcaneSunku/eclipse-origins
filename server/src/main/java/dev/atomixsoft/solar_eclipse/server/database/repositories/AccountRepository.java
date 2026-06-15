@@ -15,7 +15,7 @@ public class AccountRepository {
 
     public AccountRecord findByUsername(String username) {
         String sql = """
-                SELECT id, username, password, created_at
+                SELECT id, username, password_hash, created_at
                 FROM accounts
                 WHERE username = ?
                 """;
@@ -35,9 +35,9 @@ public class AccountRepository {
         }
     }
 
-    public AccountRecord create(String username, String password) {
+    public AccountRecord create(String username, String passwordHash) {
         String sql = """
-                INSERT INTO accounts (username, password, created_at)
+                INSERT INTO accounts (username, password_hash, created_at)
                 VALUES (?, ?, ?)
                 """;
 
@@ -46,7 +46,7 @@ public class AccountRepository {
         try (Connection connection = m_Database.connect();
             PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, username);
-            statement.setString(2, password);
+            statement.setString(2, passwordHash);
             statement.setLong(3, now);
 
             statement.executeUpdate();
@@ -55,7 +55,7 @@ public class AccountRepository {
                 if(!keys.next())
                     throw new IllegalStateException("Failed to retrieve created account id.");
 
-                return new AccountRecord(keys.getInt(1), username, password, now);
+                return new AccountRecord(keys.getInt(1), username, passwordHash, now);
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Failed to create account: " + username, e);
@@ -74,7 +74,7 @@ public class AccountRepository {
     private AccountRecord readAccount(ResultSet result) throws SQLException {
         return new AccountRecord(result.getInt("id"),
                 result.getString("username"),
-                result.getString("password"),
+                result.getString("password_hash"),
                 result.getLong("created_at"));
     }
 
