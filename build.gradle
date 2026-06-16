@@ -15,7 +15,7 @@ def dataDir = "${rootProject.projectDir}/data"
 
 allprojects {
     group = 'dev.atomixsoft.solar_eclipse'
-    version = '4.4.1.0-alpha'
+    version = '4.4.2.1-alpha'
 
     repositories {
         mavenCentral()
