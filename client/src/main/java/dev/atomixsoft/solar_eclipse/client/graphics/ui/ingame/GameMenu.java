@@ -1,6 +1,8 @@
 package dev.atomixsoft.solar_eclipse.client.graphics.ui.ingame;
 
 import dev.atomixsoft.solar_eclipse.client.AssetLoader;
+import dev.atomixsoft.solar_eclipse.client.game.ClientInventory;
+import dev.atomixsoft.solar_eclipse.client.game.ClientItemDefinitions;
 import dev.atomixsoft.solar_eclipse.client.graphics.Texture;
 import dev.atomixsoft.solar_eclipse.client.graphics.ui.Button;
 import dev.atomixsoft.solar_eclipse.core.game.character.CharacterData;
@@ -43,6 +45,8 @@ public class GameMenu {
         m_MenuTextures.put("character", AssetLoader.GetTexture("ui_main_character"));
         m_MenuTextures.put("options", AssetLoader.GetTexture("ui_main_options"));
         m_MenuTextures.put("party", AssetLoader.GetTexture("ui_main_party"));
+        m_MenuTextures.put("item_tooltip", AssetLoader.GetTexture("ui_main_itemDesc"));
+        m_MenuTextures.put("spell_tooltip", AssetLoader.GetTexture("ui_main_spellDesc"));
     }
 
     public void setup() {
@@ -56,15 +60,15 @@ public class GameMenu {
         m_Buttons.put("btn_trade", new Button("btn_main_trade"));
 
         if(m_Hotbar == null) m_Hotbar = new Hotbar(m_MenuTextures.get("hotbar"), 12, 399);
-        if(m_Inventory == null) m_Inventory = new InventoryMenu(m_MenuTextures.get("inventory"), 541, 283);
+        if(m_Inventory == null) m_Inventory = new InventoryMenu(m_MenuTextures.get("inventory"), m_MenuTextures.get("item_tooltip"), 541, 283);
     }
 
-    public void render(CharacterData player) {
+    public void render(CharacterData player, ClientInventory inventory, ClientItemDefinitions items) {
         m_Player = player;
         if(m_Player == null)
             return;
 
-        renderMenu();
+        renderMenu(inventory, items);
         renderButtons();
 
         m_Hotbar.render();
@@ -136,11 +140,11 @@ public class GameMenu {
         ImGui.popStyleVar(4);
     }
 
-    private void renderMenu() {
+    private void renderMenu(ClientInventory inventory, ClientItemDefinitions items) {
         ImGui.setNextWindowPos(541, 283);
 
         switch(m_State) {
-            case Inventory -> m_Inventory.render(m_Player);
+            case Inventory -> m_Inventory.render(inventory, items);
 
             case Skills -> {
                 Texture skills = m_MenuTextures.get("skills");

@@ -1,16 +1,21 @@
 package dev.atomixsoft.solar_eclipse.server;
 
 import com.badlogic.ashley.core.Entity;
+import dev.atomixsoft.solar_eclipse.core.game.Constants;
 import dev.atomixsoft.solar_eclipse.core.game.character.Direction;
 import dev.atomixsoft.solar_eclipse.core.net.packet.notification.EntityDespawn;
 import dev.atomixsoft.solar_eclipse.core.net.packet.notification.EntitySpawn;
+import dev.atomixsoft.solar_eclipse.core.net.packet.notification.InventorySnapshotPacket;
+import dev.atomixsoft.solar_eclipse.core.net.packet.notification.ItemDefinitionSnapshotPacket;
 import dev.atomixsoft.solar_eclipse.core.net.packet.request.*;
 import dev.atomixsoft.solar_eclipse.core.net.packet.response.*;
 import dev.atomixsoft.solar_eclipse.server.database.records.CharacterRecord;
 import dev.atomixsoft.solar_eclipse.server.database.records.CharacterSummary;
 import dev.atomixsoft.solar_eclipse.server.database.repositories.AccountRepository;
 import dev.atomixsoft.solar_eclipse.server.database.repositories.CharacterRepository;
+import dev.atomixsoft.solar_eclipse.server.database.repositories.InventoryRepository;
 import dev.atomixsoft.solar_eclipse.server.game.ServerWorld;
+import dev.atomixsoft.solar_eclipse.server.game.classes.ClassDefinition;
 import dev.atomixsoft.solar_eclipse.server.game.ecs.Components;
 import dev.atomixsoft.solar_eclipse.server.game.ecs.components.*;
 import dev.atomixsoft.solar_eclipse.server.net.NetworkServer;
@@ -32,9 +37,10 @@ public class ServerThread implements Runnable {
     private long m_ServerTick;
 
     public ServerThread(PacketQueue packetQueue, NetworkServer network,
-                        AccountRepository accounts, CharacterRepository characters) {
+                        AccountRepository accounts, CharacterRepository characters,
+                        InventoryRepository inventory) {
         m_PacketQueue = packetQueue;
-        m_World = new ServerWorld(network, accounts, characters);
+        m_World = new ServerWorld(network, accounts, characters, inventory);
         m_Thread = new Thread(this, "Game_Loop");
 
         m_Running = false;
@@ -230,6 +236,9 @@ public class ServerThread implements Runnable {
         EntitySpawn spawn = createEntitySpawn(player);
         if(spawn != null)
             m_World.network().broadcast(spawn);
+
+        queued.channel().writeAndFlush(new ItemDefinitionSnapshotPacket(m_World.items().createSnapshot()));
+        queued.channel().writeAndFlush(new InventorySnapshotPacket(m_World.inventory().createSnapshot(character.id())));
     }
 
     private void handleCharacterCreate(QueuedPacket queued, CreateCharacterRequest request) {
@@ -247,7 +256,30 @@ public class ServerThread implements Runnable {
             return;
         }
 
-        m_World.characters().createCharacter(accountId, request.slot(), request.name(), request.classId(), request.sex(),  request.spriteId());
+        ClassDefinition clazz = m_World.classes().get(request.classId());
+
+        if(clazz == null) {
+            sendCharacterList(queued.channel());
+            return;
+        }
+
+        boolean validSprite;
+
+        if(request.sex() == Constants.SEX_MALE)
+            validSprite = clazz.maleSprites().contains(request.spriteId());
+        else if(request.sex() == Constants.SEX_FEMALE)
+            validSprite = clazz.femaleSprites().contains(request.spriteId());
+        else
+            validSprite = false;
+
+        if(!validSprite) {
+            sendCharacterList(queued.channel());
+            return;
+        }
+
+        CharacterRecord created = m_World.characters().createCharacter(accountId, request.slot(), request.name(), clazz, request.sex(),  request.spriteId());
+        m_World.inventory().createStartingInventory(created.id(), clazz.startingItems());
+
         sendCharacterList(queued.channel());
     }
 

@@ -1,22 +1,15 @@
 package dev.atomixsoft.solar_eclipse.core.net;
 
 import dev.atomixsoft.solar_eclipse.core.net.codec.PacketCodec;
-import dev.atomixsoft.solar_eclipse.core.net.codec.notification.ChatMessageBroadcastCodec;
-import dev.atomixsoft.solar_eclipse.core.net.codec.notification.EntityDespawnCodec;
-import dev.atomixsoft.solar_eclipse.core.net.codec.notification.EntitySpawnCodec;
-import dev.atomixsoft.solar_eclipse.core.net.codec.notification.ShutdownNotificationCodec;
+import dev.atomixsoft.solar_eclipse.core.net.codec.notification.*;
 import dev.atomixsoft.solar_eclipse.core.net.codec.request.*;
 
 import dev.atomixsoft.solar_eclipse.core.net.codec.response.*;
 import dev.atomixsoft.solar_eclipse.core.net.packet.Packet;
-import dev.atomixsoft.solar_eclipse.core.net.packet.notification.EntityDespawn;
-import dev.atomixsoft.solar_eclipse.core.net.packet.notification.EntitySpawn;
+import dev.atomixsoft.solar_eclipse.core.net.packet.notification.*;
 import dev.atomixsoft.solar_eclipse.core.net.packet.request.*;
 
 import dev.atomixsoft.solar_eclipse.core.net.packet.response.*;
-
-import dev.atomixsoft.solar_eclipse.core.net.packet.notification.ChatMessageBroadcast;
-import dev.atomixsoft.solar_eclipse.core.net.packet.notification.ShutdownNotification;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -71,6 +64,8 @@ public final class PacketRegistry {
         Register(301, ShutdownNotification.class, new ShutdownNotificationCodec());
         Register(302, EntityDespawn.class, new EntityDespawnCodec());
         Register(303, EntitySpawn.class, new EntitySpawnCodec());
+        Register(304, InventorySnapshotPacket.class, new InventorySnapshotCodec());
+        Register(305, ItemDefinitionSnapshotPacket.class, new ItemDefinitionSnapshotCodec());
     }
 
     private static <T extends Packet> void Register(int id, Class<T> type, PacketCodec<T> codec) {

@@ -37,6 +37,18 @@ public class DatabaseMigrations {
                 );
             """);
 
+            statement.execute("""
+                CREATE TABLE IF NOT EXISTS character_inventory (
+                    character_id INTEGER NOT NULL,
+                    slot INTEGER NOT NULL,
+                    item_id INTEGER NOT NULL DEFAULT 0,
+                    amount INTEGER NOT NULL DEFAULT 0,
+                    
+                    PRIMARY KEY(character_id, slot),
+                    FOREIGN KEY(character_id) REFERENCES characters(id) ON DELETE CASCADE
+                );
+            """);
+
             addColumnIfMissing(connection, "characters", "level", "INTEGER NOT NULL DEFAULT 1");
             addColumnIfMissing(connection, "characters", "health", "INTEGER NOT NULL DEFAULT 100");
             addColumnIfMissing(connection, "characters", "max_health", "INTEGER NOT NULL DEFAULT 100");

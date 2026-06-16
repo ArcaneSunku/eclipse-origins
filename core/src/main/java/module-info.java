@@ -22,6 +22,7 @@ module dev.atomixsoft.solar_eclipse.core {
     exports dev.atomixsoft.solar_eclipse.core.config;
     exports dev.atomixsoft.solar_eclipse.core.logging;
 
+    exports dev.atomixsoft.solar_eclipse.core.net.data;
     exports dev.atomixsoft.solar_eclipse.core.net.codec;
     exports dev.atomixsoft.solar_eclipse.core.net.packet;
     exports dev.atomixsoft.solar_eclipse.core.net;

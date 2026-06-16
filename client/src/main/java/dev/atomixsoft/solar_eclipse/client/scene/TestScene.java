@@ -13,9 +13,7 @@ import dev.atomixsoft.solar_eclipse.client.net.ClientSession;
 import dev.atomixsoft.solar_eclipse.core.event.types.SendPacketEvent;
 import dev.atomixsoft.solar_eclipse.core.game.character.CharacterData;
 import dev.atomixsoft.solar_eclipse.core.net.packet.Packet;
-import dev.atomixsoft.solar_eclipse.core.net.packet.notification.ChatMessageBroadcast;
-import dev.atomixsoft.solar_eclipse.core.net.packet.notification.EntityDespawn;
-import dev.atomixsoft.solar_eclipse.core.net.packet.notification.EntitySpawn;
+import dev.atomixsoft.solar_eclipse.core.net.packet.notification.*;
 import dev.atomixsoft.solar_eclipse.core.net.packet.request.LogoutRequest;
 import dev.atomixsoft.solar_eclipse.core.net.packet.request.MoveIntent;
 import dev.atomixsoft.solar_eclipse.core.net.packet.response.EntityPositionUpdate;
@@ -160,6 +158,16 @@ public class TestScene extends SceneAdapter {
                 clientWorld.applyEntitySpawn(p);
             }
 
+            case InventorySnapshotPacket p -> {
+                clientWorld.getInventory().applySnapshot(p.slots());
+                ClientThread.log().info("Inventory synced: " + p.slots().size() + " slots.");
+            }
+
+            case ItemDefinitionSnapshotPacket p -> {
+                clientWorld.getItems().applySnapshot(p.items());
+                ClientThread.log().info("Item definitions synced: " + p.items().size() + " items.");
+            }
+
             default -> {}
         }
     }
@@ -203,7 +211,7 @@ public class TestScene extends SceneAdapter {
         ImGui.begin("Game_Window", ImGuiWindowFlags.NoDecoration);
         ImGui.image(frameBuffer.getColorBufferId(), ImGui.getContentRegionAvail(), new ImVec2(0, 1), new ImVec2(1, 0));
         focused = ImGui.isWindowFocused();
-        gameMenu.render(clientWorld.getPlayer());
+        gameMenu.render(clientWorld.getPlayer(), clientWorld.getInventory(), clientWorld.getItems());
         ImGui.end();
 
         // Game Chat

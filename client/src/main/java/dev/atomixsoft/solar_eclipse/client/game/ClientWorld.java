@@ -9,17 +9,21 @@ import dev.atomixsoft.solar_eclipse.core.game.map.GameMap;
 import dev.atomixsoft.solar_eclipse.core.game.map.Tile;
 import dev.atomixsoft.solar_eclipse.core.net.packet.notification.EntityDespawn;
 import dev.atomixsoft.solar_eclipse.core.net.packet.notification.EntitySpawn;
+import dev.atomixsoft.solar_eclipse.core.net.packet.notification.InventorySnapshotPacket;
 import dev.atomixsoft.solar_eclipse.core.net.packet.response.EntityPositionUpdate;
 import dev.atomixsoft.solar_eclipse.core.net.packet.response.MapLoad;
 import dev.atomixsoft.solar_eclipse.core.net.packet.response.PlayerStatsSnapshot;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ClientWorld {
 
     private final GameRenderer m_Renderer;
     private final ClientPlayerStats m_PlayerStats;
+    private final ClientInventory m_Inventory;
+    private final ClientItemDefinitions m_Items;
     private final Map<Integer, CharacterData> m_EntitiesById;
 
     private CharacterData m_Player;
@@ -28,6 +32,8 @@ public class ClientWorld {
     public ClientWorld(GameRenderer renderer) {
         m_Renderer = renderer;
         m_PlayerStats = new ClientPlayerStats();
+        m_Inventory = new ClientInventory();
+        m_Items = new ClientItemDefinitions();
         m_EntitiesById = new HashMap<>();
 
         m_Player = null;
@@ -39,6 +45,7 @@ public class ClientWorld {
 
         m_Player = null;
         resetPlayerStats();
+        m_Items.applySnapshot(List.of());
         m_LocalEntityId = -1;
 
         m_Renderer.setMap(null);
@@ -145,6 +152,14 @@ public class ClientWorld {
             m_Player = entity;
             m_LocalEntityId = packet.entityId();
         }
+    }
+
+    public ClientInventory getInventory() {
+        return m_Inventory;
+    }
+
+    public ClientItemDefinitions getItems() {
+        return m_Items;
     }
 
     public ClientPlayerStats getPlayerStats() {

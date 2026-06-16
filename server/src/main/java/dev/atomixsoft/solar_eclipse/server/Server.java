@@ -10,6 +10,7 @@ import dev.atomixsoft.solar_eclipse.server.console.ConsoleThread;
 import dev.atomixsoft.solar_eclipse.server.database.Database;
 import dev.atomixsoft.solar_eclipse.server.database.repositories.AccountRepository;
 import dev.atomixsoft.solar_eclipse.server.database.repositories.CharacterRepository;
+import dev.atomixsoft.solar_eclipse.server.database.repositories.InventoryRepository;
 import dev.atomixsoft.solar_eclipse.server.logging.Logger;
 import dev.atomixsoft.solar_eclipse.server.net.NetworkServer;
 import dev.atomixsoft.solar_eclipse.server.net.PacketQueue;
@@ -57,6 +58,7 @@ public class Server {
 
     private AccountRepository m_Accounts;
     private CharacterRepository m_Characters;
+    private InventoryRepository m_Inventory;
 
     public Server() {
         m_ConfigInfo = new Configuration(Configuration.SupportedConfigFileTypes.INI, "server/server.ini");
@@ -80,12 +82,13 @@ public class Server {
 
         m_Accounts = new AccountRepository(m_AccountsDB);
         m_Characters = new CharacterRepository(m_AccountsDB);
+        m_Inventory = new InventoryRepository(m_AccountsDB);
 
         m_Network = new NetworkServer();
         m_PacketQueue = new PacketQueue();
 
         m_Console = new Thread(new ConsoleThread(m_EventBus, this::shutdown), "Console_Thread");
-        m_GameLoop = new ServerThread(m_PacketQueue, m_Network, m_Accounts, m_Characters);
+        m_GameLoop = new ServerThread(m_PacketQueue, m_Network, m_Accounts, m_Characters, m_Inventory);
 
         m_Console.setDaemon(true);
 

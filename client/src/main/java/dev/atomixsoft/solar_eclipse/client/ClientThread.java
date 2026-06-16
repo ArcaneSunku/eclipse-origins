@@ -13,12 +13,10 @@ import dev.atomixsoft.solar_eclipse.core.event.EventBus;
 import dev.atomixsoft.solar_eclipse.core.event.types.InputEvent;
 import dev.atomixsoft.solar_eclipse.core.event.types.SendPacketEvent;
 import dev.atomixsoft.solar_eclipse.core.event.types.ShutdownEvent;
+import dev.atomixsoft.solar_eclipse.core.net.data.InventorySlotData;
 import dev.atomixsoft.solar_eclipse.core.net.packet.Packet;
 import dev.atomixsoft.solar_eclipse.core.net.PacketRegistry;
-import dev.atomixsoft.solar_eclipse.core.net.packet.notification.ChatMessageBroadcast;
-import dev.atomixsoft.solar_eclipse.core.net.packet.notification.EntityDespawn;
-import dev.atomixsoft.solar_eclipse.core.net.packet.notification.EntitySpawn;
-import dev.atomixsoft.solar_eclipse.core.net.packet.notification.ShutdownNotification;
+import dev.atomixsoft.solar_eclipse.core.net.packet.notification.*;
 import dev.atomixsoft.solar_eclipse.core.net.packet.response.*;
 import org.joml.Vector2f;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -282,6 +280,14 @@ public class ClientThread implements Runnable {
             }
 
             case EntitySpawn p -> {
+                m_Scenes.handlePackets(p);
+            }
+
+            case InventorySnapshotPacket p -> {
+                m_Scenes.handlePackets(p);
+            }
+
+            case ItemDefinitionSnapshotPacket p -> {
                 m_Scenes.handlePackets(p);
             }
 

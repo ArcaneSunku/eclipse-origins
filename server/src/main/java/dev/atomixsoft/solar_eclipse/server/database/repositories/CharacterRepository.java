@@ -5,6 +5,7 @@ import dev.atomixsoft.solar_eclipse.core.game.character.CharacterData;
 import dev.atomixsoft.solar_eclipse.server.database.Database;
 import dev.atomixsoft.solar_eclipse.server.database.records.CharacterRecord;
 import dev.atomixsoft.solar_eclipse.server.database.records.CharacterSummary;
+import dev.atomixsoft.solar_eclipse.server.game.classes.ClassDefinition;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -47,7 +48,7 @@ public class CharacterRepository {
     }
 
     public CharacterRecord createDefault(int accountId, String username) {
-        return createCharacter(accountId, 0, username, 1, Constants.SEX_MALE, 1);
+        throw new UnsupportedOperationException("Default character creation now request a class.");
     }
 
     public void saveState(int characterId, int mapId, int x, int y, int level,
@@ -115,7 +116,7 @@ public class CharacterRepository {
         return data;
     }
 
-    public CharacterRecord createCharacter(int accountId, int slot, String name, int classId, byte sex, int spriteId) {
+    public CharacterRecord createCharacter(int accountId, int slot, String name, ClassDefinition classDef, byte sex, int spriteId) {
         String sql = """
                 INSERT INTO characters (
                     account_id, slot, name, texture_id, sex, map_id, x, y, level,
@@ -131,11 +132,11 @@ public class CharacterRepository {
 
         int level = 1;
 
-        int health = 100;
-        int maxHealth = 100;
+        int maxHealth = 50 + classDef.endurance() * 10;
+        int health = maxHealth;
 
-        int spirit = 50;
-        int maxSpirit = 50;
+        int maxSpirit = 30 + classDef.willpower() * 5 + classDef.intelligence() * 5;
+        int spirit = maxSpirit;
 
         int experience = 0;
         int maxExperience = 100;
