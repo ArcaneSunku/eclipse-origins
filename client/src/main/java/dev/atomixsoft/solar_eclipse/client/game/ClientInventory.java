@@ -21,6 +21,21 @@ public class ClientInventory {
             m_Slots.put(slot.slot(), slot);
     }
 
+    public void swapSlots(int fromSlot, int toSlot) {
+        InventorySlotData from = m_Slots.get(fromSlot);
+        InventorySlotData to = m_Slots.get(toSlot);
+
+        if(from == null || from.itemId() <= 0)
+            return;
+
+        m_Slots.put(toSlot, new InventorySlotData(toSlot, from.itemId(), from.amount()));
+
+        if(to != null && to.itemId() > 0)
+            m_Slots.put(fromSlot, new InventorySlotData(from.slot(), to.itemId(), to.amount()));
+        else
+            m_Slots.put(fromSlot, new InventorySlotData(from.slot(), 0, 0));
+    }
+
     public InventorySlotData getSlot(int slot) {
         return m_Slots.get(slot);
     }

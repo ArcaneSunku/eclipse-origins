@@ -21,6 +21,7 @@ import dev.atomixsoft.solar_eclipse.server.game.ecs.components.*;
 import dev.atomixsoft.solar_eclipse.server.net.NetworkServer;
 import dev.atomixsoft.solar_eclipse.server.net.PacketQueue;
 import dev.atomixsoft.solar_eclipse.server.net.QueuedPacket;
+import dev.atomixsoft.solar_eclipse.server.net.services.SessionService;
 import dev.atomixsoft.solar_eclipse.server.net.services.records.LoginResultRec;
 import io.netty.channel.Channel;
 
@@ -167,6 +168,10 @@ public class ServerThread implements Runnable {
                     m_World.chat().broadcast(sender, p.message());
                 }
 
+                case InventoryMoveRequest p -> {
+                    handleInventoryMove(queued, p);
+                }
+
                 default -> {
                     System.out.println("Unhandled packet: " + queued.packet().getClass());
                 }
@@ -221,6 +226,7 @@ public class ServerThread implements Runnable {
         if(character == null)
             return;
 
+        m_World.sessions().selectCharacter(queued.channel(), character.id());
         Entity player = m_World.players().createPlayer(queued.channel(), m_World.characters().toCharacterData(character));
 
         int entityId = m_World.players().getEntityId(player);
@@ -281,6 +287,16 @@ public class ServerThread implements Runnable {
         m_World.inventory().createStartingInventory(created.id(), clazz.startingItems());
 
         sendCharacterList(queued.channel());
+    }
+
+    private void handleInventoryMove(QueuedPacket queued, InventoryMoveRequest packet) {
+        if(!m_World.sessions().hasSession(queued.channel()))
+            return;
+
+        int characterId = m_World.sessions().getCharacterId(queued.channel());
+
+        m_World.inventory().moveItem(characterId, packet.fromSlot(), packet.toSlot());
+        queued.channel().writeAndFlush(new InventorySnapshotPacket(m_World.inventory().createSnapshot(characterId)));
     }
 
     private EntitySpawn createEntitySpawn(Entity entity) {

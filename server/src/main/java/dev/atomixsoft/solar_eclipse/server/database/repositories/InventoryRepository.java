@@ -41,6 +41,45 @@ public class InventoryRepository {
         }
     }
 
+    public void swapSlots(int characterId, int fromSlot, int toSlot) {
+        InventorySlotRecord from = findSlot(characterId, fromSlot);
+        InventorySlotRecord to = findSlot(characterId, toSlot);
+
+        if(from == null || from.itemId() <= 0)
+            return;
+
+        setSlot(characterId, toSlot, from.itemId(), from.amount());
+
+        if(to != null & to.itemId() > 0)
+            setSlot(characterId, fromSlot, to.itemId(), to.amount());
+        else
+            setSlot(characterId, fromSlot, 0, 0);
+    }
+
+    public InventorySlotRecord findSlot(int characterId, int slot) {
+        String sql = """
+                SELECT character_id, slot, item_id, amount
+                FROM character_inventory
+                WHERE character_id = ? AND slot = ?
+                """;
+
+        try(Connection connection = m_Database.connect();
+            PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, characterId);
+            statement.setInt(2, slot);
+
+            try(ResultSet result = statement.executeQuery()) {
+                if(!result.next())
+                    return null;
+
+                return new InventorySlotRecord(result.getInt("character_id"), result.getInt("slot"),
+                        result.getInt("item_id"), result.getInt("amount"));
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException("Failed to find inventory slot: " + slot, e);
+        }
+    }
+
     public List<InventorySlotRecord> findByCharacterId(int characterId) {
         String sql = """
             SELECT character_id, slot, item_id, amount

@@ -53,6 +53,7 @@ public final class PacketRegistry {
         Register(105, CharacterListRequest.class, new CharacterListRequestCodec());
         Register(106, CharacterSelectReq.class, new CharacterSelectRequestCodec());
         Register(107, CreateCharacterRequest.class, new CreateCharacterRequestCodec());
+        Register(108, InventoryMoveRequest.class, new InventoryMoveRequestCodec());
 
         Register(200, LoginResponse.class, new LoginResponseCodec());
         Register(201, EntityPositionUpdate.class, new EntityPositionUpdateCodec());

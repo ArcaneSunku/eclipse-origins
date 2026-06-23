@@ -36,6 +36,19 @@ public class InventoryService {
         }
     }
 
+    public void moveItem(int characterId, int fromSlot, int toSlot) {
+        if(fromSlot < 0 || fromSlot >= Constants.MAX_INV)
+            return;
+
+        if(toSlot < 0 || toSlot >= Constants.MAX_INV)
+            return;
+
+        if(fromSlot == toSlot)
+            return;
+
+        m_InventoryRepository.swapSlots(characterId, fromSlot, toSlot);
+    }
+
     public List<InventorySlotData> createSnapshot(int characterId) {
         List<InventorySlotRecord> records = m_InventoryRepository.findByCharacterId(characterId);
 
