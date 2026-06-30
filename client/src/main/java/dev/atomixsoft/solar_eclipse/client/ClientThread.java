@@ -30,6 +30,7 @@ import dev.atomixsoft.solar_eclipse.client.util.input.InputHandler;
 import dev.atomixsoft.solar_eclipse.client.audio.AudioMaster;
 
 import dev.atomixsoft.solar_eclipse.client.graphics.RenderCmd;
+import dev.atomixsoft.solar_eclipse.client.graphics.RenderCapabilities;
 
 import dev.atomixsoft.solar_eclipse.client.scene.SceneHandler;
 import dev.atomixsoft.solar_eclipse.client.scene.MenuScene;
@@ -38,6 +39,9 @@ import dev.atomixsoft.solar_eclipse.client.scene.TestScene;
 
 public class ClientThread implements Runnable {
     private static ClientThread s_Instance = null;
+    private static final String MAIN_THREAD_NAME = "Main_Thread";
+    private static final boolean IS_MAC = System.getProperty("os.name").toLowerCase().contains("mac");
+
     public static Logger log() {
         return s_Instance.m_Logger;
     }
@@ -59,7 +63,6 @@ public class ClientThread implements Runnable {
 
     private final Controller m_Controller;
     private final EventBus m_EventBus;
-    private final Thread m_Thread;
     private final Logger m_Logger;
 
     private volatile boolean m_Running;
@@ -79,7 +82,6 @@ public class ClientThread implements Runnable {
         this.m_Controller = new Controller();
         this.m_EventBus = new EventBus();
 
-        this.m_Thread = new Thread(this, "Main_Thread");
         this.m_Logger = logger;
         this.m_GUIManager = new ImGuiManager();
 
@@ -99,7 +101,7 @@ public class ClientThread implements Runnable {
         }
 
         m_Running = true;
-        m_Thread.start();
+        run();
     }
 
     public synchronized void stop() {
@@ -110,7 +112,7 @@ public class ClientThread implements Runnable {
     }
 
     private void initialize() {
-        m_GUIManager.init(m_Window.getHandle(), "#version 130");
+        m_GUIManager.init(m_Window.getHandle(), IS_MAC ? "#version 150" : "#version 130");
         AudioMaster.Init();
 
         loadGUITextures("menu");
@@ -172,9 +174,11 @@ public class ClientThread implements Runnable {
 
     @Override
     public void run() {
+        Thread.currentThread().setName(MAIN_THREAD_NAME);
         this.m_Logger.debug("Client thread running...");
 
         m_Window = new Window(m_Title, 515, 352, true, true);
+        this.m_Logger.debug(RenderCapabilities.GetSummary());
         m_Window.show();
 
         RenderCmd.Init();
